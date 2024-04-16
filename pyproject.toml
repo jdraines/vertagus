@@ -1,0 +1,21 @@
+# setuptools pyproject.toml for a project called "vertagus" that is a
+# Python package
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vertagus"
+version = "0.1.0"
+description = "A tool to assist the maintenance of package versioning with scm tags"
+authors = [
+    {"name" = "John Raines", "email" = "johndanielraines@gmail.com"}
+]
+license = "GNU GPLv3"
+dependencies = [
+    "click",
+    "GitPython",
+    "tomli",
+    "packaging"
+]

@@ -1,0 +1,12 @@
+[project]
+rules = {comparisons = ["increasing"], validations = ["not_empty"]}
+scm = "git"
+
+[project.stages]
+dev = { rules = {validations = ["regex_dev_mmp"]}}
+beta = { rules = {validations = ["regex_beta_mmp"]}}
+prod = { rules = {validations = ["regex_mmp"]}}
+
+[[project.manifests]]
+type = "setuptools_pyproject"
+path = "./pyproject.toml"
