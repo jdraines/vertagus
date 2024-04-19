@@ -1,3 +1,5 @@
+[index](./index.md)
+
 Vertagus Code Components
 ========================
 

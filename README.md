@@ -23,7 +23,7 @@ Vertagus assumes some things about your development and versioning process:
   `toml`, and you declare your package version in that document. Vertagus calls these documents "manifests".
 - You are using a source control manager (scm) like [git](https://git-scm.com/) to manage your code's changes.
 - You would like to use your scm's tag feature to track versions. So, for example, if your package version is
-  `1.0.2` currently, you'd like your scm to tag this point in your code's history with something like `1.0.2` (thogh you 
+  `1.0.2` currently, you'd like your scm to tag this point in your code's history with something like `1.0.2` (though you 
   can customize the format some.)
 
 What it does
@@ -45,7 +45,8 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
 - **Tag Prefixes** in case you're developing in a repository that holds multiple packages. Or maybe you just like 
   prefixes.
 
-You declare these in a `vertagus.toml` file next to your package in your repository.
+You declare these in a `vertagus.toml` file next to your package in your repository. (See the [configuration](./docs/configuration.md) docs for more
+on the format of this file.)
 
 ### Command Line Interface
 
