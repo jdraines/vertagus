@@ -12,10 +12,12 @@ description = "A tool to assist the maintenance of package versioning with scm t
 authors = [
     {"name" = "John Raines", "email" = "johndanielraines@gmail.com"}
 ]
-license = "GNU GPLv3"
 dependencies = [
     "click",
     "GitPython",
     "tomli",
     "packaging"
 ]
+
+[project.license]
+file = "LICENSE"

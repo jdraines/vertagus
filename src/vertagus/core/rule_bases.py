@@ -1,17 +1,23 @@
+import typing as T
+
+
 class Rule:
     name: str = "base"
 
 
-class ComparisonRule(Rule):
+class VersionComparisonRule(Rule):
 
     @classmethod
-    def compare(cls, value1, value2):
-        raise NotImplementedError('Method compare must be implemented in subclass')
+    def validate_comparison(cls, versions: T.Sequence[str]):
+        raise NotImplementedError(
+            'Method `validate_comparison` must be implemented in subclass'
+        )
     
 
-
-class ValidationRule(Rule):
+class SingleVersionRule(Rule):
 
     @classmethod
-    def validate(cls, value):
-        raise NotImplementedError('Method validate must be implemented in subclass')
+    def validate_version(cls, version: str):
+        raise NotImplementedError(
+            'Method validate must be implemented in subclass'
+        )

@@ -1,6 +1,7 @@
 import typing as T
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import ValidationRule, ComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.core.alias_base import AliasBase
 from .package_base import Package
 
 
@@ -9,20 +10,35 @@ class Stage(Package):
     def __init__(self,
                  name: str,
                  manifests: list[ManifestBase],
-                 validation_rules: list[T.Type[ValidationRule]],
-                 comparison_rules: list[T.Type[ComparisonRule]],
+                 current_version_rules: list[T.Type[SingleVersionRule]],
+                 version_increment_rules: list[T.Type[VersionComparisonRule]],
+                 manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]],
+                 aliases: list[AliasBase] = None
                  ):
-        super().__init__(manifests, validation_rules, comparison_rules)
+        super().__init__(
+            manifests=manifests,
+            current_version_rules=current_version_rules,
+            version_increment_rules=version_increment_rules,
+            manifest_versions_comparison_rules=manifest_versions_comparison_rules,
+        )
         self.name = name
+        self.aliases = aliases or []
 
     @property
-    def validation_rules(self):
-        return self._validation_rules
+    def current_version_rules(self):
+        return self._current_version_rules
     
     @property
-    def comparison_rules(self):
-        return self._comparison_rules
+    def version_increment_rules(self):
+        return self._version_increment_rules
+    
+    @property
+    def manifest_versions_comparison_rules(self):
+        return self._manifest_versions_comparison_rules
     
     @property
     def manifests(self):
         return self._manifests
+
+    def get_version_aliases(self, version: str, alias_prefix: str = None) -> list[str]:
+        return [alias.create_alias(version, alias_prefix) for alias in self.aliases]

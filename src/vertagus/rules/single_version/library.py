@@ -1,21 +1,22 @@
 import re
-from vertagus.core.rule_bases import ValidationRule
+from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.utils import regex as regex_utils
 
-class NotEmpty(ValidationRule):
+
+class NotEmpty(SingleVersionRule):
     name = "not_empty"
 
     @classmethod
-    def validate(cls, value):
-        return bool(value)
+    def validate_version(cls, version):
+        return bool(version)
     
 
-class RegexRuleBase(ValidationRule):
+class RegexRuleBase(SingleVersionRule):
     pattern: str = ""
 
     @classmethod
-    def validate(cls, value):
-        return bool(re.match(cls.pattern, value))
+    def validate_version(cls, version):
+        return bool(re.match(cls.pattern, version))
 
 
 # Major-Minor-Patch Regex Rules
