@@ -13,20 +13,23 @@ from vertagus.aliases.loader import get_aliases
 from vertagus.rules.single_version.loader import get_rules as get_single_version_rules
 from vertagus.rules.comparison.loader import get_rules as get_version_comparison_rules
 
-from .configuration import _types as _T
+from .configuration import types as t
 
 
-def create_project(data: _T.ProjectData) -> Project:
+def create_project(data: t.ProjectData) -> Project:
     return Project(
         manifests=create_manifests(data.manifests),
         current_version_rules=create_single_version_rules(data.rules.current),
-        version_increment_rules=create_version_comparison_rules(data.rules.increment),
-        manifest_versions_comparison_rules=create_version_comparison_rules(data.rules.manifest_comparisons),
+        version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
+        manifest_versions_comparison_rules=create_version_comparison_rules(
+            ["manifests_comparison"],
+            {"manifests": data.rules.manifest_comparisons}
+        ),
         stages=create_stages(data.stages),
     )
 
 
-def create_manifests(manifest_data: list[_T.ManifestData]) -> list[ManifestBase]:
+def create_manifests(manifest_data: list[t.ManifestData]) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
         manifest_cls = get_manifest_cls(each.type)
@@ -35,31 +38,33 @@ def create_manifests(manifest_data: list[_T.ManifestData]) -> list[ManifestBase]
 
 
 def create_single_version_rules(rule_names: list[str]) -> list[SingleVersionRule]:
-    return [get_single_version_rules(name) for name in rule_names]
+    return get_single_version_rules(rule_names)
 
 
-def create_version_comparison_rules(rule_names: list[str]) -> list[VersionComparisonRule]:
-    return [get_version_comparison_rules(name) for name in rule_names]
-
+def create_version_comparison_rules(rule_names: list[str], config) -> list[VersionComparisonRule]:
+    rule_classes = get_version_comparison_rules(rule_names)
+    return [rule_cls(config=config) for rule_cls in rule_classes]
 
 def create_aliases(alias_names: list[str]) -> list[AliasBase]:
-    return [get_aliases(name) for name in alias_names]
+    return get_aliases(alias_names)
 
-
-def create_stages(stage_data: dict[str, _T.StageData]) -> list[Stage]:
+def create_stages(stage_data: dict[str, t.StageData]) -> list[Stage]:
     stages = []
-    for name, data in stage_data.items():
+    for data in stage_data:
         stages.append(Stage(
-            name=name,
+            name=data.name,
             manifests=create_manifests(data.manifests),
             current_version_rules=create_single_version_rules(data.rules.current),
-            version_increment_rules=create_version_comparison_rules(data.rules.increment),
-            manifest_versions_comparison_rules=create_version_comparison_rules(data.rules.manifest_comparisons),
+            version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
+            manifest_versions_comparison_rules=create_version_comparison_rules(
+                ["manifests_comparison"],
+                {"manifests": data.rules.manifest_comparisons}
+            ),
             aliases=create_aliases(data.aliases),
         ))
     return stages
 
 
-def create_scm(data: _T.ScmData) -> ScmBase:
+def create_scm(data: t.ScmData) -> ScmBase:
     scm_cls = get_scm_cls(data.scm_type)
     return scm_cls(**data.config())

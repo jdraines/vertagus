@@ -5,10 +5,12 @@ from vertagus.core.rule_bases import SingleVersionRule
 
 def load_rules() -> list[T.Type[SingleVersionRule]]:
     _rules = []
-    for obj in dir(library):
-        if issubclass(getattr(library, obj), SingleVersionRule):
+    for objname in dir(library):
+        maybeobj = getattr(library, objname)
+        if isinstance(maybeobj, type) and issubclass(maybeobj, SingleVersionRule):
+            obj: T.Type[SingleVersionRule] = maybeobj
             if obj.name != "base":
-                _rules.append(getattr(library, obj))
+                _rules.append(obj)
     return _rules
 
 

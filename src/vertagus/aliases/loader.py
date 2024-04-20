@@ -5,11 +5,12 @@ from vertagus.core.alias_base import AliasBase
 
 def load_rules() -> list[T.Type[AliasBase]]:
     _rules = []
-    for obj in dir(library):
-        if issubclass(getattr(library, obj), AliasBase):
-            obj: AliasBase = obj
+    for objname in dir(library):
+        maybeobj = getattr(library, objname)
+        if isinstance(maybeobj, type) and issubclass(maybeobj, AliasBase):
+            obj: AliasBase = maybeobj
             if obj.name and obj.name != "base":
-                _rules.append(getattr(library, obj))
+                _rules.append(obj)
     return _rules
 
 

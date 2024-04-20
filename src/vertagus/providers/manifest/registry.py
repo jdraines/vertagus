@@ -1,5 +1,5 @@
 import typing as T
-from setuptools_ import SetuptoolsPyprojectManifest
+from .setuptools_ import SetuptoolsPyprojectManifest
 
 _manifest_types = {
     SetuptoolsPyprojectManifest.manifest_type: SetuptoolsPyprojectManifest,

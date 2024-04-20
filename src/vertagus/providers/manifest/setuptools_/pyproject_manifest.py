@@ -6,7 +6,8 @@ class SetuptoolsPyprojectManifest(ManifestBase):
     manifest_type: str = "setuptools_pyproject"
     loc = ["project", "version"]
 
-    def __init__(self, path: str, loc: list = None):
+    def __init__(self, name: str, path: str, loc: list = None):
+        self.name = name
         self.path = path
         if loc:
             self.loc = loc
@@ -20,5 +21,5 @@ class SetuptoolsPyprojectManifest(ManifestBase):
         return p
 
     def _load_doc(self):
-        with open(self.path) as f:
+        with open(self.path, 'rb') as f:
             return tomli.load(f)

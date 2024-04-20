@@ -1,7 +1,8 @@
 import os
-from vertagus.core.scm_base import ScmBase
 import git
 from git.exc import GitCommandError
+from packaging import version
+from vertagus.core.scm_base import ScmBase
 
 class GitScm(ScmBase):
 
@@ -47,3 +48,14 @@ class GitScm(ScmBase):
             pass
         
         self.create_tag(alias, ref=ref)
+
+    def get_highest_version(self, prefix: str = None):
+        if not prefix and self.tag_prefix:
+            prefix = self.tag_prefix
+        tags = self.list_tags(prefix=prefix)
+        if not tags:
+            return None
+        versions = tags
+        if prefix:
+            versions = [tag.replace(prefix, "") for tag in tags]
+        return max(versions, key=lambda v: version.parse(v))

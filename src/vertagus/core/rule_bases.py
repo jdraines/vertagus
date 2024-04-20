@@ -7,8 +7,10 @@ class Rule:
 
 class VersionComparisonRule(Rule):
 
-    @classmethod
-    def validate_comparison(cls, versions: T.Sequence[str]):
+    def __init__(self, config: dict):
+        self.config = config
+
+    def validate_comparison(self, versions: T.Sequence[str]):
         raise NotImplementedError(
             'Method `validate_comparison` must be implemented in subclass'
         )

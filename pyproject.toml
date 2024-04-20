@@ -21,3 +21,6 @@ dependencies = [
 
 [project.license]
 file = "LICENSE"
+
+[project.scripts]
+vertagus = "vertagus.cli:cli"

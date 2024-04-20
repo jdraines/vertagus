@@ -5,11 +5,12 @@ from vertagus.core.rule_bases import VersionComparisonRule
 
 def load_rules():
     _rules = []
-    for obj in dir(library):
-        if issubclass(getattr(library, obj), VersionComparisonRule):
-            obj: T.Type[VersionComparisonRule] = obj
+    for objname in dir(library):
+        maybeobj = getattr(library, objname)
+        if isinstance(maybeobj, type) and issubclass(maybeobj, VersionComparisonRule):
+            obj: T.Type[VersionComparisonRule] = maybeobj
             if obj.name != "base":
-                _rules.append(getattr(library, obj))
+                _rules.append(obj)
     return _rules
 
 

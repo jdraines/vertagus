@@ -1,5 +1,5 @@
 import typing as T
-from git_ import GitScm
+from .git_ import GitScm
 
 
 _scm_types = {

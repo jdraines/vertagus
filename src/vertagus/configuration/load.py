@@ -1,7 +1,7 @@
 import tomli
-from ._types import MasterConfig
+from .types import MasterConfig
 
 
 def load_config(filepath: str) -> MasterConfig:
-    with open(filepath, "r") as f:
+    with open(filepath, "rb") as f:
         return tomli.load(f)

@@ -57,7 +57,7 @@ Vertagus provides two main operations in its `vertagus` CLI:
 The `validate` command looks like this:
 
 ```
-vertagus validate [--stage-name STAGE_NAME --file CONFIG_FILEPATH]
+vertagus validate [--stage-name STAGE_NAME --config CONFIG_FILEPATH]
 ```
 
 The `validate` command will check your configuration and run any rules that you have declared there. If any of the rules
@@ -69,7 +69,7 @@ error.
 The `create-tag` command looks like this:
 
 ```
-vertagus create-tag [--stage-name STAGE_NAME --file CONFIG_FILEPATH]
+vertagus create-tag [--stage-name STAGE_NAME --config CONFIG_FILEPATH]
 ```
 
 The `create-tag` command will check your configuration and create tags for the current version of your code as well as

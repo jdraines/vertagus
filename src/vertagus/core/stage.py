@@ -1,6 +1,7 @@
 import typing as T
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.alias_base import AliasBase
 from .package_base import Package
 
@@ -11,8 +12,8 @@ class Stage(Package):
                  name: str,
                  manifests: list[ManifestBase],
                  current_version_rules: list[T.Type[SingleVersionRule]],
-                 version_increment_rules: list[T.Type[VersionComparisonRule]],
-                 manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]],
+                 version_increment_rules: list[VersionComparisonRule],
+                 manifest_versions_comparison_rules: list[ManifestsComparisonRule],
                  aliases: list[AliasBase] = None
                  ):
         super().__init__(
