@@ -1,9 +1,15 @@
 import typing as T
+from logging import getLogger
+
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from .package_base import Package
 from .stage import Stage
+
+
+logger = getLogger(__name__)
+
 
 class Project(Package):
     
@@ -41,12 +47,25 @@ class Project(Package):
         current_version = self.get_version(stage_name)
         validated = True
         for rule in self._get_current_version_rules(stage_name):
+            logger.info(
+                f"Validating {rule.__name__} for {current_version}"
+            )
             validated = rule.validate_version(current_version)
             if not validated:
+                logger.error(
+                    f"Validation failed for {rule.__name__}"
+                )
                 return validated
         for rule in self._get_version_increment_rules(stage_name):
-            validated = rule.validate_comparison([previous_version, current_version])
+            versions = [previous_version, current_version]
+            logger.info(
+                f"Validating {rule.__class__.__name__} for {versions}"
+            )
+            validated = rule.validate_comparison(versions)
             if not validated:
+                logger.error(
+                    f"Validation failed for {rule.__class__.__name__}"
+                )
                 return validated
         for rule in self._get_manifest_versions_comparison_rules(stage_name):
             manifests = [
@@ -57,8 +76,14 @@ class Project(Package):
             if not manifests:
                 continue
             versions = [m.version for m in manifests]
+            logger.info(
+                f"Validating {rule.__class__.__name__} for {versions}"
+            )
             validated = rule.validate_comparison(versions)
             if not validated:
+                logger.error(
+                    f"Validation failed for {rule.__class__.__name__}"
+                )
                 return validated
         return validated
 

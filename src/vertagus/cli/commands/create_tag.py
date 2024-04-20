@@ -8,14 +8,12 @@ from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
 
-_cwd = Path(os.getcwd())
-
 
 @click.command(name="create-tag")
 @click.option(
     "--config", 
     "-c", 
-    default=str(_cwd / "vertagus.toml"), 
+    default=str(Path(os.getcwd()) / "vertagus.toml"), 
     help="Path to the configuration file"
 )
 @click.option(

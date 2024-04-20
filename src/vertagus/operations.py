@@ -17,13 +17,8 @@ def validate_project_version(scm: ScmBase,
         stage_name
     )
     current_version = project.get_version()
-    if not result:
-        logger.error(
-            f"Version for current version {current_version} validation failed: "
-            f"previous version: {previous_version}"
-        )
-    else:
-        logger.info(f"Validated: current version {current_version}")
+    if result:
+        logger.info(f"Successfully validated current version: {current_version}")
     return result
 
 
