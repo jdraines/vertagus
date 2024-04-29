@@ -1,0 +1,16 @@
+name: vertagus PR merge workflow
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "vertagus.toml"
+jobs:
+  tag-commit:
+    uses: ./.github/workflows/tag-commit.yml
+    with:
+      config_file: "./vertagus.toml"

@@ -1,0 +1,17 @@
+name: vertagus PR workflow
+on:
+  pull_request:
+    target:
+      - main
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "vertagus.toml"
+
+jobs:
+  check-version:
+    uses: ./.github/workflows/check-version.yml
+    with:
+      config_file: "./vertagus.toml"
+  run-tests:
+    uses: ./.github/workflows/run-tests.yml

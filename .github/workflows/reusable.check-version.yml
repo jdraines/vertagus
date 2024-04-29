@@ -1,0 +1,26 @@
+on:
+  workflow_call:
+    inputs:
+      config_file:
+        required: true
+        type: string
+        description: 'The vertagus configuration file to use for the version check'
+
+jobs:
+  version-check:
+    runs-obn: ubuntu-latest
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v4
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - name: install dependencies
+        run: pip install -e "." tomli packaging pyyaml
+      - name: run prod version check
+        if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
+        run: vertagus validate -c ${{ inputs.config_file }} -s prod
+      - name: run beta version check
+        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
+        run: vertagus validate -c ${{ inputs.config_file }} -s beta
