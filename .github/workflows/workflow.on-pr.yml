@@ -1,7 +1,7 @@
 name: vertagus PR workflow
 on:
   pull_request:
-    target:
+    branches:
       - main
     paths:
       - "src/**"
