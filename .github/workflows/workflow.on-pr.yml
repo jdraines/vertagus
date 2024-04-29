@@ -1,7 +1,7 @@
 name: vertagus PR workflow
 on:
   pull_request:
-    target:
+    branches:
       - main
     paths:
       - "src/**"
@@ -10,8 +10,8 @@ on:
 
 jobs:
   check-version:
-    uses: ./.github/workflows/check-version.yml
+    uses: ./.github/workflows/reusable.check-version.yml
     with:
       config_file: "./vertagus.toml"
   run-tests:
-    uses: ./.github/workflows/run-tests.yml
+    uses: ./.github/workflows/reusable.run-tests.yml

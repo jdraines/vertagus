@@ -11,6 +11,6 @@ on:
       - "vertagus.toml"
 jobs:
   tag-commit:
-    uses: ./.github/workflows/tag-commit.yml
+    uses: ./.github/workflows/reusable.tag-commit.yml
     with:
       config_file: "./vertagus.toml"

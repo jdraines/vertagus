@@ -8,7 +8,7 @@ on:
 
 jobs:
   create-tag:
-    runs-obn: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: checkout repo content
         uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
         run: pip install -e "." tomli packaging pyyaml
       - name: run prod version tag
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s prod
+        run: vertagus create-tag -c ${{ inputs.config_file }} -s prod
       - name: run beta version tag
         if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s beta
+        run: vertagus create-tag -c ${{ inputs.config_file }} -s beta

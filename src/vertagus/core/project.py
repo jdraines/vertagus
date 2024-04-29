@@ -93,8 +93,10 @@ class Project(Package):
                 self._get_manifests(stage_name)
                 if m.name in rule.manifest_names
             ]
-            if not manifests:
+            if not manifests and rule.manifest_names:
                 raise ValueError(f"Manifests {rule.manifest_names} not found.")
+            elif not manifests:
+                continue
             versions = [m.version for m in manifests]
             logger.info(
                 f"Validating {rule.__class__.__name__} for {versions}"
