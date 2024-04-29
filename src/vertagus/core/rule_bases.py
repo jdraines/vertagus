@@ -1,8 +1,10 @@
 import typing as T
+import json
 
 
 class Rule:
     name: str = "base"
+
 
 
 class VersionComparisonRule(Rule):
@@ -15,6 +17,9 @@ class VersionComparisonRule(Rule):
             'Method `validate_comparison` must be implemented in subclass'
         )
     
+    def __hash__(self):
+        return hash(json.dumps(self.__dict__, default=str, sort_keys=True))
+
 
 class SingleVersionRule(Rule):
 

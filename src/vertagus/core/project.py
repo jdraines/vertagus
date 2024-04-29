@@ -45,6 +45,18 @@ class Project(Package):
 
     def validate_version(self, previous_version: str, stage_name: str = None):
         current_version = self.get_version(stage_name)
+
+        validated = self._run_current_version_rules(current_version, stage_name)
+        if not validated:
+            return validated
+        
+        validated = self._run_version_increment_rules(previous_version, current_version, stage_name)
+        if not validated:
+            return validated
+        
+        return self._run_manifest_versions_comparison_rules(stage_name)
+
+    def _run_current_version_rules(self, current_version, stage_name=None):
         validated = True
         for rule in self._get_current_version_rules(stage_name):
             logger.info(
@@ -56,8 +68,12 @@ class Project(Package):
                     f"Validation failed for {rule.__name__}"
                 )
                 return validated
+        return validated
+
+    def _run_version_increment_rules(self, previous_version, current_version, stage_name=None):
+        validated = True
+        versions = [previous_version, current_version]
         for rule in self._get_version_increment_rules(stage_name):
-            versions = [previous_version, current_version]
             logger.info(
                 f"Validating {rule.__class__.__name__} for {versions}"
             )
@@ -67,6 +83,10 @@ class Project(Package):
                     f"Validation failed for {rule.__class__.__name__}"
                 )
                 return validated
+        return validated
+
+    def _run_manifest_versions_comparison_rules(self, stage_name=None):
+        validated = True
         for rule in self._get_manifest_versions_comparison_rules(stage_name):
             manifests = [
                 m for m in
@@ -74,7 +94,7 @@ class Project(Package):
                 if m.name in rule.manifest_names
             ]
             if not manifests:
-                continue
+                raise ValueError(f"Manifests {rule.manifest_names} not found.")
             versions = [m.version for m in manifests]
             logger.info(
                 f"Validating {rule.__class__.__name__} for {versions}"
@@ -92,28 +112,28 @@ class Project(Package):
         if stage_name:
             stage = self._get_stage(stage_name)
             manifests.extend(stage.manifests)
-        return manifests
+        return list(dict.fromkeys(manifests).keys())
     
     def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRule]:
         rules = self._current_version_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.current_version_rules)
-        return rules
+        return list(dict.fromkeys(rules).keys())
     
     def _get_version_increment_rules(self, stage_name=None) -> list[VersionComparisonRule]:
         rules = self._version_increment_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.version_increment_rules)
-        return rules
+        return list(dict.fromkeys(rules).keys())
 
     def _get_manifest_versions_comparison_rules(self, stage_name=None) -> list[ManifestsComparisonRule]:
         rules = self._manifest_versions_comparison_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.manifest_versions_comparison_rules)
-        return rules
+        return list(dict.fromkeys(rules).keys())
 
     def _get_stage(self, stage_name):
         for stage in self._stages:

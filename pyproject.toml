@@ -22,5 +22,15 @@ dependencies = [
 [project.license]
 file = "LICENSE"
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+qa = [
+    "pytest",
+    "pytest-cov",
+]
+
 [project.scripts]
 vertagus = "vertagus.cli:cli"
