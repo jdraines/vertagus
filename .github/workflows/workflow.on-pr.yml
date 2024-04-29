@@ -10,7 +10,7 @@ on:
 
 jobs:
   check-version:
-    uses: ./.github/workflows/check-version.yml
+    uses: ./.github/workflows/reusable.check-version.yml
     with:
       config_file: "./vertagus.toml"
   run-tests:
