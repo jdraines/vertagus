@@ -12,6 +12,7 @@ class ProjectConfig(T.TypedDict):
     manifests: list[T.Type["ManifestConfig"]]
     rules: "RulesConfig"
     stages: dict[str, "StageConfig"]
+    aliases: T.Optional[list[str]]
 
 
 class ManifestConfig(T.TypedDict):
@@ -103,11 +104,13 @@ class ProjectData:
     def __init__(self,
                  manifests: list[ManifestData],
                  rules: RulesData,
-                 stages: list[StageData]
+                 stages: list[StageData],
+                 aliases: list[str] = None
                  ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
         self.stages: list[StageData] = stages
+        self.aliases: list[str] = aliases
 
     def config(self):
         return dict(
@@ -116,6 +119,7 @@ class ProjectData:
             current_version_rules=self.rules.current,
             version_increment_rules=self.rules.increment,
             manifest_versions_comparison_rules=self.rules.manifest_comparisons,
+            aliases=self.aliases,
         )
     
     @classmethod
@@ -128,6 +132,7 @@ class ProjectData:
                 manifest_comparisons=config.get("rules").get("manifest_comparisons", []),
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in config["stages"].items()],
+            aliases=config.get("aliases", []),
         )
 
 
