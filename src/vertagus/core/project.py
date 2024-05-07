@@ -50,15 +50,12 @@ class Project(Package):
 
     def validate_version(self, previous_version: str, stage_name: str = None):
         current_version = self.get_version(stage_name)
-
         validated = self._run_current_version_rules(current_version, stage_name)
         if not validated:
             return validated
-        
         validated = self._run_version_increment_rules(previous_version, current_version, stage_name)
         if not validated:
             return validated
-        
         return self._run_manifest_versions_comparison_rules(stage_name)
 
     def _get_version_aliases(self, version: str, alias_prefix: str = None) -> list[str]:
