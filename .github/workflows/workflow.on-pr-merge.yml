@@ -9,8 +9,30 @@ on:
       - "src/**"
       - "pyproject.toml"
       - "vertagus.toml"
+
 jobs:
   tag-commit:
     uses: ./.github/workflows/reusable.tag-commit.yml
     with:
       config_file: "./vertagus.toml"
+
+  publish-to-test-pypi:
+    name: Upload release to PyPI
+      runs-on: ubuntu-latest
+      environment:
+        name: pypi
+        url: https://test.pypi.org/legacy/
+
+      url: https://pypi.org/p/<your-pypi-project-name>
+      permissions:
+        id-token: write 
+      steps:
+      - name: Build package
+        run: |
+          python3 -m pip install --upgrade build
+          python3 -m build
+
+      - name: Publish package distributions to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
