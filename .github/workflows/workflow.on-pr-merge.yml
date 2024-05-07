@@ -28,6 +28,7 @@ jobs:
     - name: Build package
       run: |
         python3 -m pip install --upgrade build
+        ls -al
         python3 -m build
 
     - name: Publish package distributions to TestPyPI
