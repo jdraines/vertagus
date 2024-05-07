@@ -9,6 +9,7 @@ on:
       - "src/**"
       - "pyproject.toml"
       - "vertagus.toml"
+
 jobs:
   tag-commit:
     uses: ./.github/workflows/reusable.tag-commit.yml
