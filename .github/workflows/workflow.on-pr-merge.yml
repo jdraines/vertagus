@@ -22,8 +22,6 @@ jobs:
     environment:
       name: pypi
       url: https://test.pypi.org/legacy/
-
-    url: https://pypi.org/p/<your-pypi-project-name>
     permissions:
       id-token: write 
     steps:
