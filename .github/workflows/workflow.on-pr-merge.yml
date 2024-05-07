@@ -18,21 +18,21 @@ jobs:
 
   publish-to-test-pypi:
     name: Upload release to PyPI
-      runs-on: ubuntu-latest
-      environment:
-        name: pypi
-        url: https://test.pypi.org/legacy/
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://test.pypi.org/legacy/
 
-      url: https://pypi.org/p/<your-pypi-project-name>
-      permissions:
-        id-token: write 
-      steps:
-      - name: Build package
-        run: |
-          python3 -m pip install --upgrade build
-          python3 -m build
+    url: https://pypi.org/p/<your-pypi-project-name>
+    permissions:
+      id-token: write 
+    steps:
+    - name: Build package
+      run: |
+        python3 -m pip install --upgrade build
+        python3 -m build
 
-      - name: Publish package distributions to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
+    - name: Publish package distributions to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
