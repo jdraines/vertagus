@@ -7,11 +7,16 @@ from vertagus.core.scm_base import ScmBase
 class GitScm(ScmBase):
 
     scm_type = "git"
+    _default_user_data = {
+        "name": "vertagus",
+        "email": "vertagus@example.com"
+    }
 
-    def __init__(self, root: str = None, tag_prefix: str = None):
+    def __init__(self, root: str = None, tag_prefix: str = None, user_data: dict = None):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
-        self._repo = git.Repo(self.root)
+        self.user_data = user_data or self._default_user_data
+        self._repo = self._initialize_repo()
 
     def create_tag(self, tag_name: str, ref: str=None):
         if self.tag_prefix:
@@ -59,3 +64,13 @@ class GitScm(ScmBase):
         if prefix:
             versions = [tag.replace(prefix, "") for tag in tags]
         return max(versions, key=lambda v: version.parse(v))
+    
+    def _initialize_repo(self):
+        repo = git.Repo(self.root)
+        repo.config_writer().set_value(
+            "user", "name", self.user_data['name']
+        ).release()
+        repo.config_writer().set_value(
+            "user", "email", self.user_data['email']
+        ).release()
+        return repo

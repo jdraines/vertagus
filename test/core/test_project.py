@@ -108,6 +108,15 @@ def mock_alias():
 
 
 @pytest.fixture
+def mock_proj_alias():
+    class MockAlias:
+        def create_alias(self, version: str, alias_prefix: str = None):
+            return f"{alias_prefix}projtest-{version}"
+    return MockAlias()
+
+
+
+@pytest.fixture
 def mock_stage(mock_manifests,
                mock_current_version_rules,
                mock_version_increment_rules,
@@ -300,3 +309,19 @@ def test__get_manifests(test_project: Project,
     test_project._stages[0]._manifests = [mock_manifest_higher_version]
     assert len(test_project._get_manifests("test_stage")) == 2
     assert test_project._get_manifests("test_stage")[1] == mock_manifest_higher_version
+
+
+def test__get_version_aliases(test_project: Project,
+                              mock_alias
+                              ):
+    test_project.aliases = [mock_alias]
+    assert test_project._get_version_aliases("0.0.0", "prefix-") == ["prefix-test-0.0.0"]
+
+
+def test_get_aliases(test_project: Project,
+                     mock_proj_alias,
+                     mock_stage_with_alias: Stage
+                     ):
+    test_project._stages = [mock_stage_with_alias]
+    test_project.aliases = [mock_proj_alias]
+    assert test_project.get_aliases("test_stage", "prefix-") == ["prefix-projtest-0.0.0", "prefix-test-0.0.0"]

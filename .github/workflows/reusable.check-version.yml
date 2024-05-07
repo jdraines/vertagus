@@ -21,6 +21,9 @@ jobs:
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s prod
+      - name: run dev version check
+        if: ${{ startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
+        run: vertagus validate -c ${{ inputs.config_file }} -s dev
       - name: run beta version check
-        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
+        if: ${{ !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s beta

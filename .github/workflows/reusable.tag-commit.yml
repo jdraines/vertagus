@@ -22,5 +22,5 @@ jobs:
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus create-tag -c ${{ inputs.config_file }} -s prod
       - name: run beta version tag
-        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
+        if: ${{ !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus create-tag -c ${{ inputs.config_file }} -s beta

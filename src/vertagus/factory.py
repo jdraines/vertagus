@@ -26,6 +26,7 @@ def create_project(data: t.ProjectData) -> Project:
             {"manifests": data.rules.manifest_comparisons}
         ),
         stages=create_stages(data.stages),
+        aliases=create_aliases(data.aliases)
     )
 
 
