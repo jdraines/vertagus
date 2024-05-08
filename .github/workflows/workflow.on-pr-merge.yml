@@ -17,25 +17,25 @@ jobs:
     with:
       config_file: "./vertagus.toml"
 
-  # publish-to-pypi:
-  #   name: Upload release to PyPI
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/vertagus
-  #   permissions:
-  #     id-token: write 
-  #   steps:
-  #   - name: checkout repo content
-  #     uses: actions/checkout@v4
-  #   - name: Set up Python
-  #     uses: actions/setup-python@v5
-  #     with:
-  #       python-version: '3.x'
-  #   - name: Build package
-  #     run: |
-  #       python3 -m pip install --upgrade build
-  #       ls -al
-  #       python3 -m build
-  #   - name: Publish package distributions to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
+  publish-to-pypi:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/vertagus
+    permissions:
+      id-token: write 
+    steps:
+    - name: checkout repo content
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Build package
+      run: |
+        python3 -m pip install --upgrade build
+        ls -al
+        python3 -m build
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
