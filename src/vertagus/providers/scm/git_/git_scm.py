@@ -43,7 +43,7 @@ class GitScm(ScmBase):
         self._repo.git.push(tags=True)
     
     def delete_tag(self, tag: Tag):
-        _tags = self.list_tags()
+        _tags = [t.name for t in self._repo.tags]
         logger.info(
             f"Tags found: {_tags}"
         )
@@ -92,4 +92,5 @@ class GitScm(ScmBase):
         repo.config_writer().set_value(
             "user", "email", self.user_data['email']
         ).release()
+        repo.remotes.origin.pull()
         return repo
