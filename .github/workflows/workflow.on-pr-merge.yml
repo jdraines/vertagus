@@ -32,7 +32,5 @@ jobs:
         python3 -m pip install --upgrade build
         ls -al
         python3 -m build
-    - name: Publish package distributions to TestPyPI
+    - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://test.pypi.org/legacy/
