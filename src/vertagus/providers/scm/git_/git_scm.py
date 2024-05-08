@@ -64,7 +64,7 @@ class GitScm(ScmBase):
             f"Migrating alias {alias.name} to ref {ref}"
         )
         try:
-            self._repo.delete_tag(alias.as_string(self.tag_prefix))
+            self.delete_tag(alias)
         except GitCommandError as e:
             logger.error(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
