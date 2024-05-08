@@ -12,6 +12,6 @@ jobs:
   check-version:
     uses: ./.github/workflows/reusable.check-version.yml
     with:
-      config_file: "./vertagus.toml"
+      config_file: "./vertagus.yaml"
   run-tests:
     uses: ./.github/workflows/reusable.run-tests.yml

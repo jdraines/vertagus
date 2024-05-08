@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/reusable.tag-commit.yml
     permissions: write-all
     with:
-      config_file: "./vertagus.toml"
+      config_file: "./vertagus.yaml"
 
   publish-to-pypi:
     name: Upload release to PyPI
