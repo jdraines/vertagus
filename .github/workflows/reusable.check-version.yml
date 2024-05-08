@@ -18,12 +18,15 @@ jobs:
           python-version: 3.11
       - name: install dependencies
         run: pip install -e "." tomli packaging pyyaml
+      - name: run dev version check
+        if: ${{ startsWith( github.head_ref, 'dev/' ) }}
+        run: vertagus validate -c ${{ inputs.config_file }} -s dev
+      - name: run beta version check
+        if: ${{ startsWith( github.head_ref, 'beta/' )}}
+        run: vertagus validate -c ${{ inputs.config_file }} -s beta
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s prod
-      - name: run dev version check
-        if: ${{ startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s dev
-      - name: run beta version check
-        if: ${{ !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s beta
+      - name: deny version check
+        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'beta/' ) }}
+        run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1
