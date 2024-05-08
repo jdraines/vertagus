@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vertagus"
-version = "0.1.0b2"
+version = "0.1.0b3"
 description = "A tool to assist the maintenance of package versioning with scm tags"
 readme = "README.md"
 authors = [
@@ -19,6 +19,18 @@ dependencies = [
     "tomli",
     "packaging"
 ]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
 
 [project.license]
 file = "LICENSE"
@@ -35,3 +47,4 @@ qa = [
 
 [project.scripts]
 vertagus = "vertagus.cli:cli"
+
