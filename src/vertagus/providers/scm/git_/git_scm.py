@@ -42,10 +42,10 @@ class GitScm(ScmBase):
         )
         self._repo.git.push(tags=True)
     
-    def delete_tag(self, tag_name: str):
-        if self.tag_prefix:
-            tag_name = f"{self.tag_prefix}{tag_name}"
-        self._repo.delete_tag(tag_name)
+    def delete_tag(self, tag: Tag):
+        tag_text = tag.as_string(self.tag_prefix)
+        self._repo.delete_tag(tag_text)
+        self._repo.git.push(tags=True)
     
     def list_tags(self, prefix: str=None):
         tags = self._repo.tags
@@ -56,13 +56,10 @@ class GitScm(ScmBase):
         return tags
 
     def migrate_alias(self, alias: str, ref: str = None):
-        if self.tag_prefix:
-            alias = f"{self.tag_prefix}{alias}"
         try:
             self._repo.delete_tag(alias)
         except GitCommandError:
             pass
-        
         self.create_tag(alias, ref=ref)
 
     def get_highest_version(self, prefix: str = None):
