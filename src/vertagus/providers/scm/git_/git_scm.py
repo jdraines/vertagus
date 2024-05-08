@@ -43,6 +43,10 @@ class GitScm(ScmBase):
         self._repo.git.push(tags=True)
     
     def delete_tag(self, tag: Tag):
+        _tags = self.list_tags()
+        logger.info(
+            f"Tags found: {_tags}"
+        )
         tag_text = tag.as_string(self.tag_prefix)
         self._repo.delete_tag(tag_text)
         self._repo.git.push(tags=True)
