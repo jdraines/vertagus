@@ -11,7 +11,7 @@ from vertagus.core.project import (
     ManifestsComparisonRule,
     Stage
 )
-from vertagus.core.alias_base import AliasBase
+from vertagus.core.tag_base import AliasBase
 
 @pytest.fixture
 def mock_manifests():
@@ -101,19 +101,20 @@ def mock_manifest_versions_comparison_rule_fail():
 
 @pytest.fixture
 def mock_alias():
-    class MockAlias:
-        def create_alias(self, version: str, alias_prefix: str = None):
-            return f"{alias_prefix}test-{version}"
-    return MockAlias()
+    class MockAlias(AliasBase):
+        
+        def as_string(self, prefix: str = None) -> str:
+            return f"{prefix}test-{self.tag_text}"
+    return MockAlias
 
 
 @pytest.fixture
 def mock_proj_alias():
-    class MockAlias:
-        def create_alias(self, version: str, alias_prefix: str = None):
-            return f"{alias_prefix}projtest-{version}"
-    return MockAlias()
-
+    class MockProjAlias(AliasBase):
+        
+        def as_string(self, prefix: str = None) -> str:
+            return f"{prefix}projtest-{self.tag_text}"
+    return MockProjAlias
 
 
 @pytest.fixture
@@ -315,7 +316,8 @@ def test__get_version_aliases(test_project: Project,
                               mock_alias
                               ):
     test_project.aliases = [mock_alias]
-    assert test_project._get_version_aliases("0.0.0", "prefix-") == ["prefix-test-0.0.0"]
+    aliases = test_project._get_version_aliases("0.0.0")
+    assert [a.as_string("prefix-") for a in aliases] == ["prefix-test-0.0.0"]
 
 
 def test_get_aliases(test_project: Project,
@@ -324,4 +326,6 @@ def test_get_aliases(test_project: Project,
                      ):
     test_project._stages = [mock_stage_with_alias]
     test_project.aliases = [mock_proj_alias]
-    assert test_project.get_aliases("test_stage", "prefix-") == ["prefix-projtest-0.0.0", "prefix-test-0.0.0"]
+    aliases = test_project.get_aliases("test_stage") 
+    alias_strs = [alias.as_string("prefix-") for alias in aliases]
+    assert alias_strs == ["prefix-projtest-0.0.0", "prefix-test-0.0.0"]

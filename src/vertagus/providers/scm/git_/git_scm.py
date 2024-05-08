@@ -1,8 +1,15 @@
 import os
+from logging import getLogger
+
 import git
 from git.exc import GitCommandError
 from packaging import version
 from vertagus.core.scm_base import ScmBase
+from vertagus.core.tag_base import Tag
+
+
+logger = getLogger(__name__)
+
 
 class GitScm(ScmBase):
 
@@ -18,18 +25,21 @@ class GitScm(ScmBase):
         self.user_data = user_data or self._default_user_data
         self._repo = self._initialize_repo()
 
-    def create_tag(self, tag_name: str, ref: str=None):
-        if self.tag_prefix:
-            tag_name = f"{self.tag_prefix}{tag_name}"
+    def create_tag(self, tag: Tag, ref: str=None):
+        tag_prefix = self.tag_prefix or ""
+        tag_text = tag.as_string(tag_prefix)
         if ref:
             commit = self._repo.commit(ref)
         else:
             commit = self._repo.head.commit
-        self._repo.create_tag(
-            path=tag_name,
-            ref=commit,
-            message=tag_name,
+        logger.info(
+            f"Creating tag {tag_text} at commit {commit}"
         )
+        # self._repo.create_tag(
+        #     path=tag_name,
+        #     ref=commit,
+        #     message=tag_name,
+        # )
     
     def delete_tag(self, tag_name: str):
         if self.tag_prefix:
@@ -67,6 +77,10 @@ class GitScm(ScmBase):
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)
+        logger.info(
+            f"Initializing git repository at {self.root} "
+            f"with user data {self.user_data}."
+        )
         repo.config_writer().set_value(
             "user", "name", self.user_data['name']
         ).release()
