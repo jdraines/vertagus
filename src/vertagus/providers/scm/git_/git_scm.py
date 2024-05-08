@@ -1,8 +1,14 @@
 import os
+from logging import getLogger
+
 import git
 from git.exc import GitCommandError
 from packaging import version
 from vertagus.core.scm_base import ScmBase
+
+
+logger = getLogger(__name__)
+
 
 class GitScm(ScmBase):
 
@@ -67,6 +73,10 @@ class GitScm(ScmBase):
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)
+        logger.info(
+            f"Initializing git repository at {self.root} "
+            f"with user data {self.user_data}."
+        )
         repo.config_writer().set_value(
             "user", "name", self.user_data['name']
         ).release()

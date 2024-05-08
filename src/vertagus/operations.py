@@ -27,10 +27,14 @@ def create_tags(scm: ScmBase,
                 stage_name: str = None,
                 ref: str = None
                 ) -> None:
+    logger.info(f"Creating tags for project {project.name}, stage {stage_name}")
     version = project.get_version()
     scm.create_tag(version, ref=ref)
     if stage_name:
         aliases = project.get_aliases(stage_name, scm.tag_prefix)
         for alias in aliases:
+            logger.info(
+                f"Creating tag {alias} for project {project.name}, stage {stage_name}"
+            )
             scm.create_tag(alias, ref=ref)
     
