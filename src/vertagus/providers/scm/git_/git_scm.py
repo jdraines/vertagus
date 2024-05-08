@@ -35,11 +35,12 @@ class GitScm(ScmBase):
         logger.info(
             f"Creating tag {tag_text} at commit {commit}"
         )
-        # self._repo.create_tag(
-        #     path=tag_name,
-        #     ref=commit,
-        #     message=tag_name,
-        # )
+        self._repo.create_tag(
+            path=tag_text,
+            ref=commit,
+            message=tag_text,
+        )
+        self._repo.git.push(tags=True)
     
     def delete_tag(self, tag_name: str):
         if self.tag_prefix:
