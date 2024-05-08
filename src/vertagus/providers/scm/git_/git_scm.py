@@ -5,7 +5,7 @@ import git
 from git.exc import GitCommandError
 from packaging import version
 from vertagus.core.scm_base import ScmBase
-from vertagus.core.tag_base import Tag
+from vertagus.core.tag_base import Tag, AliasBase
 
 
 logger = getLogger(__name__)
@@ -55,11 +55,14 @@ class GitScm(ScmBase):
             tags = [tag for tag in tags if tag.name.startswith(prefix)]
         return tags
 
-    def migrate_alias(self, alias: str, ref: str = None):
+    def migrate_alias(self, alias: AliasBase, ref: str = None):
+        logger.info(
+            f"Migrating alias {alias.name} to ref {ref}"
+        )
         try:
             self._repo.delete_tag(alias)
-        except GitCommandError:
-            pass
+        except GitCommandError as e:
+            logger.error(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
     def get_highest_version(self, prefix: str = None):
