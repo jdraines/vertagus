@@ -52,7 +52,7 @@ def create_version_comparison_rules(rule_names: list[str], config) -> list[Versi
 def create_aliases(alias_names: list[str]) -> list[AliasBase]:
     return get_aliases(alias_names)
 
-def create_stages(stage_data: dict[str, t.StageData]) -> list[Stage]:
+def create_stages(stage_data: list[t.StageData]) -> list[Stage]:
     stages = []
     for data in stage_data:
         stages.append(Stage(

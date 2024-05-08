@@ -15,6 +15,8 @@ def load_rules() -> list[T.Type[AliasBase]]:
 
 
 def get_aliases(alias_names) -> list[T.Type[AliasBase]]:
-    aliases: list[T.Type[AliasBase]] = load_rules()
+    if not alias_names:
+        return []
+    aliases: list[T.Type[AliasBase]] = load_rules() or []
     alias_d = {alias.name: alias for alias in aliases if alias.name in alias_names}
     return [alias_d[alias_name] for alias_name in alias_names]

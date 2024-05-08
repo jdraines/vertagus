@@ -4,10 +4,9 @@ from logging import getLogger
 import git
 from git.remote import Remote
 from git.exc import GitCommandError
-from packaging import version
+from packaging.version import parse as parse_version, InvalidVersion
 from vertagus.core.scm_base import ScmBase
 from vertagus.core.tag_base import Tag, AliasBase
-
 
 logger = getLogger(__name__)
 
@@ -106,7 +105,16 @@ class GitScm(ScmBase):
         versions = tags
         if prefix:
             versions = [tag.replace(prefix, "") for tag in tags]
-        return max(versions, key=lambda v: version.parse(v))
+        
+        valid_versions = []
+        for version in versions:
+            try:
+                parse_version(version)
+                valid_versions.append(version)
+            except InvalidVersion:
+                logger.warning(f"Invalid version found: {version}")
+
+        return max(valid_versions, key=lambda v: parse_version(v))
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)
