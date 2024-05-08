@@ -18,12 +18,24 @@ class GitScm(ScmBase):
         "name": "vertagus",
         "email": "vertagus@example.com"
     }
+    _default_remote_name = "origin"
 
-    def __init__(self, root: str = None, tag_prefix: str = None, user_data: dict = None):
+    def __init__(self,
+                 root: str = None,
+                 tag_prefix: str = None,
+                 user_data: dict = None,
+                 remote_name: str = None
+                 ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
         self.user_data = user_data or self._default_user_data
+        self.remote_name = remote_name or self._default_remote_name
         self._repo = self._initialize_repo()
+
+    @property
+    def remote(self):
+        return self._repo.remotes[self.remote_name]
+
 
     def create_tag(self, tag: Tag, ref: str=None):
         tag_prefix = self.tag_prefix or ""
@@ -48,7 +60,18 @@ class GitScm(ScmBase):
             f"Tags found: {_tags}"
         )
         tag_text = tag.as_string(self.tag_prefix)
-        self._repo.delete_tag(tag_text)
+        try:
+            self._repo.delete_tag(tag_text)
+        except GitCommandError as e:
+            logger.warning(
+                f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}"
+            )
+        try:
+            self._repo.git.execute(["git", "push", "--delete", self.remote_name, tag_text])
+        except GitCommandError as e:
+            logger.warning(
+                f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}"
+            )
         self._repo.git.push(tags=True)
     
     def list_tags(self, prefix: str=None):
