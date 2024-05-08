@@ -2,6 +2,7 @@ import os
 from logging import getLogger
 
 import git
+from git.remote import Remote
 from git.exc import GitCommandError
 from packaging import version
 from vertagus.core.scm_base import ScmBase
@@ -33,7 +34,7 @@ class GitScm(ScmBase):
         self._repo = self._initialize_repo()
 
     @property
-    def remote(self):
+    def remote(self) -> Remote:
         return self._repo.remotes[self.remote_name]
 
 
@@ -115,5 +116,4 @@ class GitScm(ScmBase):
         repo.config_writer().set_value(
             "user", "email", self.user_data['email']
         ).release()
-        repo.remotes.origin.pull()
         return repo
