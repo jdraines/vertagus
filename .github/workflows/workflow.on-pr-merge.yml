@@ -16,12 +16,12 @@ jobs:
     with:
       config_file: "./vertagus.toml"
 
-  publish-to-test-pypi:
+  publish-to-pypi:
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://test.pypi.org/legacy/
+      url: https://pypi.org/p/vertagus
     permissions:
       id-token: write 
     steps:
