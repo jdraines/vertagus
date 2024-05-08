@@ -1,6 +1,6 @@
 import typing as T
 from . import library
-from vertagus.core.alias_base import AliasBase
+from vertagus.core.tag_base import AliasBase
 
 
 def load_rules() -> list[T.Type[AliasBase]]:

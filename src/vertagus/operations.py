@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from vertagus.core.project import Project
+from vertagus.core.tag_base import Tag, AliasBase
 from vertagus.core.scm_base import ScmBase
 
 
@@ -27,14 +28,10 @@ def create_tags(scm: ScmBase,
                 stage_name: str = None,
                 ref: str = None
                 ) -> None:
-    logger.info(f"Creating tags for project {project.name}, stage {stage_name}")
-    version = project.get_version()
-    scm.create_tag(version, ref=ref)
+    tag = Tag(project.get_version())
+    scm.create_tag(tag, ref=ref)
     if stage_name:
-        aliases = project.get_aliases(stage_name, scm.tag_prefix)
+        aliases = project.get_aliases(stage_name)
         for alias in aliases:
-            logger.info(
-                f"Creating tag {alias} for project {project.name}, stage {stage_name}"
-            )
             scm.create_tag(alias, ref=ref)
     

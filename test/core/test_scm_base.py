@@ -5,7 +5,7 @@ from vertagus.core import scm_base as sb
 
 def test_scm_base_is_abstract():
     with pytest.raises(NotImplementedError):
-        sb.ScmBase()
+        sb.ScmBase(None)
         
     scm_base = sb.ScmBase.__new__(sb.ScmBase)
 

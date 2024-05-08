@@ -10,7 +10,7 @@ from vertagus.core.stage import (
     ManifestsComparisonRule,
     Stage
 )
-from vertagus.core.alias_base import AliasBase
+from vertagus.core.tag_base import AliasBase
 
 
 @pytest.fixture
@@ -102,9 +102,10 @@ def mock_manifest_versions_comparison_rule_fail():
 @pytest.fixture
 def mock_alias():
     class MockAlias(AliasBase):
-        def create_alias(self, version: str, alias_prefix: str = None):
-            return f"{alias_prefix}test-{version}"
-    return MockAlias()
+        def as_string(self, prefix: str = None) -> str:
+            return f"{prefix}test-{self.tag_text}"
+    return MockAlias
+
 
 
 @pytest.fixture
@@ -153,4 +154,5 @@ def test_stage_init(mock_stage: Stage,
 
 
 def test_stage_get_version_aliases(mock_stage_with_alias: Stage):
-    assert mock_stage_with_alias.get_version_aliases("0.0.0", "prefix-") == ["prefix-test-0.0.0"]
+    aliases = mock_stage_with_alias.get_version_aliases("0.0.0")
+    assert [a.as_string("prefix-") for a in aliases] == ["prefix-test-0.0.0"]

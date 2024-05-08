@@ -1,3 +1,4 @@
+from .tag_base import Tag
 import typing as T
 
 
@@ -6,10 +7,10 @@ class ScmBase:
     scm_tpe = "base"
     tag_prefix: T.Optional[str] = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, root: str, **kwargs):
         raise NotImplementedError()
 
-    def create_tag(self, tag_name: str, ref: str=None):
+    def create_tag(self, tag: Tag, ref: str=None):
         raise NotImplementedError()
     
     def delete_tag(self, tag_name: str):

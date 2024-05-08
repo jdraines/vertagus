@@ -4,7 +4,7 @@ from logging import getLogger
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
-from vertagus.core.alias_base import AliasBase
+from vertagus.core.tag_base import AliasBase
 from .package_base import Package
 from .stage import Stage
 
@@ -20,17 +20,16 @@ class Project(Package):
                  version_increment_rules: list[VersionComparisonRule],
                  manifest_versions_comparison_rules: list[ManifestsComparisonRule],
                  stages: list[Stage] = None,
-                 aliases: list[AliasBase] = None
+                 aliases: list[type[AliasBase]] = None
                  ):
         super().__init__(
             manifests=manifests,
             current_version_rules=current_version_rules,
             version_increment_rules=version_increment_rules,
-            manifest_versions_comparison_rules=manifest_versions_comparison_rules,
+            manifest_versions_comparison_rules=manifest_versions_comparison_rules
         )
         self._stages = stages or []
         self.aliases = aliases or []
-
     @property
     def stages(self):
         return self._stages
@@ -41,11 +40,11 @@ class Project(Package):
             raise ValueError("No manifests found.")
         return manifests[0].version
 
-    def get_aliases(self, stage_name: str, alias_prefix: str = None) -> list[str]:
+    def get_aliases(self, stage_name: str) -> list[AliasBase]:
         version = self.get_version()
-        aliases = self._get_version_aliases(version, alias_prefix)
+        aliases = self._get_version_aliases(version)
         stage = self._get_stage(stage_name)
-        aliases.extend(stage.get_version_aliases(version, alias_prefix))
+        aliases.extend(stage.get_version_aliases(version))
         return list(dict.fromkeys(aliases).keys())
 
     def validate_version(self, previous_version: str, stage_name: str = None):
@@ -58,8 +57,8 @@ class Project(Package):
             return validated
         return self._run_manifest_versions_comparison_rules(stage_name)
 
-    def _get_version_aliases(self, version: str, alias_prefix: str = None) -> list[str]:
-        return [alias.create_alias(version, alias_prefix) for alias in self.aliases]
+    def _get_version_aliases(self, version: str) -> list[AliasBase]:
+        return [alias(version) for alias in self.aliases]
 
     def _run_current_version_rules(self, current_version, stage_name=None):
         validated = True
