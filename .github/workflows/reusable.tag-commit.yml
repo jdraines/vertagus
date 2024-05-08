@@ -9,6 +9,7 @@ on:
 jobs:
   create-tag:
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: checkout repo content
         uses: actions/checkout@v4
