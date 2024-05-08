@@ -17,7 +17,8 @@ dependencies = [
     "click",
     "GitPython",
     "tomli",
-    "packaging"
+    "packaging",
+    "PyYAML>=6"
 ]
 classifiers = [
   "Development Status :: 4 - Beta",

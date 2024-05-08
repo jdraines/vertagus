@@ -3,8 +3,9 @@
 Configuration
 =============
 
-Vertagus uses `toml` for its configuration format. You can see the `vertagus.toml` file at the root of this repository
-for an example. Here's another one:
+Vertagus uses `toml` or `yaml` for its configuration format. 
+You can see the `vertagus.yaml` file at the root of this repository 
+for an example. Here's what that same file looks like in `toml` format:
 
 ```toml
 [scm]
@@ -13,7 +14,7 @@ tag_prefix = "v"
 
 [project.rules]
 current = ["not_empty"]
-increment = ["any"]
+increment = ["any_increment"]
 manifest_comparisons = []
 
 [project.stages.dev.rules]
@@ -29,7 +30,7 @@ current = ["regex_beta_mmp"]
 aliases = ["string:stable", "string:latest", "major.minor"]
 
 [project.stages.prod.rules]
-current = ["regex_prod"]
+current = ["regex_mmp"]
 
 [[project.manifests]]
 type = "setuptools_pyproject"
