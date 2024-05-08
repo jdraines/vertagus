@@ -79,7 +79,7 @@ class GitScm(ScmBase):
         
         tags = [
             t.strip() for t in
-            self._repo.git.execute(["ls-remote", "--tags", self.remote_name]).split("\n")
+            self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]).split("\n")
             ]
         if not prefix and self.tag_prefix:
             prefix = self.tag_prefix
