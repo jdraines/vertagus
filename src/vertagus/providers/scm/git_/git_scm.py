@@ -81,12 +81,10 @@ class GitScm(ScmBase):
             self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]).split("\n")
             if not t.endswith("^{}")
         ]
-        logger.info(f"Tags: {tags}")
         if not prefix and self.tag_prefix:
             prefix = self.tag_prefix
         if prefix:
             tags = [tag for tag in tags if tag.startswith(prefix)]
-        logger.info(f"Tags: {tags}")
         return tags
 
     def migrate_alias(self, alias: AliasBase, ref: str = None):
