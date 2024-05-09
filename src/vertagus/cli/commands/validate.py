@@ -30,6 +30,9 @@ def validate(config, stage_name):
     scm = factory.create_scm(
         cfgtypes.ScmData(**master_config["scm"])
     )
+    default_package_root = Path(config).parent
+    if "root" not in master_config["project"]:
+        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"])
     )

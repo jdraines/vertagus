@@ -30,14 +30,14 @@ from vertagus import operations as ops
 )
 def create_tag(config, stage_name, ref):
     master_config = load.load_config(config)
-    root = master_config["scm"].pop("root", Path(config).parent)
     scm = factory.create_scm(
-        root=root,
         data=cfgtypes.ScmData(**master_config["scm"])
     )
+    default_package_root = Path(config).parent
+    if "root" not in master_config["project"]:
+        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"]),
-        root=root
     )
     return ops.create_tags(
         scm=scm,
