@@ -6,7 +6,7 @@ class ScmConfigBase(T.TypedDict):
     scm_type: str
 
 
-ScmConfig: T.TypeAlias = T.Union[ScmConfigBase, dict]
+ScmConfig = T.Union[ScmConfigBase, dict]
 
 
 class ProjectConfig(T.TypedDict):

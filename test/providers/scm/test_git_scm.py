@@ -57,7 +57,7 @@ def test_delete_tag(scm, mock_tag):
 
 def test_list_tags(scm):
     scm.list_tags()
-    scm._repo.git.execute.called_once_with(["git", "ls-remote", "--tags", scm.remote_name])
+    scm._repo.git.execute.assert_called_once_with(["git", "ls-remote", "--tags", scm.remote_name])
     _tags = ["pre-1", "pre-2", "pro-3", "pro-4", ]
     scm._repo.git.execute.return_value = "\n".join(_tags)
     assert scm.list_tags(prefix="pre-") == ["pre-1", "pre-2"]
