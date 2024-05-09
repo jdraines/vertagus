@@ -1,11 +1,12 @@
 import typing as T
 from dataclasses import dataclass, field, asdict
+import os
 
 class ScmConfigBase(T.TypedDict):
     scm_type: str
 
 
-ScmConfig: T.TypeAlias = T.Union[ScmConfigBase, dict]
+ScmConfig = T.Union[ScmConfigBase, dict]
 
 
 class ProjectConfig(T.TypedDict):
@@ -13,6 +14,7 @@ class ProjectConfig(T.TypedDict):
     rules: "RulesConfig"
     stages: dict[str, "StageConfig"]
     aliases: T.Optional[list[str]]
+    root: T.Optional[str]
 
 
 class ManifestConfig(T.TypedDict):
@@ -105,12 +107,14 @@ class ProjectData:
                  manifests: list[ManifestData],
                  rules: RulesData,
                  stages: list[StageData],
-                 aliases: list[str] = None
+                 aliases: list[str] = None,
+                 root: str = None 
                  ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
         self.stages: list[StageData] = stages
         self.aliases: list[str] = aliases
+        self.root: str = root or os.getcwd()
 
     def config(self):
         return dict(
@@ -133,14 +137,19 @@ class ProjectData:
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in config["stages"].items()],
             aliases=config.get("aliases", []),
+            root=config.get("root", None)
         )
 
 
 class ScmData:
     
-    def __init__(self, type, **kwargs):
+    def __init__(self, type: str, root: str = None, **kwargs):
         self.scm_type = type
+        self.root = root or os.getcwd()
         self.kwargs = kwargs
 
     def config(self):
-        return self.kwargs
+        return dict(
+            root=self.root,
+            **self.kwargs
+        )

@@ -11,8 +11,7 @@ def mock_manifests():
     return [ManifestBase(
         name="mock_manifest",
         path="mock_manifest_path",
-        loc=["mock_manifest_loc"],
-        version="0.0.0"
+        loc=["mock_manifest_loc"]
     )]
 
 

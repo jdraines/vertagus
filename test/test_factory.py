@@ -52,15 +52,15 @@ def test_create_single_version_rules(mock_single_version_rules):
 
 @pytest.fixture
 def mock_scm_data():
-    return t.ScmData(type="dummy_type", **{"key": "value"})
+    return t.ScmData(root="root", type="dummy_type", **{"key": "value"})
 
 
 def test_create_scm(mock_scm_data, monkeypatch):
     mock = MagicMock()
     monkeypatch.setattr(factory, "get_scm_cls", MagicMock(return_value=mock))
-    result = factory.create_scm("root", mock_scm_data)
+    result = factory.create_scm(mock_scm_data)
     factory.get_scm_cls.assert_called_with("dummy_type")
-    mock.assert_called_with("root", key="value")
+    mock.assert_called_with(root="root", key="value")
     assert result == mock.return_value
 
 

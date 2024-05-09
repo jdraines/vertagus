@@ -27,14 +27,14 @@ _cwd = Path(os.getcwd())
 )
 def validate(config, stage_name):
     master_config = load.load_config(config)
-    root = master_config["scm"].pop("root", Path(config).parent)
     scm = factory.create_scm(
-        root,
         cfgtypes.ScmData(**master_config["scm"])
     )
+    default_package_root = Path(config).parent
+    if "root" not in master_config["project"]:
+        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
-        cfgtypes.ProjectData.from_project_config(master_config["project"]),
-        root=root
+        cfgtypes.ProjectData.from_project_config(master_config["project"])
     )
     if not ops.validate_project_version(
         scm=scm,

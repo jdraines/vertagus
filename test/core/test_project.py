@@ -15,22 +15,24 @@ from vertagus.core.tag_base import AliasBase
 
 @pytest.fixture
 def mock_manifests():
-    return [ManifestBase(
+    manifest = ManifestBase(
         name="mock_manifest",
         path="mock_manifest_path",
-        loc=["mock_manifest_loc"],
-        version="0.0.0"
-    )]
+        loc=["mock_manifest_loc"]
+    )
+    manifest.version = "0.0.0"
+    return [manifest]
 
 
 @pytest.fixture
 def mock_manifest_higher_version():
-    return ManifestBase(
+    manifest = ManifestBase(
         name="mock_manifest_higher_version",
         path="mock_manifest_path",
-        loc=["mock_manifest_loc"],
-        version="0.0.1"
+        loc=["mock_manifest_loc"]
     )
+    manifest.version = "0.0.1"
+    return manifest
 
 @pytest.fixture
 def mock_current_version_rule_pass():
