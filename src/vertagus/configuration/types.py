@@ -14,6 +14,7 @@ class ProjectConfig(T.TypedDict):
     rules: "RulesConfig"
     stages: dict[str, "StageConfig"]
     aliases: T.Optional[list[str]]
+    root: T.Optional[str]
 
 
 class ManifestConfig(T.TypedDict):
@@ -136,6 +137,7 @@ class ProjectData:
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in config["stages"].items()],
             aliases=config.get("aliases", []),
+            root=config.get("root", None)
         )
 
 
