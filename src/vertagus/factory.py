@@ -17,16 +17,16 @@ from vertagus.rules.comparison.loader import get_rules as get_version_comparison
 from .configuration import types as t
 
 
-def create_project(data: t.ProjectData, root:str = None) -> Project:
+def create_project(data: t.ProjectData) -> Project:
     return Project(
-        manifests=create_manifests(data.manifests, root),
+        manifests=create_manifests(data.manifests, data.root),
         current_version_rules=create_single_version_rules(data.rules.current),
         version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
         manifest_versions_comparison_rules=create_version_comparison_rules(
             ["manifests_comparison"],
             {"manifests": data.rules.manifest_comparisons}
         ),
-        stages=create_stages(data.stages),
+        stages=create_stages(data.stages, data.root),
         aliases=create_aliases(data.aliases)
     )
 
@@ -49,15 +49,17 @@ def create_version_comparison_rules(rule_names: list[str], config) -> list[Versi
     rule_classes = get_version_comparison_rules(rule_names)
     return [rule_cls(config=config) for rule_cls in rule_classes]
 
+
 def create_aliases(alias_names: list[str]) -> list[AliasBase]:
     return get_aliases(alias_names)
 
-def create_stages(stage_data: list[t.StageData]) -> list[Stage]:
+
+def create_stages(stage_data: list[t.StageData], project_root: str = None) -> list[Stage]:
     stages = []
     for data in stage_data:
         stages.append(Stage(
             name=data.name,
-            manifests=create_manifests(data.manifests),
+            manifests=create_manifests(data.manifests, project_root),
             current_version_rules=create_single_version_rules(data.rules.current),
             version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
             manifest_versions_comparison_rules=create_version_comparison_rules(
@@ -69,6 +71,6 @@ def create_stages(stage_data: list[t.StageData]) -> list[Stage]:
     return stages
 
 
-def create_scm(root: str, data: t.ScmData) -> ScmBase:
+def create_scm(data: t.ScmData) -> ScmBase:
     scm_cls = get_scm_cls(data.scm_type)
-    return scm_cls(root, **data.config())
+    return scm_cls(**data.config())
