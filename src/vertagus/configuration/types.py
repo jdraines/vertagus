@@ -145,7 +145,7 @@ class ScmData:
     
     def __init__(self, type: str, root: str = None, **kwargs):
         self.scm_type = type
-        self.root = root or os.getcwd()
+        self.root = root
         self.kwargs = kwargs
 
     def config(self):
