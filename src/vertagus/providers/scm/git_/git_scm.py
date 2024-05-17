@@ -16,7 +16,7 @@ class GitScm(ScmBase):
     scm_type = "git"
     _default_user_data = {
         "name": "vertagus",
-        "email": "vertagus@example.com"
+        "email": "vertagus@none"
     }
     _default_remote_name = "origin"
 
@@ -113,7 +113,8 @@ class GitScm(ScmBase):
                 valid_versions.append(version)
             except InvalidVersion:
                 logger.warning(f"Invalid version found: {version}")
-
+        if not valid_versions:
+            return None
         return max(valid_versions, key=lambda v: parse_version(v))
     
     def _initialize_repo(self):

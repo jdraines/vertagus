@@ -1,8 +1,10 @@
 from unittest.mock import MagicMock
 import pytest
+import os
 from vertagus import factory
 from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.configuration import types as t
+from vertagus.core.scm_base import ScmBase
 
 
 class DummyManifest:
@@ -54,14 +56,44 @@ def test_create_single_version_rules(mock_single_version_rules):
 def mock_scm_data():
     return t.ScmData(root="root", type="dummy_type", **{"key": "value"})
 
+@pytest.fixture
+def mock_scm_cls():
+    class MockScm(ScmBase):
+        def __init__(self,
+                    root: str = None,
+                    tag_prefix: str = None,
+                    user_data: dict = None,
+                    remote_name: str = None,
+                    **kwargs
+                    ):
+            self.root = root or os.getcwd()
+            self.tag_prefix = tag_prefix
+            self.user_data = user_data 
+            self.remote_name = remote_name
 
-def test_create_scm(mock_scm_data, monkeypatch):
-    mock = MagicMock()
-    monkeypatch.setattr(factory, "get_scm_cls", MagicMock(return_value=mock))
-    result = factory.create_scm(mock_scm_data)
+        def create_tag(self, tag, ref: str=None):
+            pass
+        
+        def delete_tag(self, tag_name: str):
+            pass
+        
+        def list_tags(self, prefix: str=None):
+            return ["tag1", "tag2", "tag3"]
+
+        def get_highest_version(self, prefix: str=None):
+            pass
+
+        def migrate_alias(self, alias: str, ref: str = None):
+            pass
+
+    return MockScm
+
+def test_create_scm(mock_scm_data, mock_scm_cls, monkeypatch):
+    monkeypatch.setattr(factory, "get_scm_cls", MagicMock(return_value=mock_scm_cls))
+    scm = factory.create_scm(mock_scm_data)
     factory.get_scm_cls.assert_called_with("dummy_type")
-    mock.assert_called_with(root="root", key="value")
-    assert result == mock.return_value
+    assert scm.root == "root"
+    assert scm.tag_prefix is None
 
 
 @pytest.fixture
