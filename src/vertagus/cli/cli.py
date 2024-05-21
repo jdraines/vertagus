@@ -11,7 +11,8 @@ logging.basicConfig(
 import click
 from .commands import (
     validate,
-    create_tag
+    create_tag,
+    create_aliases
 )
 
 
@@ -22,3 +23,4 @@ def cli():
 
 cli.add_command(validate)
 cli.add_command(create_tag)
+cli.add_command(create_aliases)

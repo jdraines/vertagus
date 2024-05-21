@@ -30,8 +30,16 @@ def create_tags(scm: ScmBase,
                 ) -> None:
     tag = Tag(project.get_version())
     scm.create_tag(tag, ref=ref)
-    if stage_name:
-        aliases = project.get_aliases(stage_name)
-        for alias in aliases:
-            scm.migrate_alias(alias, ref=ref)
-    
+    aliases = project.get_aliases(stage_name)
+    for alias in aliases:
+        scm.migrate_alias(alias, ref=ref)
+
+
+def create_aliases(scm: ScmBase,
+                   project: Project,
+                   stage_name: str = None,
+                   ref: str = None
+                   ) -> None:
+    aliases = project.get_aliases(stage_name)
+    for alias in aliases:
+        scm.migrate_alias(alias, ref=ref)
