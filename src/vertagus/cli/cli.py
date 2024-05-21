@@ -2,7 +2,7 @@ import logging
 import os
 
 logging.basicConfig(
-    level=os.environ.get("LOG_LEVEL", "INFO"),
+    level=os.environ.get("VERTAGUS_LOG_LEVEL", "INFO"),
     format="{message}",
     style="{"
 )
