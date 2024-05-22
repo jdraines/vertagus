@@ -1,8 +1,12 @@
 import typing as T
 from .setuptools_ import SetuptoolsPyprojectManifest
+from .json_manifest import JsonManifest
+from .yaml_manifest import YamlManifest
 
 _manifest_types = {
     SetuptoolsPyprojectManifest.manifest_type: SetuptoolsPyprojectManifest,
+    JsonManifest.manifest_type: JsonManifest,
+    YamlManifest.manifest_type: YamlManifest,
 }
 
 

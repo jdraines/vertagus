@@ -56,7 +56,7 @@ class GitScm(ScmBase):
     
     def delete_tag(self, tag: Tag):
         _tags = [t.name for t in self._repo.tags]
-        logger.info(
+        logger.debug(
             f"Tags found: {_tags}"
         )
         tag_text = tag.as_string(self.tag_prefix)
@@ -119,7 +119,7 @@ class GitScm(ScmBase):
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)
-        logger.info(
+        logger.debug(
             f"Initializing git repository at {self.root} "
             f"with user data {self.user_data}."
         )
