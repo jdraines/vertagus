@@ -27,3 +27,7 @@ def test_version_validators(validator: VersionComparisonRule,
 def must_compare_more_than_one():
     with pytest.raises(ValueError):
         ManifestsComparisonRule({"manifests": []}).validate_comparison(["1.0.0"])
+
+def test_validator_description():
+    assert isinstance(Increasing({}).description, str) 
+    assert isinstance(ManifestsComparisonRule({"manifests": []}).description, str)
