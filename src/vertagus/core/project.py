@@ -64,12 +64,12 @@ class Project(Package):
         validated = True
         for rule in self._get_current_version_rules(stage_name):
             logger.info(
-                f"Validating {rule.__name__} for {current_version}"
+                f"Validating rule {rule.name!r} for {current_version}"
             )
             validated = rule.validate_version(current_version)
             if not validated:
                 logger.error(
-                    f"Validation failed for {rule.__name__}"
+                    f"Validation failed for rule {rule.name!r}: {rule.description}"
                 )
                 return validated
         return validated
@@ -79,12 +79,12 @@ class Project(Package):
         versions = [previous_version, current_version]
         for rule in self._get_version_increment_rules(stage_name):
             logger.info(
-                f"Validating {rule.__class__.__name__} for {versions}"
+                f"Validating rule {rule.name!r} for {versions}"
             )
             validated = rule.validate_comparison(versions)
             if not validated:
                 logger.error(
-                    f"Validation failed for {rule.__class__.__name__}"
+                    f"Validation failed for rule  {rule.name!r}: {rule.description}"
                 )
                 return validated
         return validated
@@ -103,12 +103,12 @@ class Project(Package):
                 raise ValueError(f"Manifests {rule.manifest_names} not found.")
             versions = [m.version for m in manifests]
             logger.info(
-                f"Validating {rule.__class__.__name__} for {versions}"
+                f"Validating rule {rule.name!r} for {versions}"
             )
             validated = rule.validate_comparison(versions)
             if not validated:
                 logger.error(
-                    f"Validation failed for {rule.__class__.__name__}"
+                    f"Validation failed for rule {rule.name!r}: {rule.description}"
                 )
                 return validated
         return validated

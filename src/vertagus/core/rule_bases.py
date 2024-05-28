@@ -4,7 +4,7 @@ import json
 
 class Rule:
     name: str = "base"
-
+    description: str = "Base class for all rules"
 
 
 class VersionComparisonRule(Rule):
