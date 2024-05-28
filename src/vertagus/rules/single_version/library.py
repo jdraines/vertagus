@@ -3,8 +3,18 @@ from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.utils import regex as regex_utils
 
 
+class classproperty(object):
+
+    def __init__(self, f):
+        self.f = f
+    
+    def __get__(self, obj, owner):
+        return self.f(owner)
+
+
 class NotEmpty(SingleVersionRule):
     name = "not_empty"
+    description = "Version must not be empty."
 
     @classmethod
     def validate_version(cls, version):
@@ -13,6 +23,10 @@ class NotEmpty(SingleVersionRule):
 
 class RegexRuleBase(SingleVersionRule):
     pattern: str = ""
+
+    @classproperty
+    def description(cls):
+        return f"Version must match the pattern: {cls.pattern}"
 
     @classmethod
     def validate_version(cls, version):
