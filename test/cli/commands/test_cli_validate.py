@@ -2,7 +2,7 @@ import sys
 import pytest
 from click.testing import CliRunner
 from unittest.mock import MagicMock, patch
-from vertagus.cli.commands import validate
+from vertagus.cli.commands import validate_cmd
 from pathlib import Path
 import yaml
 
@@ -68,5 +68,5 @@ def test_validate_simple(
         }
     ) 
     load_config_mock.return_value = config
-    result = runner.invoke(validate, ["--config", config_name])
+    result = runner.invoke(validate_cmd, ["--config", config_name])
     assert result.exit_code == expected_exit_code
