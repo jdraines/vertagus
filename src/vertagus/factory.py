@@ -25,7 +25,7 @@ def create_project(data: t.ProjectData) -> Project:
         manifest_versions_comparison_rules=create_version_comparison_rules(
             ["manifests_comparison"],
             {"manifests": data.rules.manifest_comparisons}
-        ),
+        ) if data.rules.manifest_comparisons else [],
         stages=create_stages(data.stages, data.root),
         aliases=create_aliases(data.aliases)
     )
@@ -65,7 +65,7 @@ def create_stages(stage_data: list[t.StageData], project_root: str = None) -> li
             manifest_versions_comparison_rules=create_version_comparison_rules(
                 ["manifests_comparison"],
                 {"manifests": data.rules.manifest_comparisons}
-            ),
+            ) if data.rules.manifest_comparisons else [],
             aliases=create_aliases(data.aliases),
         ))
     return stages
