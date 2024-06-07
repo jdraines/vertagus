@@ -30,13 +30,13 @@ def runner():
 
 @pytest.fixture
 def load_config_mock():
-    with patch("vertagus.cli.commands.validate.load.load_config") as _load_config:
+    with patch("vertagus.cli.commands.create_tag.create_tag.load.load_config") as _load_config:
         yield _load_config
 
 
 @pytest.fixture(autouse=True)
 def mock_scm():
-    with patch("vertagus.cli.commands.validate.factory.create_scm") as _scm_config:
+    with patch("vertagus.cli.commands.create_tag.create_tag.factory.create_scm") as _scm_config:
         _mock_scm = MagicMock()
         _mock_scm.get_highest_version.return_value = "0.1.0"
         _scm_config.return_value = _mock_scm
