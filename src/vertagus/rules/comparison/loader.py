@@ -19,5 +19,8 @@ def get_rules(rule_names=None) -> list[T.Type[VersionComparisonRule]]:
     rules: list[T.Type[VersionComparisonRule]] = rules
     if rule_names is None:
         rule_names = [rule.name for rule in rules]
+    not_found = set(rule_names) - {rule.name for rule in rules}
+    if not_found:
+        raise ValueError(f"Rules not found: {not_found}")
     rules_d = {rule.name: rule for rule in rules if rule.name in rule_names}
     return [rules_d[rule_name] for rule_name in rule_names]

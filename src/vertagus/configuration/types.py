@@ -59,6 +59,17 @@ class ManifestData:
     path: str
     loc: str = field(default=None)
 
+    def __init__(self, name: str, type: str, path: str, loc: str = None):
+        self.name = name
+        self.type = type
+        self.path = path
+        self.loc = self._parse_loc(loc)
+
+    def _parse_loc(self, loc):
+        if isinstance(loc, str):
+            return loc.split(".")
+        return loc
+
     def config(self):
         return dict(name=self.name, path=self.path, loc=self.loc)
 
@@ -106,7 +117,7 @@ class ProjectData:
     def __init__(self,
                  manifests: list[ManifestData],
                  rules: RulesData,
-                 stages: list[StageData],
+                 stages: list[StageData] = None,
                  aliases: list[str] = None,
                  root: str = None 
                  ):
@@ -128,6 +139,7 @@ class ProjectData:
     
     @classmethod
     def from_project_config(cls, config: ProjectConfig):
+        stages = config.get("stages", {})
         return cls(
             manifests=[ManifestData(**m) for m in config.get("manifests", [])],
             rules=RulesData(
@@ -135,7 +147,7 @@ class ProjectData:
                 increment=config.get("rules").get("increment", []),
                 manifest_comparisons=config.get("rules").get("manifest_comparisons", []),
             ),
-            stages=[StageData.from_stage_config(name, data) for name, data in config["stages"].items()],
+            stages=[StageData.from_stage_config(name, data) for name, data in stages.items()],
             aliases=config.get("aliases", []),
             root=config.get("root", None)
         )

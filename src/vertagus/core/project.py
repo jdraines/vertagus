@@ -40,11 +40,12 @@ class Project(Package):
             raise ValueError("No manifests found.")
         return manifests[0].version
 
-    def get_aliases(self, stage_name: str) -> list[AliasBase]:
+    def get_aliases(self, stage_name: str = None) -> list[AliasBase]:
         version = self.get_version()
         aliases = self._get_version_aliases(version)
-        stage = self._get_stage(stage_name)
-        aliases.extend(stage.get_version_aliases(version))
+        if stage_name:
+            stage = self._get_stage(stage_name)
+            aliases.extend(stage.get_version_aliases(version))
         return list(dict.fromkeys(aliases).keys())
 
     def validate_version(self, previous_version: str, stage_name: str = None):

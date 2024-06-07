@@ -3,7 +3,7 @@ from . import library
 from vertagus.core.tag_base import AliasBase
 
 
-def load_rules() -> list[T.Type[AliasBase]]:
+def load_aliases() -> list[T.Type[AliasBase]]:
     _rules = []
     for objname in dir(library):
         maybeobj = getattr(library, objname)
@@ -14,9 +14,12 @@ def load_rules() -> list[T.Type[AliasBase]]:
     return _rules
 
 
-def get_aliases(alias_names) -> list[T.Type[AliasBase]]:
+def get_aliases(alias_names=None) -> list[T.Type[AliasBase]]:
     if not alias_names:
         return []
-    aliases: list[T.Type[AliasBase]] = load_rules() or []
+    aliases: list[T.Type[AliasBase]] = load_aliases() or []
+    not_found = set(alias_names) - {alias.name for alias in aliases}
+    if not_found:
+        raise ValueError(f"Aliases not found: {not_found}")
     alias_d = {alias.name: alias for alias in aliases if alias.name in alias_names}
     return [alias_d[alias_name] for alias_name in alias_names]

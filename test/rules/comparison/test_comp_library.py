@@ -31,3 +31,13 @@ def must_compare_more_than_one():
 def test_validator_description():
     assert isinstance(Increasing({}).description, str) 
     assert isinstance(ManifestsComparisonRule({"manifests": []}).description, str)
+
+def test_any_greater_than_none():
+    assert Increasing({}).validate_comparison([None, "1.0.0"]) == True
+    assert Increasing({}).validate_comparison(["", "1.0.0"]) == True
+
+def test_manifests_require_multiple_versions():
+    with pytest.raises(ValueError):
+        ManifestsComparisonRule({"manifests": []}).validate_comparison([])
+    with pytest.raises(ValueError):
+        ManifestsComparisonRule({"manifests": []}).validate_comparison(["1.0.0"])

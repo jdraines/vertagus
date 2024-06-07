@@ -4,6 +4,7 @@ import typing as T
 class ManifestBase:
     manifest_type: str = "base"
     version: str
+    loc: list[T.Union[str, int]] = []
 
     def __init__(self,
                  name: str,

@@ -15,7 +15,7 @@ def is_yaml(doc, filepath: str = None) -> bool:
         return False
 
 
-def is_toml(doc: str, filepath: str) -> bool:
+def is_toml(doc: str, filepath: str = None) -> bool:
     try:
         tomli.loads(doc)
         return True
