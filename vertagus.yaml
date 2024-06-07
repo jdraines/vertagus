@@ -9,7 +9,6 @@ project:
       - not_empty
     increment:
       - any_increment
-    manifest_comparisons: []
 
   manifests:
     - type: setuptools_pyproject
