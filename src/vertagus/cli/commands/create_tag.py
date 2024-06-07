@@ -28,7 +28,7 @@ from vertagus import operations as ops
     default=None,
     help="An SCM ref that should be tagged. Default is current commit."
 )
-def create_tag(config, stage_name, ref):
+def create_tag_cmd(config, stage_name, ref):
     master_config = load.load_config(config)
     scm = factory.create_scm(
         data=cfgtypes.ScmData(**master_config["scm"])
