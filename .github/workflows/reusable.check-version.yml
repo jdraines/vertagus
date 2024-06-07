@@ -28,5 +28,5 @@ jobs:
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s prod
       - name: deny version check
-        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'beta/' ) }}
+        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'beta/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
         run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1

@@ -4,7 +4,6 @@ import os.path
 
 class JsonManifest(ManifestBase):
     manifest_type: str = "json"
-    loc = ["project", "version"]
 
     def __init__(self,
                  name: str,
@@ -13,12 +12,12 @@ class JsonManifest(ManifestBase):
                  root: str = None
                  ):
         super().__init__(name, path, loc, root)
-        if loc:
-            self.loc = loc
         self._doc = self._load_doc()
 
     @property
     def version(self):
+        if not self.loc:
+            raise ValueError(f"No loc provided for manifest {self.name!r}")
         p = self._doc
         for k in self.loc:
             p = p[k]

@@ -1,9 +1,9 @@
 from vertagus.core.manifest_base import ManifestBase
-import yaml
+import tomli
 import os.path
 
-class YamlManifest(ManifestBase):
-    manifest_type: str = "yaml"
+class TomlManifest(ManifestBase):
+    manifest_type: str = "toml"
 
     def __init__(self,
                  name: str,
@@ -16,7 +16,7 @@ class YamlManifest(ManifestBase):
 
     @property
     def version(self):
-        if not self.loc:
+        if not self.loc: 
             raise ValueError(f"No loc provided for manifest {self.name!r}")
         p = self._doc
         for k in self.loc:
@@ -27,5 +27,5 @@ class YamlManifest(ManifestBase):
         path = self.path
         if self.root:
             path = os.path.join(self.root, path)
-        with open(self.path) as f:
-            return yaml.safe_load(f)
+        with open(self.path, 'rb') as f:
+            return tomli.load(f)
