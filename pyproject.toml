@@ -32,6 +32,11 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jdraines/vertagus"
+Documentation = "https://github.com/jdraines/vertagus/blob/main/docs/index.md"
+Repository = "https://github.com/jdraines/vertagus"
+"Bug Tracker" = "https://github.com/jdraines/vertagus/issues"
 
 [project.license]
 file = "LICENSE"
