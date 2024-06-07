@@ -14,8 +14,9 @@ def load_rules():
     return _rules
 
 
-def get_rules(rule_names) -> list[T.Type[VersionComparisonRule]]:
+def get_rules(rule_names=None) -> list[T.Type[VersionComparisonRule]]:
     rules = load_rules()
     rules: list[T.Type[VersionComparisonRule]] = rules
+    rule_names = rule_names or [rule.name for rule in rules]
     rules_d = {rule.name: rule for rule in rules if rule.name in rule_names}
     return [rules_d[rule_name] for rule_name in rule_names]
