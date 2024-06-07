@@ -1,0 +1,12 @@
+scm:
+  type: git
+
+project:
+
+  rules:
+    current:
+      - not_empty
+    increment:
+      - any_increment
+
+  manifests: [] # to be provided by the test case

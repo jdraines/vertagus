@@ -20,12 +20,21 @@ class YamlManifest(ManifestBase):
             raise ValueError(f"No loc provided for manifest {self.name!r}")
         p = self._doc
         for k in self.loc:
+            if k not in p:
+                raise ValueError(
+                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. "
+                    f"Key {k!r} not found in {list(p.keys())}"
+                )
             p = p[k]
         return p
 
     def _load_doc(self):
+        path = self._full_path()
+        with open(path) as f:
+            return yaml.safe_load(f)
+
+    def _full_path(self):
         path = self.path
         if self.root:
             path = os.path.join(self.root, path)
-        with open(self.path) as f:
-            return yaml.safe_load(f)
+        return path

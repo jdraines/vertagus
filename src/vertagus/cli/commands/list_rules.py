@@ -11,7 +11,7 @@ from vertagus.rules.single_version.loader import (
 from vertagus.cli.formatting import DisplayTableFormatter
 
 @click.command('list-rules')
-def list_rules():
+def list_rules_cmd():
     single_version_rules: list[type[SingleVersionRule]] = get_single_version_rules()
     comparison_rules: list[type[VersionComparisonRule]] = [
         r for r in get_comparison_rules()

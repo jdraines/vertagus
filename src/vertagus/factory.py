@@ -26,7 +26,7 @@ def create_project(data: t.ProjectData) -> Project:
             ["manifests_comparison"],
             {"manifests": data.rules.manifest_comparisons}
         ) if data.rules.manifest_comparisons else [],
-        stages=create_stages(data.stages, data.root),
+        stages=create_stages(data.stages, data.root) if data.stages else None,
         aliases=create_aliases(data.aliases)
     )
 

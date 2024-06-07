@@ -23,7 +23,7 @@ def _try_get_config_path_in_cwd():
         return None
 
 
-@click.command()
+@click.command("validate")
 @click.option(
     "--config", 
     "-c", 
@@ -36,7 +36,7 @@ def _try_get_config_path_in_cwd():
     default=None,
     help="Name of a stage"
 )
-def validate(config, stage_name):
+def validate_cmd(config, stage_name):
     if not config:
         config = _try_get_config_path_in_cwd()
     master_config = load.load_config(config)
