@@ -83,7 +83,7 @@ project:
           - regex_mmp
 ```
 
-For a complete list of rules that can be used in the confuration, you can run `vertagus list-rules`
+For a complete list of rules that can be used in the configuration, you can run `vertagus list-rules`
 to see the available rules and whether they can be used as `increment` or `current` rules.
 
 (See the [configuration](https://github.com/jdraines/vertagus/blob/main/docs/configuration.md) docs for more on the format of this file.)
