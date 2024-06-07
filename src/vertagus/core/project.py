@@ -48,7 +48,17 @@ class Project(Package):
         return list(dict.fromkeys(aliases).keys())
 
     def validate_version(self, previous_version: str, stage_name: str = None):
+        primary_manifest = self._get_manifests(stage_name)[0]
         current_version = self.get_version(stage_name)
+        logger.info(
+            f"Validating version for manifest {primary_manifest.name!r}\n"
+            f"  manifest_type={primary_manifest.manifest_type!r}\n"
+            f"  path={primary_manifest.path}\n"
+            f"  version loc={primary_manifest.loc}\n"
+            f"  previous_version={previous_version}\n"
+            f"  current_version={current_version}\n"
+            f"  stage_name={stage_name}"
+        )
         validated = self._run_current_version_rules(current_version, stage_name)
         if not validated:
             return validated

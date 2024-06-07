@@ -18,7 +18,7 @@ class ManifestsComparisonRule(VersionComparisonRule):
     description = "All manifests must have the same version."
 
     def __init__(self, config: dict):
-        self.manifest_names = config["manifests"]
+        self.manifest_names = config.get("manifests", [])
 
     def validate_comparison(self, versions: tuple[str, str]):
         if not versions:

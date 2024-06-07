@@ -1,11 +1,15 @@
+from logging import getLogger
 import yaml
 import tomli
 from .types import MasterConfig
 from vertagus.utils.config import is_yaml, is_toml
 
 
-def load_config(filepath: str) -> MasterConfig:
+logger = getLogger(__name__)
 
+
+def load_config(filepath: str) -> MasterConfig:
+    logger.info(f"Loading configuration from {filepath}")
     with open(filepath, "rt") as f:
         doc = f.read()
 

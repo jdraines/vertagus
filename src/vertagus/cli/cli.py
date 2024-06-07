@@ -12,7 +12,8 @@ import click
 from .commands import (
     validate,
     create_tag,
-    create_aliases
+    create_aliases,
+    list_rules
 )
 
 
@@ -24,3 +25,4 @@ def cli():
 cli.add_command(validate)
 cli.add_command(create_tag)
 cli.add_command(create_aliases)
+cli.add_command(list_rules)

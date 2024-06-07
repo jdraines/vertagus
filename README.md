@@ -7,7 +7,14 @@ management's tag feature.
 Installation
 ------------
 
-To install vertagus, clone it and then pip install from source:
+To install from pip:
+  
+```bash
+pip install vertagus
+```
+
+
+To install from GitHub, clone and then pip install from source:
 
 ```bash
 git clone https://github.com/jdraines/vertagus.git
@@ -37,7 +44,7 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
   first one will be considered the authoritative version.)
 - **Rules** that your versioning should follow. For example, should it match a certain regex pattern? Should it always
   be incrementally higher than the last version? Is your version required to be in multiple manifests, and you need to
-  know if they are out of sync with each other?
+  know if they are out of sync with each other? For a list of rules, you can run `vertagus list-rules`.
 - **Version Aliases** whose tags can move around a bit. For example, you might use major-minor-patch semantic
   versioning, but you'd like to maintain a major-minor alias on whatever your most recent patch version is.
 - **Stages** of your development process that might need different rules or aliases. This might correspond to names like
@@ -45,8 +52,41 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
 - **Tag Prefixes** in case you're developing in a repository that holds multiple packages. Or maybe you just like 
   prefixes.
 
-You declare these in a `vertagus.toml` file next to your package in your repository. (See the [configuration](./docs/configuration.md) docs for more
-on the format of this file.)
+You declare these in either a `vertagus.toml` or `vertagus.yaml` file next to your package in your repository. 
+Here's an example of the yaml format:
+
+```yaml
+scm:
+  type: git
+  tag_prefix: v
+project:
+  rules:
+    current:
+      - not_empty
+    increment:
+      - any_increment
+  manifests:
+    - type: setuptools_pyproject
+      path: ./pyproject.toml
+      name: pyproject
+  stages:
+    dev:
+      rules:
+        current:
+          - regex_dev_mmp
+    prod:
+      aliases:
+        - string:latest
+        - major.minor
+      rules:
+        current:
+          - regex_mmp
+```
+
+For a complete list of rules that can be used in the confuration, you can run `vertagus list-rules`
+to see the available rules and whether they can be used as `increment` or `current` rules.
+
+(See the [configuration](https://github.com/jdraines/vertagus/blob/main/docs/configuration.md) docs for more on the format of this file.)
 
 ### Command Line Interface
 
@@ -85,4 +125,4 @@ scm platform to run the `create-tag` command after a pull request has merged and
 Documentation
 -------------
 
-For more documentation, see the [docs](./docs/index.md) directory.
+For more documentation, see the [docs](https://github.com/jdraines/vertagus/blob/main/docs/index.md) directory.
