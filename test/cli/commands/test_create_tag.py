@@ -2,7 +2,7 @@ import sys
 import pytest
 from click.testing import CliRunner
 from unittest.mock import MagicMock, patch
-from vertagus.cli.commands import create_tag
+from vertagus.cli.commands import create_tag_cmd
 from pathlib import Path
 import yaml
 
@@ -67,5 +67,5 @@ def test_create_tag_simple(
         }
     ) 
     load_config_mock.return_value = config
-    result = runner.invoke(create_tag, ["--config", config_name])
+    result = runner.invoke(create_tag_cmd, ["--config", config_name])
     assert result.exit_code == expected_exit_code
