@@ -30,7 +30,7 @@ def runner():
 
 @pytest.fixture
 def load_config_mock():
-    with patch("vertagus.cli.commands.create_tag.create_tag.load.load_config") as _load_config:
+    with patch("vertagus.cli.commands.create_tag.load.load_config") as _load_config:
         yield _load_config
 
 
