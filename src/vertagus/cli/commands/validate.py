@@ -23,7 +23,7 @@ def _try_get_config_path_in_cwd():
         return None
 
 
-@click.command()
+@click.command("validate")
 @click.option(
     "--config", 
     "-c", 
