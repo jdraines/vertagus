@@ -28,7 +28,7 @@ class GitScm(ScmBase):
                  ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
-        self.user_data = user_data or self._default_user_data
+        self.user_data = user_data or self._get_user_data()
         self.remote_name = remote_name or self._default_remote_name
         self._repo = self._initialize_repo()
 
@@ -130,3 +130,12 @@ class GitScm(ScmBase):
             "user", "email", self.user_data['email']
         ).release()
         return repo
+
+    def _get_user_data(self):
+        try: 
+            return {
+                "name": self._repo.config_reader().get_value("user", "name"),
+                "email": self._repo.config_reader().get_value("user", "email")
+            }
+        except:
+            return self._default_user_data
