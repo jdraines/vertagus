@@ -1,9 +1,9 @@
-from vertagus.core.manifest_base import ManifestBase
 from ..toml_manifest import TomlManifest
 
 
 class SetuptoolsPyprojectManifest(TomlManifest):
     manifest_type: str = "setuptools_pyproject"
+    description: str = "A setuptools pyproject.toml file. Uses `project.version` as the version location."
     loc = ["project", "version"]
 
     def __init__(self,

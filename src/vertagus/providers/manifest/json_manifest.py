@@ -4,6 +4,7 @@ import os.path
 
 class JsonManifest(ManifestBase):
     manifest_type: str = "json"
+    description: str = "A JSON file. Users provide a custom `loc` to the version as a list of keys."
 
     def __init__(self,
                  name: str,

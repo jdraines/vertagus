@@ -13,7 +13,10 @@ from .commands import (
     validate_cmd,
     create_tag_cmd,
     create_aliases_cmd,
-    list_rules_cmd
+    list_rules_cmd,
+    list_aliases_cmd,
+    list_manifests_cmd,
+    list_scms_cmd
 )
 
 
@@ -26,3 +29,6 @@ cli.add_command(validate_cmd)
 cli.add_command(create_tag_cmd)
 cli.add_command(create_aliases_cmd)
 cli.add_command(list_rules_cmd)
+cli.add_command(list_aliases_cmd)
+cli.add_command(list_manifests_cmd)
+cli.add_command(list_scms_cmd)
