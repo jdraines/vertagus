@@ -11,3 +11,4 @@ class Tag:
 
 class AliasBase(Tag):
     name: str = ""
+    description: str = ""
