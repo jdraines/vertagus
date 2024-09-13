@@ -4,6 +4,7 @@ import os.path
 
 class TomlManifest(ManifestBase):
     manifest_type: str = "toml"
+    description: str = "A TOML file. Users provide a custom `loc` to the version as a list of keys."
 
     def __init__(self,
                  name: str,

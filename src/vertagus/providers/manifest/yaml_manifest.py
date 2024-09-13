@@ -4,6 +4,7 @@ import os.path
 
 class YamlManifest(ManifestBase):
     manifest_type: str = "yaml"
+    description: str = "A YAML file. Users provide a custom `loc` to the version as a list of keys."
 
     def __init__(self,
                  name: str,

@@ -15,3 +15,7 @@ def get_scm_cls(scm_type: str) -> T.Type[ScmBase]:
 
 def register_scm_cls(scm_cls: T.Type[ScmBase]):
     _scm_types[scm_cls.scm_type] = scm_cls
+
+
+def list_scm_types() -> T.List[str]:
+    return sorted(list(_scm_types.keys()))

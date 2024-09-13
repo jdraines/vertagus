@@ -3,6 +3,7 @@ import typing as T
 
 class ManifestBase:
     manifest_type: str = "base"
+    description: str = ""
     version: str
     loc: list[T.Union[str, int]] = []
 

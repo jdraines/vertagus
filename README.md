@@ -90,7 +90,7 @@ to see the available rules and whether they can be used as `increment` or `curre
 
 ### Command Line Interface
 
-Vertagus provides two main operations in its `vertagus` CLI:
+_Vertagus provides two main operations in its `vertagus` CLI:_
 
 #### `validate`
 
@@ -114,6 +114,32 @@ vertagus create-tag [--stage-name STAGE_NAME --config CONFIG_FILEPATH]
 
 The `create-tag` command will check your configuration and create tags for the current version of your code as well as
 for any aliases that may be declared. These tags are created locally, but then pushed to your remote.
+
+_Additionally, Vertagus provides a number of commands for discovering the names of rules, aliases, manifets, ans scm providers:_
+
+#### `list-rules`
+
+```
+vertagus list-rules
+```
+
+#### `list-aliases`
+
+```
+vertagus list-aliases
+```
+
+#### `list-manifests`
+
+```
+vertagus list-manifests
+```
+
+#### `list-scms`
+
+```
+vertagus list-scms
+````
 
 ### Continuous Integration
 
