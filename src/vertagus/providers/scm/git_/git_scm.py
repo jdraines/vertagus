@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from configparser import NoSectionError
 
 import git
 from git.remote import Remote
@@ -136,8 +137,6 @@ class GitScm(ScmBase):
                 "name": repo.config_reader().get_value("user", "name"),
                 "email": repo.config_reader().get_value("user", "email")
             }
-        except Exception as e:
-            logger.warning(
-                f"Error encountered while reading user data from git config: {e.__module__}{e.__class__.__name__}: {e}"
-            )
+        except NoSectionError:
+            logger.warning("No user data found in git config. Setting default values.")
             return self._default_user_data
