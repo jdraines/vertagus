@@ -23,12 +23,10 @@ class GitScm(ScmBase):
     def __init__(self,
                  root: str = None,
                  tag_prefix: str = None,
-                 user_data: dict = None,
                  remote_name: str = None
                  ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
-        self.user_data = user_data or self._get_user_data()
         self.remote_name = remote_name or self._default_remote_name
         self._repo = self._initialize_repo()
 
@@ -119,23 +117,31 @@ class GitScm(ScmBase):
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)
+        user_data = self._get_user_data(repo)
         logger.debug(
             f"Initializing git repository at {self.root} "
-            f"with user data {self.user_data}."
+            f"with user data {user_data}."
         )
-        repo.config_writer().set_value(
-            "user", "name", self.user_data['name']
-        ).release()
-        repo.config_writer().set_value(
-            "user", "email", self.user_data['email']
-        ).release()
+        # logger.debug(
+        #     f"Initializing git repository at {self.root} "
+        #     f"with user data {self.user_data}."
+        # )
+        # repo.config_writer().set_value(
+        #     "user", "name", self.user_data['name']
+        # ).release()
+        # repo.config_writer().set_value(
+        #     "user", "email", self.user_data['email']
+        # ).release()
         return repo
 
-    def _get_user_data(self):
+    def _get_user_data(self, repo: git.Repo):
         try: 
             return {
-                "name": self._repo.config_reader().get_value("user", "name"),
-                "email": self._repo.config_reader().get_value("user", "email")
+                "name": repo.config_reader().get_value("user", "name"),
+                "email": repo.config_reader().get_value("user", "email")
             }
-        except:
+        except Exception as e:
+            logger.warning(
+                f"Error encountered while reading user data from git config: {e.__class__.__name__}: {e}"
+            )
             return self._default_user_data
