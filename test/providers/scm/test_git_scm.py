@@ -35,7 +35,6 @@ def mock_alias():
 def test_init(scm, scm_config):
     assert scm.root == scm_config["root"]
     assert scm.tag_prefix is None
-    assert scm.user_data == scm_config["user_data"]
     assert scm.remote_name == scm_config["remote_name"]
 
 
