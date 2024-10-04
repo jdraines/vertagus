@@ -122,16 +122,12 @@ class GitScm(ScmBase):
             f"Initializing git repository at {self.root} "
             f"with user data {user_data}."
         )
-        # logger.debug(
-        #     f"Initializing git repository at {self.root} "
-        #     f"with user data {self.user_data}."
-        # )
-        # repo.config_writer().set_value(
-        #     "user", "name", self.user_data['name']
-        # ).release()
-        # repo.config_writer().set_value(
-        #     "user", "email", self.user_data['email']
-        # ).release()
+        repo.config_writer().set_value(
+            "user", "name", user_data['name']
+        ).release()
+        repo.config_writer().set_value(
+            "user", "email", user_data['email']
+        ).release()
         return repo
 
     def _get_user_data(self, repo: git.Repo):
@@ -142,6 +138,6 @@ class GitScm(ScmBase):
             }
         except Exception as e:
             logger.warning(
-                f"Error encountered while reading user data from git config: {e.__class__.__name__}: {e}"
+                f"Error encountered while reading user data from git config: {e.__module__}{e.__class__.__name__}: {e}"
             )
             return self._default_user_data

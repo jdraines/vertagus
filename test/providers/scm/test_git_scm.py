@@ -10,10 +10,6 @@ from vertagus.providers.scm.git_ import git_scm as gscm
 def scm_config():
     return {
         "root": "/tmp",
-        "user_data": {
-            "name": "vertagus",
-            "email": "vertagus@vertagus.com"
-        },
         "remote_name": "test-remote"
     }
 
