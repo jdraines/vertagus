@@ -53,7 +53,7 @@ class GitScm(ScmBase):
         )
         self._repo.git.push(tags=True)
     
-    def delete_tag(self, tag: Tag):
+    def delete_tag(self, tag: Tag, suppress_warnings: bool=False):
         _tags = [t.name for t in self._repo.tags]
         logger.debug(
             f"Tags found: {_tags}"
@@ -62,15 +62,17 @@ class GitScm(ScmBase):
         try:
             self._repo.delete_tag(tag_text)
         except GitCommandError as e:
-            logger.warning(
-                f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}"
-            )
+            if not suppress_warnings:
+                logger.warning(
+                    f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}"
+                )
         try:
             self._repo.git.execute(["git", "push", "--delete", self.remote_name, tag_text])
         except GitCommandError as e:
-            logger.warning(
-                f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}"
-            )
+            if not suppress_warnings:
+                logger.warning(
+                    f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}"
+                )
         self._repo.git.push(tags=True)
     
     def list_tags(self, prefix: str=None):
@@ -85,14 +87,15 @@ class GitScm(ScmBase):
             tags = [tag for tag in tags if tag.startswith(prefix)]
         return tags
 
-    def migrate_alias(self, alias: AliasBase, ref: str = None):
+    def migrate_alias(self, alias: AliasBase, ref: str = None, suppress_warnings: bool=True):
         logger.info(
             f"Migrating alias {alias.name} to ref {ref}"
         )
         try:
-            self.delete_tag(alias)
+            self.delete_tag(alias, suppress_warnings=suppress_warnings)
         except GitCommandError as e:
-            logger.error(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
+            if not suppress_warnings:
+                logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
     def get_highest_version(self, prefix: str = None):
