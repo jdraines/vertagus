@@ -13,7 +13,7 @@ class ScmBase:
     def create_tag(self, tag: Tag, ref: str=None):
         raise NotImplementedError()
     
-    def delete_tag(self, tag_name: str):
+    def delete_tag(self, tag_name: str, suppress_warnings: bool=False):
         raise NotImplementedError()
     
     def list_tags(self, prefix: str=None):
@@ -22,5 +22,5 @@ class ScmBase:
     def get_highest_version(self, prefix: str=None):
         raise NotImplementedError()
 
-    def migrate_alias(self, alias: str, ref: str = None):
+    def migrate_alias(self, alias: str, ref: str = None, suppress_warnings: bool=True):
         raise NotImplementedError()
