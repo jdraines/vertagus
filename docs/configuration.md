@@ -11,6 +11,10 @@ for an example. Here's what that same file looks like in `toml` format:
 [scm]
 type = "git"
 tag_prefix = "v"
+version_strategy = "branch"
+target_branch = "main"
+manifest_path = "./pyproject.toml"
+manifest_type = "setuptools_pyproject"
 
 [project.rules]
 current = ["not_empty"]

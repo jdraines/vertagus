@@ -1,6 +1,7 @@
 from vertagus.core.manifest_base import ManifestBase
 import json
 import os.path
+from typing import Sequence, Optional
 
 class JsonManifest(ManifestBase):
     manifest_type: str = "json"
@@ -19,15 +20,7 @@ class JsonManifest(ManifestBase):
     def version(self):
         if not self.loc:
             raise ValueError(f"No loc provided for manifest {self.name!r}")
-        p = self._doc
-        for k in self.loc:
-            if k not in p:
-                raise ValueError(
-                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. "
-                    f"Key {k!r} not found in {list(p.keys())}"
-                )
-            p = p[k]
-        return p
+        return self._get_version(self._doc, self.loc, self.name)
 
     def _load_doc(self):
         path = self._full_path()
@@ -39,3 +32,14 @@ class JsonManifest(ManifestBase):
         if self.root:
             path = os.path.join(self.root, path)
         return path
+
+    @classmethod
+    def version_from_content(cls,
+                             content: str,
+                             name: str,
+                             loc: Optional[list[str]] = None,
+                             ) -> str:
+        if loc is None:
+            raise ValueError("loc must be provided for JsonManifest")
+        manifest_content = json.loads(content)
+        return cls._get_version(manifest_content, loc, name)

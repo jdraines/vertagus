@@ -1,5 +1,5 @@
 from ..toml_manifest import TomlManifest
-
+from typing import cast, Optional
 
 class SetuptoolsPyprojectManifest(TomlManifest):
     manifest_type: str = "setuptools_pyproject"
@@ -16,3 +16,13 @@ class SetuptoolsPyprojectManifest(TomlManifest):
         if loc:
             self.loc = loc
         self._doc = self._load_doc()
+
+    @classmethod
+    def version_from_content(cls,
+                             content: str,
+                             name: str,
+                             loc: Optional[list[str]] = None,
+                             ) -> str:
+        if loc is None:
+            loc = cast(list[str], cls.loc)
+        return super().version_from_content(content, name, loc)

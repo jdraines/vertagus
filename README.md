@@ -2,7 +2,8 @@ Vertagus
 ========
 
 Vertagus is a tool to enable automation around maintining versions for your source code via a source control
-management's tag feature.
+management tool like git. You can automate checks to compare the current code version string with version string(s)
+found on a specific branch of your repo or in repo tags.
 
 Installation
 ------------
@@ -28,10 +29,7 @@ Vertagus assumes some things about your development and versioning process:
 
 - You are using some sort of packaging or distribution tool that contains a structured text document like `yaml` or 
   `toml`, and you declare your package version in that document. Vertagus calls these documents "manifests".
-- You are using a source control manager (scm) like [git](https://git-scm.com/) to manage your code's changes.
-- You would like to use your scm's tag feature to track versions. So, for example, if your package version is
-  `1.0.2` currently, you'd like your scm to tag this point in your code's history with something like `1.0.2` (though you 
-  can customize the format some.)
+- You are using a source control manager (scm) like [git](https://git-scm.com/) to manage your code's changes. (Only git is currently supported.)
 
 What it does
 ------------
@@ -40,6 +38,10 @@ What it does
 
 Vertagus lets you declare some things about how you'd like to maintain your versioning:
 
+- **Version Strategy** -- there are two strategies supported, `"branch"`, and "`tag`", and you declare this as part of
+  your scm configuration. The `"branch"` strategy will look at a manifest file on a particular branch to determine the
+  highest previous version. The `"tag"` strategy will look through tags in a repo to determine the highest previous
+  version.
 - **Manifests**, which are the source of truth for your versioning. (You can declare more than one if you like, but the
   first one will be considered the authoritative version.)
 - **Rules** that your versioning should follow. For example, should it match a certain regex pattern? Should it always
@@ -59,6 +61,7 @@ Here's an example of the yaml format:
 scm:
   type: git
   tag_prefix: v
+  version_strategy: tag
 project:
   rules:
     current:
@@ -83,6 +86,31 @@ project:
           - regex_mmp
 ```
 
+**Version strategies**
+
+Vertagus uses your scm as the source of truth for previous versions, so the version strategy is declared within the `scm` configuration block. Two version strategies are supported, `tag` and `branch`.
+
+In the case of using `tag`, running `vertagus validate` will look for version tags in your source control repo
+and will attempt to extract the highest version seen there for use in validation of the local version state.
+
+In the case of using `branch`, some additional config parameters are required:
+
+```yaml
+scm:
+  # other scm params
+  version_strategy: branch
+  target_branch: main
+  manifest_path: pyproject.toml  # path relative to repo root
+  manifest_type: toml
+  manifest_loc: ["project", "version"]
+```
+
+For `branch`, vertagus will extract the version from the manifest on the target branch to be used as the highest previous version for use in validation of the local version state. 
+
+Also note that when `branch` strategy is specified, the branch to be used can be overridden in the `vertagus validate` CLI command. (See below.) This allows for adding automated version checks against other branches in the case of a git-flow style merge pattern.
+
+**Available Rules**
+
 For a complete list of rules that can be used in the configuration, you can run `vertagus list-rules`
 to see the available rules and whether they can be used as `increment` or `current` rules.
 
@@ -97,7 +125,7 @@ _Vertagus provides two main operations in its `vertagus` CLI:_
 The `validate` command looks like this:
 
 ```
-vertagus validate [--stage-name STAGE_NAME --config CONFIG_FILEPATH]
+vertagus validate [--stage-name STAGE_NAME --config CONFIG_FILEPATH --scm-branch SCM_BRANCH_NAME]
 ```
 
 The `validate` command will check your configuration and run any rules that you have declared there. If any of the rules

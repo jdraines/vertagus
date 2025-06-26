@@ -19,8 +19,8 @@ class Project(Package):
                  current_version_rules: list[T.Type[SingleVersionRule]],
                  version_increment_rules: list[VersionComparisonRule],
                  manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-                 stages: list[Stage] = None,
-                 aliases: list[type[AliasBase]] = None
+                 stages: T.Optional[list[Stage]] = None,
+                 aliases: T.Optional[list[type[AliasBase]]] = None
                  ):
         super().__init__(
             manifests=manifests,
@@ -34,13 +34,13 @@ class Project(Package):
     def stages(self):
         return self._stages
     
-    def get_version(self, stage_name: str = None):
+    def get_version(self, stage_name: T.Optional[str] = None):
         manifests = self._get_manifests(stage_name)
         if not manifests:
             raise ValueError("No manifests found.")
         return manifests[0].version
 
-    def get_aliases(self, stage_name: str = None) -> list[AliasBase]:
+    def get_aliases(self, stage_name: T.Optional[str] = None) -> list[AliasBase]:
         version = self.get_version()
         aliases = self._get_version_aliases(version)
         if stage_name:
@@ -48,7 +48,7 @@ class Project(Package):
             aliases.extend(stage.get_version_aliases(version))
         return list(dict.fromkeys(aliases).keys())
 
-    def validate_version(self, previous_version: str, stage_name: str = None):
+    def validate_version(self, previous_version: str, stage_name: T.Optional[str] = None):
         primary_manifest = self._get_manifests(stage_name)[0]
         current_version = self.get_version(stage_name)
         logger.info(

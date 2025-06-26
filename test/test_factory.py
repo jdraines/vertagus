@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 import os
 from vertagus import factory
@@ -94,6 +94,122 @@ def test_create_scm(mock_scm_data, mock_scm_cls, monkeypatch):
     factory.get_scm_cls.assert_called_with("dummy_type")
     assert scm.root == "root"
     assert scm.tag_prefix is None
+
+
+def test_create_scm_with_branch_strategy():
+    """Test creating SCM instance with branch strategy."""
+    branch_scm_data = t.ScmData(
+        type="git",
+        root="/test/path",
+        version_strategy="branch",
+        target_branch="main",
+        manifest_path="pyproject.toml",
+        manifest_type="setuptools_pyproject",
+        tag_prefix="v"
+    )
+    
+    mock_scm_class = MagicMock(spec=ScmBase)
+    
+    with patch('vertagus.factory.get_scm_cls') as mock_get_scm_cls:
+        mock_get_scm_cls.return_value = mock_scm_class
+        
+        factory.create_scm(branch_scm_data)
+        
+        # Verify the correct SCM class was requested
+        mock_get_scm_cls.assert_called_once_with("git")
+        
+        # Verify the SCM was instantiated with correct parameters including manifest info
+        mock_scm_class.assert_called_once_with(
+            root="/test/path",
+            version_strategy="branch",
+            target_branch="main",
+            manifest_path="pyproject.toml",
+            manifest_type="setuptools_pyproject",
+            tag_prefix="v"
+        )
+
+
+def test_create_scm_with_tag_strategy():
+    """Test creating SCM instance with tag strategy (default)."""
+    tag_scm_data = t.ScmData(
+        type="git",
+        root="/test/path",
+        version_strategy="tag",
+        tag_prefix="v"
+    )
+    
+    mock_scm_class = MagicMock(spec=ScmBase)
+    
+    with patch('vertagus.factory.get_scm_cls') as mock_get_scm_cls:
+        mock_get_scm_cls.return_value = mock_scm_class
+        
+        factory.create_scm(tag_scm_data)
+        
+        # Verify the correct SCM class was requested
+        mock_get_scm_cls.assert_called_once_with("git")
+        
+        # Verify the SCM was instantiated with correct parameters
+        mock_scm_class.assert_called_once_with(
+            root="/test/path",
+            version_strategy="tag",
+            tag_prefix="v"
+        )
+
+
+def test_scm_data_config_includes_branch_parameters():
+    """Test that ScmData.config() includes branch-related parameters."""
+    branch_scm_data = t.ScmData(
+        type="git",
+        root="/test/path",
+        version_strategy="branch",
+        target_branch="main",
+        tag_prefix="v"
+    )
+    
+    config = branch_scm_data.config()
+    
+    assert config["version_strategy"] == "branch"
+    assert config["target_branch"] == "main"
+    assert config["root"] == "/test/path"
+    assert config["tag_prefix"] == "v"
+
+
+def test_scm_data_config_excludes_none_target_branch():
+    """Test that ScmData.config() excludes target_branch when None."""
+    tag_scm_data = t.ScmData(
+        type="git",
+        root="/test/path",
+        version_strategy="tag",
+        tag_prefix="v"
+    )
+    
+    config = tag_scm_data.config()
+    
+    assert config["version_strategy"] == "tag"
+    assert "target_branch" not in config
+    assert config["root"] == "/test/path"
+
+
+def test_scm_data_config_includes_manifest_parameters():
+    """Test that ScmData.config() includes manifest-related parameters."""
+    branch_scm_data = t.ScmData(
+        type="git",
+        root="/test/path",
+        version_strategy="branch",
+        target_branch="main",
+        manifest_path="pyproject.toml",
+        manifest_type="setuptools_pyproject",
+        tag_prefix="v"
+    )
+    
+    config = branch_scm_data.config()
+    
+    assert config["version_strategy"] == "branch"
+    assert config["target_branch"] == "main"
+    assert config["manifest_path"] == "pyproject.toml"
+    assert config["manifest_type"] == "setuptools_pyproject"
+    assert config["root"] == "/test/path"
+    assert config["tag_prefix"] == "v"
 
 
 @pytest.fixture
