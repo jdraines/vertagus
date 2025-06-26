@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from logging import getLogger
 from configparser import NoSectionError
 
@@ -22,17 +23,22 @@ class GitScm(ScmBase):
     _default_remote_name = "origin"
 
     def __init__(self,
-                 root: str = None,
-                 tag_prefix: str = None,
-                 remote_name: str = None,
+                 root: Optional[str] = None,
+                 tag_prefix: Optional[str] = None,
+                 remote_name: Optional[str] = None,
                  version_strategy: str = "tag",
-                 target_branch: str = None
+                 target_branch: Optional[str] = None,
+                 manifest_path: Optional[str] = None,
+                 manifest_type: Optional[str] = None,
+                 **kwargs
                  ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
         self.remote_name = remote_name or self._default_remote_name
         self.version_strategy = version_strategy
         self.target_branch = target_branch
+        self.manifest_path = manifest_path
+        self.manifest_type = manifest_type
         self._repo = self._initialize_repo()
 
     @property
@@ -102,26 +108,51 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self, prefix: str = None):
-        if not prefix and self.tag_prefix:
-            prefix = self.tag_prefix
-        tags = self.list_tags(prefix=prefix)
-        if not tags:
-            return None
-        versions = tags
-        if prefix:
-            versions = [tag.replace(prefix, "") for tag in tags]
-        
-        valid_versions = []
-        for version in versions:
-            try:
-                parse_version(version)
-                valid_versions.append(version)
-            except InvalidVersion:
-                logger.warning(f"Invalid version found: {version}")
-        if not valid_versions:
-            return None
-        return max(valid_versions, key=lambda v: parse_version(v))
+    def get_highest_version(self, prefix: Optional[str] = None):
+        # Check if we're using branch-based strategy
+        if self.version_strategy == 'branch':
+            # For branch strategy, get version from the manifest on target branch
+            if not self.target_branch:
+                logger.error("Branch-based strategy requires a target_branch to be configured")
+                return None
+            if not self.manifest_path or not self.manifest_type:
+                logger.error("Branch-based strategy requires manifest_path and manifest_type to be configured")
+                return None
+                
+            # Clean the manifest path (remove ./ prefix if present)
+            manifest_path = self.manifest_path.lstrip('./')
+            version = self.get_branch_manifest_version(
+                branch=self.target_branch,
+                manifest_path=manifest_path,
+                manifest_type=self.manifest_type
+            )
+            
+            if version is None:
+                logger.warning(f"Could not retrieve version from branch '{self.target_branch}'")
+                # Optionally treat this as valid if no version exists on target branch
+                return "0.0.0"
+            return version
+        else:
+            # Traditional tag-based strategy
+            if not prefix and self.tag_prefix:
+                prefix = self.tag_prefix
+            tags = self.list_tags(prefix=prefix)
+            if not tags:
+                return None
+            versions = tags
+            if prefix:
+                versions = [tag.replace(prefix, "") for tag in tags]
+            
+            valid_versions = []
+            for version in versions:
+                try:
+                    parse_version(version)
+                    valid_versions.append(version)
+                except InvalidVersion:
+                    logger.warning(f"Invalid version found: {version}")
+            if not valid_versions:
+                return None
+            return max(valid_versions, key=lambda v: parse_version(v))
     
     def _initialize_repo(self):
         repo = git.Repo(self.root)

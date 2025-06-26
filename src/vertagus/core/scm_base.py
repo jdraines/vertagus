@@ -7,22 +7,25 @@ class ScmBase:
     scm_tpe = "base"
     tag_prefix: T.Optional[str] = None
 
-    def __init__(self, root: str, **kwargs):
+    def __init__(self, root: str, version_strategy: str = "tag", 
+                 target_branch: T.Optional[str] = None,
+                 manifest_path: T.Optional[str] = None,
+                 manifest_type: T.Optional[str] = None, **kwargs):
         raise NotImplementedError()
 
-    def create_tag(self, tag: Tag, ref: str=None):
+    def create_tag(self, tag: Tag, ref: T.Optional[str] = None):
         raise NotImplementedError()
     
-    def delete_tag(self, tag_name: str, suppress_warnings: bool=False):
+    def delete_tag(self, tag_name: str, suppress_warnings: bool = False):
         raise NotImplementedError()
     
-    def list_tags(self, prefix: str=None):
+    def list_tags(self, prefix: T.Optional[str] = None):
         raise NotImplementedError()
 
-    def get_highest_version(self, prefix: str=None):
+    def get_highest_version(self, prefix: T.Optional[str] = None):
         raise NotImplementedError()
 
-    def migrate_alias(self, alias: str, ref: str = None, suppress_warnings: bool=True):
+    def migrate_alias(self, alias: str, ref: T.Optional[str] = None, suppress_warnings: bool = True):
         raise NotImplementedError()
 
     def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> T.Optional[str]:

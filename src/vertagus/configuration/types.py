@@ -159,11 +159,14 @@ class ProjectData:
 class ScmData:
     
     def __init__(self, type: str, root: str = None, version_strategy: str = "tag", 
-                 target_branch: str = None, **kwargs):
+                 target_branch: T.Optional[str] = None, manifest_path: T.Optional[str] = None, 
+                 manifest_type: T.Optional[str] = None, **kwargs):
         self.scm_type = type
         self.root = root
         self.version_strategy = version_strategy  # "tag" or "branch"
         self.target_branch = target_branch
+        self.manifest_path = manifest_path  # Required for branch strategy
+        self.manifest_type = manifest_type  # Required for branch strategy
         self.kwargs = kwargs
 
     def config(self):
@@ -174,4 +177,8 @@ class ScmData:
         )
         if self.target_branch:
             config_dict['target_branch'] = self.target_branch
+        if self.manifest_path:
+            config_dict['manifest_path'] = self.manifest_path
+        if self.manifest_type:
+            config_dict['manifest_type'] = self.manifest_type
         return config_dict
