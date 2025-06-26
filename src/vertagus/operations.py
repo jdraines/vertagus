@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Optional
 
 from vertagus.core.project import Project
 from vertagus.core.tag_base import Tag
@@ -10,8 +11,8 @@ logger = getLogger(__name__)
 
 def validate_project_version(scm: ScmBase,
                              project: Project,
-                             stage_name: str | None = None,
-                             scm_branch: str | None = None
+                             stage_name: Optional[str] = None,
+                             scm_branch: Optional[str] = None
                              ) -> bool:
     # Get the previous version using SCM's strategy-aware method
     previous_version = scm.get_highest_version(branch=scm_branch)
@@ -32,8 +33,8 @@ def validate_project_version(scm: ScmBase,
 
 def create_tags(scm: ScmBase,
                 project: Project,
-                stage_name: str | None = None,
-                ref: str | None = None
+                stage_name: Optional[str] = None,
+                ref: Optional[str] = None
                 ) -> None:
     tag = Tag(project.get_version())
     scm.create_tag(tag, ref=ref)
@@ -44,8 +45,8 @@ def create_tags(scm: ScmBase,
 
 def create_aliases(scm: ScmBase,
                    project: Project,
-                   stage_name: str | None = None,
-                   ref: str | None = None
+                   stage_name: Optional[str] = None,
+                   ref: Optional[str] = None
                    ) -> None:
     aliases = project.get_aliases(stage_name)
     for alias in aliases:

@@ -3,14 +3,14 @@ from dataclasses import dataclass, field
 import os
 
 V = T.TypeVar('V', bound=T.Any)
-DictType = T.Dict | T.TypedDict
+DictType = T.Union[T.Dict, T.TypedDict]
 
 
 def getdefault(d: DictType, k: str, default: V)  -> V:
     """
     Get a value from a dictionary, returning a default if the key is not present.
     """
-    r: V | T.Any = d.get(k, default)
+    r: T.Union[V, T.Any] = d.get(k, default)
     if r is None:
         r = default
     return r
@@ -77,20 +77,20 @@ class ManifestData:
     name: str
     type: str
     path: str
-    loc: list[str] | None = None
+    loc: T.Optional[list[str]] = None
 
     class _OutputConfig(T.TypedDict):
         name: str
         path: str
-        loc: list[str] | None
+        loc: T.Optional[list[str]]
 
-    def __init__(self, name: str, type: str, path: str, loc: list[str] | str | None = None):
+    def __init__(self, name: str, type: str, path: str, loc: T.Union[list[str], str, None] = None):
         self.name = name
         self.type = type
         self.path = path
         self.loc = self._parse_loc(loc)
 
-    def _parse_loc(self, loc: list[str] | str | None) -> list[str] | None:
+    def _parse_loc(self, loc: T.Union[list[str], str, None]) -> T.Optional[list[str]]:
         if isinstance(loc, str):
             return loc.split(".")
         return loc
@@ -105,12 +105,12 @@ class StageData:
                  name: str,
                  manifests: list[ManifestData],
                  rules: RulesData,
-                 aliases: list[str] | None = None
+                 aliases: T.Optional[list[str]] = None
                  ):
         self.name: str = name
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
-        self.aliases: list[str] | None = aliases
+        self.aliases: T.Optional[list[str]] = aliases
 
     @classmethod
     def from_stage_config(cls, name: str, config: StageConfig):
@@ -142,15 +142,15 @@ class ProjectData:
     def __init__(self,
                  manifests: list[ManifestData],
                  rules: RulesData,
-                 stages: list[StageData]  | None = None,
-                 aliases: list[str] | None = None,
-                 root: str | None = None 
+                 stages: T.Optional[list[StageData]] = None,
+                 aliases: T.Optional[list[str]] = None,
+                 root: T.Optional[str] = None 
                  ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
-        self.stages: list[StageData] | None = stages
-        self.aliases: list[str] | None = aliases
-        self.root: str | None = root or os.getcwd()
+        self.stages: T.Optional[list[StageData]] = stages
+        self.aliases: T.Optional[list[str]] = aliases
+        self.root: T.Optional[str] = root or os.getcwd()
 
     def config(self):
         stages = self.stages or []
@@ -184,7 +184,7 @@ class ScmData:
     
     def __init__(self,
                  type: str,
-                 root: str | None = None,
+                 root: T.Optional[str] = None,
                  version_strategy: str = "tag", 
                  target_branch: T.Optional[str] = None,
                  manifest_path: T.Optional[str] = None, 

@@ -1,7 +1,7 @@
 from vertagus.core.manifest_base import ManifestBase
 import json
 import os.path
-from typing import Sequence
+from typing import Sequence, Optional
 
 class JsonManifest(ManifestBase):
     manifest_type: str = "json"
@@ -37,7 +37,7 @@ class JsonManifest(ManifestBase):
     def version_from_content(cls,
                              content: str,
                              name: str,
-                             loc: list[str] | None = None,
+                             loc: Optional[list[str]] = None,
                              ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for JsonManifest")

@@ -1,5 +1,5 @@
 from ..toml_manifest import TomlManifest
-from typing import cast
+from typing import cast, Optional
 
 class SetuptoolsPyprojectManifest(TomlManifest):
     manifest_type: str = "setuptools_pyproject"
@@ -21,7 +21,7 @@ class SetuptoolsPyprojectManifest(TomlManifest):
     def version_from_content(cls,
                              content: str,
                              name: str,
-                             loc: list[str] | None = None,
+                             loc: Optional[list[str]] = None,
                              ) -> str:
         if loc is None:
             loc = cast(list[str], cls.loc)

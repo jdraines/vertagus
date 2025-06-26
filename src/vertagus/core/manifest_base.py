@@ -5,13 +5,13 @@ class ManifestBase:
     manifest_type: str = "base"
     description: str = ""
     version: str
-    loc: T.Sequence[T.Union[str, int]] | None = []
+    loc: T.Optional[T.Sequence[T.Union[str, int]]] = []
 
     def __init__(self,
                  name: str,
                  path: str,
-                 loc: T.Sequence[T.Union[str, int]] | None,
-                 root: str | None = None
+                 loc: T.Optional[T.Sequence[T.Union[str, int]]],
+                 root: T.Optional[str] = None
                  ):
         self.name = name
         self.path = path
@@ -26,7 +26,7 @@ class ManifestBase:
     def version_from_content(cls,
                              content: str,
                              name: str,
-                             loc: T.Sequence[T.Union[str, int]] | None = None,
+                             loc: T.Optional[T.Sequence[T.Union[str, int]]] = None,
                              ) -> str:
         """
         Retrieve the version from the content of the manifest file.
@@ -35,7 +35,7 @@ class ManifestBase:
 
 
     @classmethod
-    def _get_version(cls, doc, loc: T.Sequence[str | int], name: str) -> str:
+    def _get_version(cls, doc, loc: T.Sequence[T.Union[str, int]], name: str) -> str:
         p = doc
         for k in loc:
             if k not in p:

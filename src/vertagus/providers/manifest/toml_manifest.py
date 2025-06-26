@@ -1,6 +1,7 @@
 from vertagus.core.manifest_base import ManifestBase
 import tomli
 import os.path
+from typing import Optional
 
 class TomlManifest(ManifestBase):
     manifest_type: str = "toml"
@@ -36,7 +37,7 @@ class TomlManifest(ManifestBase):
     def version_from_content(cls,
                              content: str,
                              name: str,
-                             loc: list[str] | None = None,
+                             loc: Optional[list[str]] = None,
                              ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for TomlManifest")

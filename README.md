@@ -29,10 +29,7 @@ Vertagus assumes some things about your development and versioning process:
 
 - You are using some sort of packaging or distribution tool that contains a structured text document like `yaml` or 
   `toml`, and you declare your package version in that document. Vertagus calls these documents "manifests".
-- You are using a source control manager (scm) like [git](https://git-scm.com/) to manage your code's changes.
-- You would like to use your scm's tag feature to track versions. So, for example, if your package version is
-  `1.0.2` currently, you'd like your scm to tag this point in your code's history with something like `1.0.2` (though you 
-  can customize the format some.)
+- You are using a source control manager (scm) like [git](https://git-scm.com/) to manage your code's changes. (Only git is currently supported.)
 
 What it does
 ------------

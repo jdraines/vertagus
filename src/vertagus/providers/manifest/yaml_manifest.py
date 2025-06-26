@@ -1,6 +1,7 @@
 from vertagus.core.manifest_base import ManifestBase
 import yaml
 import os.path
+from typing import Optional
 
 class YamlManifest(ManifestBase):
     manifest_type: str = "yaml"
@@ -44,7 +45,7 @@ class YamlManifest(ManifestBase):
     def version_from_content(cls,
                              content: str,
                              name: str,
-                             loc: list[str] | None = None,
+                             loc: Optional[list[str]] = None,
                              ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for YamlManifest")

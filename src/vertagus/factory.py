@@ -1,5 +1,5 @@
 import os.path
-from typing import Type, cast
+from typing import Type, cast, Optional
 
 from vertagus.core.project import Project
 from vertagus.core.stage import Stage
@@ -33,7 +33,7 @@ def create_project(data: t.ProjectData) -> Project:
 
 
 def create_manifests(manifest_data: list[t.ManifestData],
-                     root: str | None = None
+                     root: Optional[str] = None
                      ) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
@@ -64,7 +64,7 @@ def create_aliases(alias_names: list[str]) -> list[Type[AliasBase]]:
     return get_aliases(alias_names)
 
 
-def create_stages(stage_data: list[t.StageData], project_root: str | None = None) -> list[Stage]:
+def create_stages(stage_data: list[t.StageData], project_root: Optional[str] = None) -> list[Stage]:
     stages = []
     for data in stage_data:
         stages.append(Stage(

@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 from configparser import NoSectionError
-from typing import cast
+from typing import cast, Optional
 
 import git
 from git.remote import Remote
@@ -28,14 +28,14 @@ class GitScm(ScmBase):
     _default_version_strategy = "tag"
 
     def __init__(self,
-                 root: str | None = None,
-                 tag_prefix: str | None = None,
-                 remote_name: str | None = None,
-                 version_strategy: str | None = "tag",
-                 target_branch: str | None = None,
-                 manifest_path: str | None = None,
-                 manifest_type: str | None = None,
-                 manifest_loc: str | None = None,
+                 root: Optional[str] = None,
+                 tag_prefix: Optional[str] = None,
+                 remote_name: Optional[str] = None,
+                 version_strategy: Optional[str] = "tag",
+                 target_branch: Optional[str] = None,
+                 manifest_path: Optional[str] = None,
+                 manifest_type: Optional[str] = None,
+                 manifest_loc: Optional[str] = None,
                  **kwargs
                  ):
         self.root = root or os.getcwd()
@@ -53,7 +53,7 @@ class GitScm(ScmBase):
         return self._repo.remotes[self.remote_name]
 
 
-    def create_tag(self, tag: Tag, ref: str | None = None):
+    def create_tag(self, tag: Tag, ref: Optional[str] = None):
         tag_prefix = self.tag_prefix or ""
         tag_text = tag.as_string(tag_prefix)
         if ref:
@@ -102,7 +102,7 @@ class GitScm(ScmBase):
                 )
         self._repo.git.push(tags=True)
 
-    def list_tags(self, prefix: str | None = None):
+    def list_tags(self, prefix: Optional[str] = None):
 
         def _ls_remote() -> str:
             return cast(
@@ -125,7 +125,7 @@ class GitScm(ScmBase):
 
     def migrate_alias(self,
                       alias: AliasBase,
-                      ref: str | None = None,
+                      ref: Optional[str] = None,
                       suppress_warnings: bool=True
                       ):
         logger.info(
@@ -139,9 +139,9 @@ class GitScm(ScmBase):
         self.create_tag(alias, ref=ref)
 
     def get_highest_version(self,
-                            prefix: str | None = None,
-                            branch: str | None = None
-                            ) -> str | None:
+                            prefix: Optional[str] = None,
+                            branch: Optional[str] = None
+                            ) -> Optional[str]:
         # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
             # For branch strategy, get version from the manifest on target branch
@@ -216,8 +216,8 @@ class GitScm(ScmBase):
                                     branch: str,
                                     manifest_path: str,
                                     manifest_type: str,
-                                    manifest_loc: str | None = None
-                                    ) -> str | None:
+                                    manifest_loc: Optional[str] = None
+                                    ) -> Optional[str]:
         """
         Get the version from a manifest file on a specific branch.
         """
