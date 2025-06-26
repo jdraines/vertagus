@@ -1,6 +1,12 @@
 CHANGELOG
 ===
 
+
+0.2.1
+---
+
+* **Git client rollback** changes to the git client relating to deleting tags produced their own new issues and were rolled back.
+
 0.2.0
 ---
 

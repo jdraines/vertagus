@@ -5,7 +5,7 @@ from typing import cast, Optional
 
 import git
 from git.remote import Remote
-from git.exc import GitCommandError
+from git.exc import GitCommandError, BadName
 from git.objects import Commit
 from git.refs.tag import TagReference 
 from packaging.version import parse as parse_version, InvalidVersion
@@ -79,15 +79,7 @@ class GitScm(ScmBase):
         )
         tag_text = tag.as_string(self.tag_prefix)
         try:
-            commit = self._repo.commit(tag_text)
-            tagref = TagReference.create(
-                self._repo,
-                path=tag_text,
-                reference=commit.hexsha,
-                logmsg=f"Deleting tag {tag_text}",
-                force=True
-            )
-            self._repo.delete_tag(tagref)
+            self._repo.delete_tag(tag_text)
         except GitCommandError as e:
             if not suppress_warnings:
                 logger.warning(
