@@ -23,6 +23,7 @@ class ScmConfigBase(T.TypedDict):
     target_branch: T.Optional[str]  # Branch to compare against when using branch strategy
     manifest_path: T.Optional[str]  # Path to the manifest file relative to repo root
     manifest_type: T.Optional[str]  # Type of manifest (e.g., 'set
+    manifest_loc: T.Optional[str]   # A dot-separated string representing the location of the version in the manifest file
 
 ScmConfig = T.Union[ScmConfigBase, dict]
 
@@ -188,6 +189,7 @@ class ScmData:
                  target_branch: T.Optional[str] = None,
                  manifest_path: T.Optional[str] = None, 
                  manifest_type: T.Optional[str] = None,
+                 manifest_loc: T.Optional[str] = None,
                  **kwargs
                  ):
         self.scm_type = type
@@ -196,6 +198,7 @@ class ScmData:
         self.target_branch = target_branch
         self.manifest_path = manifest_path  # Required for branch strategy
         self.manifest_type = manifest_type  # Required for branch strategy
+        self.manifest_loc = manifest_loc
         self.kwargs = kwargs
 
     def config(self):
@@ -210,4 +213,6 @@ class ScmData:
             config_dict['manifest_path'] = self.manifest_path
         if self.manifest_type:
             config_dict['manifest_type'] = self.manifest_type
+        if self.manifest_loc:
+            config_dict['manifest_loc'] = self.manifest_loc
         return config_dict

@@ -11,6 +11,8 @@ from git.refs.tag import TagReference
 from packaging.version import parse as parse_version, InvalidVersion
 from vertagus.core.scm_base import ScmBase
 from vertagus.core.tag_base import Tag, AliasBase
+from vertagus.providers.manifest.registry import get_manifest_cls
+
 
 logger = getLogger(__name__)
 
@@ -33,6 +35,7 @@ class GitScm(ScmBase):
                  target_branch: str | None = None,
                  manifest_path: str | None = None,
                  manifest_type: str | None = None,
+                 manifest_loc: str | None = None,
                  **kwargs
                  ):
         self.root = root or os.getcwd()
@@ -42,6 +45,7 @@ class GitScm(ScmBase):
         self.target_branch = target_branch
         self.manifest_path = manifest_path
         self.manifest_type = manifest_type
+        self.manifest_loc = manifest_loc
         self._repo = self._initialize_repo()
 
     @property
@@ -134,7 +138,10 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self, prefix: str | None = None, branch: str | None = None) -> str | None:
+    def get_highest_version(self,
+                            prefix: str | None = None,
+                            branch: str | None = None
+                            ) -> str | None:
         # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
             # For branch strategy, get version from the manifest on target branch
@@ -156,12 +163,10 @@ class GitScm(ScmBase):
             )
             
             if version is None:
-                logger.warning(f"Could not retrieve version from branch '{self.target_branch}'")
-                # Optionally treat this as valid if no version exists on target branch
-                return "0.0.0"
+                logger.error(f"Could not retrieve version from branch '{self.target_branch}'")
             return version
         else:
-            # Traditional tag-based strategy
+            # Original tag-based strategy
             if not prefix and self.tag_prefix:
                 prefix = self.tag_prefix
             tags = self.list_tags(prefix=prefix)
@@ -207,32 +212,29 @@ class GitScm(ScmBase):
             logger.warning("No user data found in git config. Setting default values.")
             return self._default_user_data
 
-    def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> str | None:
+    def get_branch_manifest_version(self,
+                                    branch: str,
+                                    manifest_path: str,
+                                    manifest_type: str,
+                                    manifest_loc: str | None = None
+                                    ) -> str | None:
         """
         Get the version from a manifest file on a specific branch.
         """
         try:
             # Fetch the latest changes from remote
             self._repo.git.fetch(self.remote_name)
-            
             # Get the content of the manifest file from the specified branch
             file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
-            
-            # Parse the version based on manifest type
-            if manifest_type == "setuptools_pyproject":
-                import tomli
-                data = tomli.loads(file_content)
-                # Handle different pyproject.toml structures
-                if "project" in data and "version" in data["project"]:
-                    return data["project"]["version"]
-                elif "tool" in data and "poetry" in data["tool"] and "version" in data["tool"]["poetry"]:
-                    return data["tool"]["poetry"]["version"]
-                else:
-                    logger.error(f"Could not find version in pyproject.toml from branch {branch}")
-                    return None
-            else:
-                logger.error(f"Unsupported manifest type: {manifest_type}")
+            if not file_content:
+                logger.error(f"Manifest file {manifest_path} not found on branch {branch}")
                 return None
+            manifest_cls = get_manifest_cls(manifest_type)
+            return manifest_cls.version_from_content(
+                content=file_content,
+                name=manifest_path,
+                loc=manifest_loc.split('.') if manifest_loc else None
+            )
                 
         except GitCommandError as e:
             logger.error(f"Error retrieving manifest from branch {branch}: {e}")

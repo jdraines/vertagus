@@ -39,3 +39,14 @@ class YamlManifest(ManifestBase):
         if self.root:
             path = os.path.join(self.root, path)
         return path
+
+    @classmethod
+    def version_from_content(cls,
+                             content: str,
+                             name: str,
+                             loc: list[str] | None = None,
+                             ) -> str:
+        if loc is None:
+            raise ValueError("loc must be provided for YamlManifest")
+        manifest_content = yaml.load(content, Loader=yaml.SafeLoader)
+        return cls._get_version(manifest_content, loc, name)

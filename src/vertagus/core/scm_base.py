@@ -13,6 +13,7 @@ class ScmBase:
                  target_branch: str | None = None,
                  manifest_path: str | None = None,
                  manifest_type: str | None = None,
+                 manifest_loc: T.Optional[str] = None,
                  **kwargs
                  ):
         raise NotImplementedError()

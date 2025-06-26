@@ -5,6 +5,10 @@ on:
         required: true
         type: string
         description: 'The vertagus configuration file to use for the version check'
+      target_branch:
+        required: true
+        type: string
+        description: 'The target branch for the version check, typically the base branch of the PR.'
 
 jobs:
   version-check:
@@ -20,13 +24,13 @@ jobs:
         run: pip install -e "." tomli packaging pyyaml
       - name: run dev version check
         if: ${{ startsWith( github.head_ref, 'dev/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s dev
+        run: vertagus validate -c ${{ inputs.config_file }} -s dev -b ${{ inputs.target_branch }}
       - name: run beta version check
         if: ${{ startsWith( github.head_ref, 'beta/' )}}
-        run: vertagus validate -c ${{ inputs.config_file }} -s beta
+        run: vertagus validate -c ${{ inputs.config_file }} -s beta -b ${{ inputs.target_branch }}
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s prod
+        run: vertagus validate -c ${{ inputs.config_file }} -s prod -b ${{ inputs.target_branch }}
       - name: deny version check
         if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'beta/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
         run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1

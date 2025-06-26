@@ -13,5 +13,7 @@ jobs:
     uses: ./.github/workflows/reusable.check-version.yml
     with:
       config_file: "./vertagus.yaml"
+      target_branch: ${{ github.event.pull_request.base.ref }}
   run-tests:
     uses: ./.github/workflows/reusable.run-tests.yml
+    
