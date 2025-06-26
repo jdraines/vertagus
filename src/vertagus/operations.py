@@ -10,11 +10,12 @@ logger = getLogger(__name__)
 
 def validate_project_version(scm: ScmBase,
                              project: Project,
-                             stage_name: str | None = None
+                             stage_name: str | None = None,
+                             scm_branch: str | None = None
                              ) -> bool:
     # Get the previous version using SCM's strategy-aware method
-    previous_version = scm.get_highest_version()
-    
+    previous_version = scm.get_highest_version(branch=scm_branch)
+
     result = project.validate_version(
         previous_version,
         stage_name

@@ -36,7 +36,13 @@ def _try_get_config_path_in_cwd():
     default=None,
     help="Name of a stage"
 )
-def validate_cmd(config, stage_name):
+@click.option(
+    "--scm-branch",
+    "-b",
+    default=None,
+    help="Optional SCM branch to validate against. Defaults to configured branch."
+)
+def validate_cmd(config, stage_name, scm_branch):
     if not config:
         config = _try_get_config_path_in_cwd()
     master_config = load.load_config(config)
@@ -52,6 +58,7 @@ def validate_cmd(config, stage_name):
     if not ops.validate_project_version(
         scm=scm,
         project=project,
-        stage_name=stage_name
+        stage_name=stage_name,
+        scm_branch=scm_branch
     ):
         sys.exit(1)

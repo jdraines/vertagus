@@ -21,7 +21,8 @@ class ScmConfigBase(T.TypedDict):
     # New fields for branch-based version checking
     version_strategy: T.Optional[str]  # "tag" (default) or "branch"
     target_branch: T.Optional[str]  # Branch to compare against when using branch strategy
-
+    manifest_path: T.Optional[str]  # Path to the manifest file relative to repo root
+    manifest_type: T.Optional[str]  # Type of manifest (e.g., 'set
 
 ScmConfig = T.Union[ScmConfigBase, dict]
 

@@ -134,21 +134,23 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self, prefix: str | None = None):
+    def get_highest_version(self, prefix: str | None = None, branch: str | None = None) -> str | None:
         # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
             # For branch strategy, get version from the manifest on target branch
-            if not self.target_branch:
-                logger.error("Branch-based strategy requires a target_branch to be configured")
+            if not branch or not self.target_branch:
+                logger.error("Branch-based strategy requires a target_branch to be configured or passed")
                 return None
             if not self.manifest_path or not self.manifest_type:
                 logger.error("Branch-based strategy requires manifest_path and manifest_type to be configured")
                 return None
-                
+            
+            branch = branch or self.target_branch
+
             # Clean the manifest path (remove ./ prefix if present)
             manifest_path = self.manifest_path.lstrip('./')
             version = self.get_branch_manifest_version(
-                branch=self.target_branch,
+                branch=branch,
                 manifest_path=manifest_path,
                 manifest_type=self.manifest_type
             )

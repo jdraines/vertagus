@@ -12,7 +12,9 @@ class ScmBase:
                  version_strategy: str | None = "tag",
                  target_branch: str | None = None,
                  manifest_path: str | None = None,
-                 manifest_type: str | None = None, **kwargs):
+                 manifest_type: str | None = None,
+                 **kwargs
+                 ):
         raise NotImplementedError()
 
     def create_tag(self, tag: Tag, ref: str | None = None):
@@ -24,7 +26,7 @@ class ScmBase:
     def list_tags(self, prefix: str | None = None):
         raise NotImplementedError()
 
-    def get_highest_version(self, prefix: str | None = None):
+    def get_highest_version(self, prefix: str | None = None, branch: str | None = None) -> str | None:
         raise NotImplementedError()
 
     def migrate_alias(self, alias: AliasBase, ref: str | None = None, suppress_warnings: bool = True):
