@@ -4,6 +4,9 @@ import os
 
 class ScmConfigBase(T.TypedDict):
     scm_type: str
+    # New fields for branch-based version checking
+    version_strategy: T.Optional[str]  # "tag" (default) or "branch"
+    target_branch: T.Optional[str]  # Branch to compare against when using branch strategy
 
 
 ScmConfig = T.Union[ScmConfigBase, dict]
@@ -155,13 +158,20 @@ class ProjectData:
 
 class ScmData:
     
-    def __init__(self, type: str, root: str = None, **kwargs):
+    def __init__(self, type: str, root: str = None, version_strategy: str = "tag", 
+                 target_branch: str = None, **kwargs):
         self.scm_type = type
         self.root = root
+        self.version_strategy = version_strategy  # "tag" or "branch"
+        self.target_branch = target_branch
         self.kwargs = kwargs
 
     def config(self):
-        return dict(
+        config_dict = dict(
             root=self.root,
+            version_strategy=self.version_strategy,
             **self.kwargs
         )
+        if self.target_branch:
+            config_dict['target_branch'] = self.target_branch
+        return config_dict

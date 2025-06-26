@@ -24,11 +24,15 @@ class GitScm(ScmBase):
     def __init__(self,
                  root: str = None,
                  tag_prefix: str = None,
-                 remote_name: str = None
+                 remote_name: str = None,
+                 version_strategy: str = "tag",
+                 target_branch: str = None
                  ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
         self.remote_name = remote_name or self._default_remote_name
+        self.version_strategy = version_strategy
+        self.target_branch = target_branch
         self._repo = self._initialize_repo()
 
     @property
@@ -143,3 +147,37 @@ class GitScm(ScmBase):
         except NoSectionError:
             logger.warning("No user data found in git config. Setting default values.")
             return self._default_user_data
+
+    def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> str:
+        """
+        Get the version from a manifest file on a specific branch.
+        """
+        try:
+            # Fetch the latest changes from remote
+            self._repo.git.fetch(self.remote_name)
+            
+            # Get the content of the manifest file from the specified branch
+            file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
+            
+            # Parse the version based on manifest type
+            if manifest_type == "setuptools_pyproject":
+                import tomli
+                data = tomli.loads(file_content)
+                # Handle different pyproject.toml structures
+                if "project" in data and "version" in data["project"]:
+                    return data["project"]["version"]
+                elif "tool" in data and "poetry" in data["tool"] and "version" in data["tool"]["poetry"]:
+                    return data["tool"]["poetry"]["version"]
+                else:
+                    logger.error(f"Could not find version in pyproject.toml from branch {branch}")
+                    return None
+            else:
+                logger.error(f"Unsupported manifest type: {manifest_type}")
+                return None
+                
+        except GitCommandError as e:
+            logger.error(f"Error retrieving manifest from branch {branch}: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Error parsing manifest content: {e}")
+            return None
