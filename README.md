@@ -2,7 +2,7 @@ Vertagus
 ========
 
 Vertagus is a tool to enable automation around maintining versions for your source code via a source control
-managemer like git. You can automate checks to compare the current code version string with version string(s)
+management tool like git. You can automate checks to compare the current code version string with version string(s)
 found on a specific branch of your repo or in repo tags.
 
 Installation
