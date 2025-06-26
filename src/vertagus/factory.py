@@ -1,11 +1,12 @@
-from dataclasses import asdict
 import os.path
+from typing import Type, cast
 
 from vertagus.core.project import Project
 from vertagus.core.stage import Stage
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.scm_base import ScmBase
 
 from vertagus.providers.scm.registry import get_scm_cls
@@ -22,16 +23,18 @@ def create_project(data: t.ProjectData) -> Project:
         manifests=create_manifests(data.manifests, data.root),
         current_version_rules=create_single_version_rules(data.rules.current),
         version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
-        manifest_versions_comparison_rules=create_version_comparison_rules(
+        manifest_versions_comparison_rules=create_manifest_comparison_rules(
             ["manifests_comparison"],
             {"manifests": data.rules.manifest_comparisons}
         ) if data.rules.manifest_comparisons else [],
         stages=create_stages(data.stages, data.root) if data.stages else None,
-        aliases=create_aliases(data.aliases)
+        aliases=create_aliases((data.aliases or [])),
     )
 
 
-def create_manifests(manifest_data: list[t.ManifestData], root: str = None) -> list[ManifestBase]:
+def create_manifests(manifest_data: list[t.ManifestData],
+                     root: str | None = None
+                     ) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
         if root:
@@ -41,7 +44,7 @@ def create_manifests(manifest_data: list[t.ManifestData], root: str = None) -> l
     return manifests
 
 
-def create_single_version_rules(rule_names: list[str]) -> list[SingleVersionRule]:
+def create_single_version_rules(rule_names: list[str]) -> list[Type[SingleVersionRule]]:
     return get_single_version_rules(rule_names)
 
 
@@ -49,12 +52,19 @@ def create_version_comparison_rules(rule_names: list[str], config) -> list[Versi
     rule_classes = get_version_comparison_rules(rule_names)
     return [rule_cls(config=config) for rule_cls in rule_classes]
 
+def create_manifest_comparison_rules(rule_names: list[str], config) -> list[ManifestsComparisonRule]:
+    def _cast(cls: Type[VersionComparisonRule]) -> Type[ManifestsComparisonRule]:
+        return cast(Type[ManifestsComparisonRule], cls)
+    rule_classes = get_version_comparison_rules(rule_names)
+    rule_classes = [_cast(rule_cls) for rule_cls in rule_classes]
+    return [rule_cls(config=config) for rule_cls in rule_classes]
 
-def create_aliases(alias_names: list[str]) -> list[AliasBase]:
+
+def create_aliases(alias_names: list[str]) -> list[Type[AliasBase]]:
     return get_aliases(alias_names)
 
 
-def create_stages(stage_data: list[t.StageData], project_root: str = None) -> list[Stage]:
+def create_stages(stage_data: list[t.StageData], project_root: str | None = None) -> list[Stage]:
     stages = []
     for data in stage_data:
         stages.append(Stage(
@@ -62,11 +72,11 @@ def create_stages(stage_data: list[t.StageData], project_root: str = None) -> li
             manifests=create_manifests(data.manifests, project_root),
             current_version_rules=create_single_version_rules(data.rules.current),
             version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
-            manifest_versions_comparison_rules=create_version_comparison_rules(
+            manifest_versions_comparison_rules=create_manifest_comparison_rules(
                 ["manifests_comparison"],
                 {"manifests": data.rules.manifest_comparisons}
             ) if data.rules.manifest_comparisons else [],
-            aliases=create_aliases(data.aliases),
+            aliases=create_aliases((data.aliases or [])),
         ))
     return stages
 

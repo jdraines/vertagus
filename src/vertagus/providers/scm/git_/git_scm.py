@@ -1,11 +1,13 @@
 import os
-from typing import Optional
 from logging import getLogger
 from configparser import NoSectionError
+from typing import cast
 
 import git
 from git.remote import Remote
 from git.exc import GitCommandError
+from git.objects import Commit
+from git.refs.tag import TagReference 
 from packaging.version import parse as parse_version, InvalidVersion
 from vertagus.core.scm_base import ScmBase
 from vertagus.core.tag_base import Tag, AliasBase
@@ -21,21 +23,22 @@ class GitScm(ScmBase):
         "email": "vertagus@none"
     }
     _default_remote_name = "origin"
+    _default_version_strategy = "tag"
 
     def __init__(self,
-                 root: Optional[str] = None,
-                 tag_prefix: Optional[str] = None,
-                 remote_name: Optional[str] = None,
-                 version_strategy: str = "tag",
-                 target_branch: Optional[str] = None,
-                 manifest_path: Optional[str] = None,
-                 manifest_type: Optional[str] = None,
+                 root: str | None = None,
+                 tag_prefix: str | None = None,
+                 remote_name: str | None = None,
+                 version_strategy: str | None = "tag",
+                 target_branch: str | None = None,
+                 manifest_path: str | None = None,
+                 manifest_type: str | None = None,
                  **kwargs
                  ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
         self.remote_name = remote_name or self._default_remote_name
-        self.version_strategy = version_strategy
+        self.version_strategy = version_strategy or self._default_version_strategy
         self.target_branch = target_branch
         self.manifest_path = manifest_path
         self.manifest_type = manifest_type
@@ -46,13 +49,15 @@ class GitScm(ScmBase):
         return self._repo.remotes[self.remote_name]
 
 
-    def create_tag(self, tag: Tag, ref: str=None):
+    def create_tag(self, tag: Tag, ref: str | None = None):
         tag_prefix = self.tag_prefix or ""
         tag_text = tag.as_string(tag_prefix)
         if ref:
             commit = self._repo.commit(ref)
         else:
             commit = self._repo.head.commit
+        if isinstance(commit, Commit):
+            commit = commit.hexsha
         logger.info(
             f"Creating tag {tag_text} at commit {commit}"
         )
@@ -70,7 +75,15 @@ class GitScm(ScmBase):
         )
         tag_text = tag.as_string(self.tag_prefix)
         try:
-            self._repo.delete_tag(tag_text)
+            commit = self._repo.commit(tag_text)
+            tagref = TagReference.create(
+                self._repo,
+                path=tag_text,
+                reference=commit.hexsha,
+                logmsg=f"Deleting tag {tag_text}",
+                force=True
+            )
+            self._repo.delete_tag(tagref)
         except GitCommandError as e:
             if not suppress_warnings:
                 logger.warning(
@@ -84,11 +97,20 @@ class GitScm(ScmBase):
                     f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}"
                 )
         self._repo.git.push(tags=True)
-    
-    def list_tags(self, prefix: str=None):
+
+    def list_tags(self, prefix: str | None = None):
+
+        def _ls_remote() -> str:
+            return cast(
+                str,
+                self._repo.git.execute(
+                        ["git", "ls-remote", "--tags", self.remote_name]
+                    )
+                )
+
         tags = [
             t.split("tags/")[-1].strip() for t in
-            self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]).split("\n")
+            _ls_remote().split("\n")
             if not t.endswith("^{}")
         ]
         if not prefix and self.tag_prefix:
@@ -97,7 +119,11 @@ class GitScm(ScmBase):
             tags = [tag for tag in tags if tag.startswith(prefix)]
         return tags
 
-    def migrate_alias(self, alias: AliasBase, ref: str = None, suppress_warnings: bool=True):
+    def migrate_alias(self,
+                      alias: AliasBase,
+                      ref: str | None = None,
+                      suppress_warnings: bool=True
+                      ):
         logger.info(
             f"Migrating alias {alias.name} to ref {ref}"
         )
@@ -108,7 +134,7 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self, prefix: Optional[str] = None):
+    def get_highest_version(self, prefix: str | None = None):
         # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
             # For branch strategy, get version from the manifest on target branch
@@ -179,7 +205,7 @@ class GitScm(ScmBase):
             logger.warning("No user data found in git config. Setting default values.")
             return self._default_user_data
 
-    def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> str:
+    def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> str | None:
         """
         Get the version from a manifest file on a specific branch.
         """

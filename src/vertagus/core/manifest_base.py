@@ -5,13 +5,13 @@ class ManifestBase:
     manifest_type: str = "base"
     description: str = ""
     version: str
-    loc: list[T.Union[str, int]] = []
+    loc: T.Sequence[T.Union[str, int]] | None = []
 
     def __init__(self,
                  name: str,
                  path: str,
-                 loc: list[T.Union[str, int]],
-                 root: str = None
+                 loc: T.Sequence[T.Union[str, int]] | None,
+                 root: str | None = None
                  ):
         self.name = name
         self.path = path

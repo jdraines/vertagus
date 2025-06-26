@@ -8,8 +8,8 @@ class Package:
     def __init__(self,
                  manifests: list[ManifestBase],
                  current_version_rules: list[T.Type[SingleVersionRule]],
-                 version_increment_rules: list[T.Type[VersionComparisonRule]],
-                 manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]]
+                 version_increment_rules: list[VersionComparisonRule],
+                 manifest_versions_comparison_rules: T.Sequence[VersionComparisonRule]
                  ):
         self._manifests = manifests or []
         self._current_version_rules = current_version_rules or []
