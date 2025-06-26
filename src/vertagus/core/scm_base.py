@@ -1,10 +1,10 @@
-from .tag_base import Tag
+from .tag_base import Tag, AliasBase
 import typing as T
 
 
 class ScmBase:
     
-    scm_tpe = "base"
+    scm_type = "base"
     tag_prefix: T.Optional[str] = None
 
     def __init__(self,
@@ -27,7 +27,7 @@ class ScmBase:
     def get_highest_version(self, prefix: str | None = None):
         raise NotImplementedError()
 
-    def migrate_alias(self, alias: str, ref: str | None = None, suppress_warnings: bool = True):
+    def migrate_alias(self, alias: AliasBase, ref: str | None = None, suppress_warnings: bool = True):
         raise NotImplementedError()
 
     def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> str | None:
