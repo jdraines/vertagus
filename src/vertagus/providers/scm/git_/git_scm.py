@@ -16,6 +16,10 @@ from vertagus.providers.manifest.registry import get_manifest_cls
 logger = getLogger(__name__)
 
 
+class GitManifestNotFoundError(Exception):
+    pass
+
+
 class GitScm(ScmBase):
 
     scm_type = "git"
@@ -133,19 +137,14 @@ class GitScm(ScmBase):
                             prefix: Optional[str] = None,
                             branch: Optional[str] = None
                             ) -> Optional[str]:
-        # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
-            # For branch strategy, get version from the manifest on target branch
-            if not branch or not self.target_branch:
-                logger.error("Branch-based strategy requires a target_branch to be configured or passed")
-                return None
+            if not branch and not self.target_branch:
+                raise ValueError("Branch-based strategy requires a target_branch to be configured or passed")
             if not self.manifest_path or not self.manifest_type:
-                logger.error("Branch-based strategy requires manifest_path and manifest_type to be configured")
-                return None
-            
-            branch = branch or self.target_branch
+                raise ValueError("Branch-based strategy requires manifest_path and manifest_type to be configured")
 
-            # Clean the manifest path (remove ./ prefix if present)
+            branch = cast(str, branch or self.target_branch)
+
             manifest_path = self.manifest_path.lstrip('./')
             version = self.get_branch_manifest_version(
                 branch=branch,
@@ -213,24 +212,16 @@ class GitScm(ScmBase):
         """
         Get the version from a manifest file on a specific branch.
         """
-        try:
-            # Fetch the latest changes from remote
-            self._repo.git.fetch(self.remote_name)
-            # Get the content of the manifest file from the specified branch
-            file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
-            if not file_content:
-                logger.error(f"Manifest file {manifest_path} not found on branch {branch}")
-                return None
-            manifest_cls = get_manifest_cls(manifest_type)
-            return manifest_cls.version_from_content(
-                content=file_content,
-                name=manifest_path,
-                loc=manifest_loc
-            )
-
-        except GitCommandError as e:
-            logger.error(f"Error retrieving manifest from branch {branch}: {e}")
-            return None
-        except Exception as e:
-            logger.error(f"Error parsing manifest content: {e}")
-            return None
+        # Fetch the latest changes from remote
+        self._repo.git.fetch(self.remote_name)
+        # Get the content of the manifest file from the specified branch
+        file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
+        if not file_content:
+            raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}")
+        
+        manifest_cls = get_manifest_cls(manifest_type)
+        return manifest_cls.version_from_content(
+            content=file_content,
+            name=manifest_path,
+            loc=manifest_loc
+        )

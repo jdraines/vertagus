@@ -1,6 +1,10 @@
 CHANGELOG
 ===
 
+0.2.3
+---
+
+* **Bugfix in GitScm** A parameter validation check was checking to see if _either_ `branch` was `None` _or_ if `self.target_branch` was None and was failing on both conditions. It should only be failing if the `and` condition is true. This was fixed.
 
 0.2.2
 ---
