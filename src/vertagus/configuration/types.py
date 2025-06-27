@@ -18,12 +18,11 @@ def getdefault(d: DictType, k: str, default: V)  -> V:
 
 class ScmConfigBase(T.TypedDict):
     scm_type: str
-    # New fields for branch-based version checking
-    version_strategy: T.Optional[str]  # "tag" (default) or "branch"
-    target_branch: T.Optional[str]  # Branch to compare against when using branch strategy
-    manifest_path: T.Optional[str]  # Path to the manifest file relative to repo root
-    manifest_type: T.Optional[str]  # Type of manifest (e.g., 'set
-    manifest_loc: T.Optional[str]   # A dot-separated string representing the location of the version in the manifest file
+    version_strategy: T.Optional[T.Literal['tag', 'branch']]
+    target_branch: T.Optional[str]
+    manifest_path: T.Optional[str]
+    manifest_type: T.Optional[str]
+    manifest_loc: T.Optional[T.Union[str, list[str]]]
 
 ScmConfig = T.Union[ScmConfigBase, dict]
 
@@ -40,7 +39,7 @@ class ManifestConfig(T.TypedDict):
     name: str
     type: str
     path: str
-    loc: T.Optional[str]
+    loc: T.Optional[T.Union[str, list[str]]]
 
 
 class ManifestComparisonConfig(T.TypedDict):
@@ -189,19 +188,19 @@ class ScmData:
                  target_branch: T.Optional[str] = None,
                  manifest_path: T.Optional[str] = None, 
                  manifest_type: T.Optional[str] = None,
-                 manifest_loc: T.Optional[str] = None,
+                 manifest_loc: T.Optional[T.Union[str, list[str]]] = None,
                  **kwargs
                  ):
         self.scm_type = type
         self.root = root
-        self.version_strategy = version_strategy  # "tag" or "branch"
+        self.version_strategy = version_strategy
         self.target_branch = target_branch
-        self.manifest_path = manifest_path  # Required for branch strategy
-        self.manifest_type = manifest_type  # Required for branch strategy
-        self.manifest_loc = manifest_loc
+        self.manifest_path = manifest_path
+        self.manifest_type = manifest_type
+        self.manifest_loc: T.Optional[list[str]] = self._parse_manifest_loc(manifest_loc)
         self.kwargs = kwargs
 
-    def config(self):
+    def config(self) -> dict[str, T.Any]:
         config_dict = dict(
             root=self.root,
             version_strategy=self.version_strategy,
@@ -216,3 +215,11 @@ class ScmData:
         if self.manifest_loc:
             config_dict['manifest_loc'] = self.manifest_loc
         return config_dict
+
+    def _parse_manifest_loc(self, manifest_loc) -> T.Optional[list[str]]:
+        """
+        Parse the manifest location into a list of strings.
+        """
+        if isinstance(manifest_loc, str):
+            return manifest_loc.split(".")
+        return manifest_loc

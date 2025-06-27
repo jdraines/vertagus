@@ -5,9 +5,8 @@ from typing import cast, Optional
 
 import git
 from git.remote import Remote
-from git.exc import GitCommandError, BadName
+from git.exc import GitCommandError
 from git.objects import Commit
-from git.refs.tag import TagReference 
 from packaging.version import parse as parse_version, InvalidVersion
 from vertagus.core.scm_base import ScmBase
 from vertagus.core.tag_base import Tag, AliasBase
@@ -35,7 +34,7 @@ class GitScm(ScmBase):
                  target_branch: Optional[str] = None,
                  manifest_path: Optional[str] = None,
                  manifest_type: Optional[str] = None,
-                 manifest_loc: Optional[str] = None,
+                 manifest_loc: Optional[list[str]] = None,
                  **kwargs
                  ):
         self.root = root or os.getcwd()
@@ -151,7 +150,8 @@ class GitScm(ScmBase):
             version = self.get_branch_manifest_version(
                 branch=branch,
                 manifest_path=manifest_path,
-                manifest_type=self.manifest_type
+                manifest_type=self.manifest_type,
+                manifest_loc=self.manifest_loc
             )
             
             if version is None:
@@ -208,7 +208,7 @@ class GitScm(ScmBase):
                                     branch: str,
                                     manifest_path: str,
                                     manifest_type: str,
-                                    manifest_loc: Optional[str] = None
+                                    manifest_loc: Optional[list[str]] = None
                                     ) -> Optional[str]:
         """
         Get the version from a manifest file on a specific branch.
@@ -225,9 +225,9 @@ class GitScm(ScmBase):
             return manifest_cls.version_from_content(
                 content=file_content,
                 name=manifest_path,
-                loc=manifest_loc.split('.') if manifest_loc else None
+                loc=manifest_loc
             )
-                
+
         except GitCommandError as e:
             logger.error(f"Error retrieving manifest from branch {branch}: {e}")
             return None
