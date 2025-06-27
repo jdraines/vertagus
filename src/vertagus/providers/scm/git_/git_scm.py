@@ -136,7 +136,7 @@ class GitScm(ScmBase):
         # Check if we're using branch-based strategy
         if self.version_strategy == 'branch':
             # For branch strategy, get version from the manifest on target branch
-            if not branch or not self.target_branch:
+            if not branch and not self.target_branch:
                 logger.error("Branch-based strategy requires a target_branch to be configured or passed")
                 return None
             if not self.manifest_path or not self.manifest_type:
