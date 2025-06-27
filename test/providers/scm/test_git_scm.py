@@ -1,4 +1,5 @@
 from unittest.mock import patch, MagicMock
+from copy import copy
 
 import pytest
 
@@ -10,13 +11,31 @@ from vertagus.providers.scm.git_ import git_scm as gscm
 def scm_config():
     return {
         "root": "/tmp",
-        "remote_name": "test-remote"
+        "remote_name": "test-remote",
+        "version_strategy": "tag",
+    }
+
+@pytest.fixture
+def scm_config_with_branch_strategy():
+    return {
+        "root": "/tmp",
+        "remote_name": "test-remote",
+        "version_strategy": "branch",
+        "target_branch": "main",
+        "manifest_path": "path/to/manifest.yml",
+        "manifest_type": "yaml",
+        "manifest_loc": ["path/to/loc1", "path/to/loc2"],
     }
 
 @pytest.fixture
 def scm(scm_config, monkeypatch):
     monkeypatch.setattr(gscm, "git", MagicMock())
     return gscm.GitScm(**scm_config)
+
+@pytest.fixture
+def scm_with_branch_strategy(scm_config_with_branch_strategy, monkeypatch):
+    monkeypatch.setattr(gscm, "git", MagicMock())
+    return gscm.GitScm(**scm_config_with_branch_strategy)
 
 
 @pytest.fixture
@@ -68,10 +87,35 @@ def test_migrate_alias(scm, mock_alias):
     scm.create_tag.assert_called_once()
 
 
-def test_get_highest_version(scm):
+def test_get_highest_version(scm, scm_with_branch_strategy):
     scm.list_tags = MagicMock()
     scm.list_tags.return_value = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "side-2.0.0", "side-3.0.0"]
     scm.tag_prefix = None
     assert scm.get_highest_version() == "1.3.0"
 
+    branch_scm = copy(scm_with_branch_strategy)
+    branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0")
+    assert branch_scm.get_highest_version() == "2.0.0"
 
+    branch_scm = copy(scm_with_branch_strategy)
+    branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0")
+    branch_scm.target_branch = None
+    assert branch_scm.get_highest_version(branch="main") == "2.0.0"
+
+    with pytest.raises(ValueError):
+        branch_scm = copy(scm_with_branch_strategy)
+        branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0")
+        branch_scm.target_branch = None
+        branch_scm.get_highest_version()
+
+    with pytest.raises(ValueError):
+        branch_scm = copy(scm_with_branch_strategy)
+        branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0")
+        branch_scm.manifest_type = None
+        branch_scm.get_highest_version()
+
+    with pytest.raises(ValueError):
+        branch_scm = copy(scm_with_branch_strategy)
+        branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0") 
+        branch_scm.manifest_path = None
+        branch_scm.get_highest_version()
