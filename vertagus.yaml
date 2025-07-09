@@ -19,6 +19,9 @@ project:
       path: ./pyproject.toml
       name: pyproject
 
+  bumper:
+    type: semver
+
   stages:
 
     dev:

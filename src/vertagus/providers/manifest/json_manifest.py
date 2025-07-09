@@ -33,6 +33,11 @@ class JsonManifest(ManifestBase):
             path = os.path.join(self.root, path)
         return path
 
+    def _write_doc(self):
+        path = self._full_path()
+        with open(path, "w") as f:
+            json.dump(self._doc, f, indent=4)
+
     @classmethod
     def version_from_content(cls,
                              content: str,
@@ -43,3 +48,18 @@ class JsonManifest(ManifestBase):
             raise ValueError("loc must be provided for JsonManifest")
         manifest_content = json.loads(content)
         return cls._get_version(manifest_content, loc, name)
+
+    def update_version(self, version: str, write: bool = True):
+        if not self.loc:
+            raise ValueError(f"No loc provided for manifest {self.name!r}")
+        p = self._doc
+        for k in self.loc[:-1]:
+            if k not in p:
+                raise ValueError(
+                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. "
+                    f"Key {k!r} not found in {list(p.keys())}"
+                )
+            p = p[k]
+        p[self.loc[-1]] = version
+        if write:
+            self._write_doc()

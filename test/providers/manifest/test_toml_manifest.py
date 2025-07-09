@@ -31,3 +31,9 @@ def test_full_path():
     assert manifest._full_path() == "test.toml"
     manifest_root = TomlManifest("test", "test.toml", root="root")
     assert manifest_root._full_path() == "root/test.toml"
+
+def test_update_version():
+    manifest = TomlManifest("test", "test.toml", loc=["version"])
+    assert manifest.version == "1.0.0"
+    manifest.update_version("2.0.0", write=False)
+    assert manifest.version == "2.0.0"

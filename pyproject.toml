@@ -1,35 +1,36 @@
-# setuptools pyproject.toml for a project called "vertagus" that is a
-# Python package
-
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = [
+    "setuptools",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "vertagus"
-version = "0.2.3"
+version = "0.2.4"
 description = "A tool to assist the maintenance of package versioning with scm tags"
 readme = "README.md"
 authors = [
-    {"name" = "John Raines", "email" = "johndanielraines@gmail.com"}
+    { name = "John Raines", email = "johndanielraines@gmail.com" },
 ]
 dependencies = [
-    "click",
-    "GitPython",
-    "tomli",
-    "packaging",
-    "PyYAML>=6"
+    "click==8.1.7",
+    "GitPython==3.1.43",
+    "tomli==2.0.2",
+    "tomli-w==1.2.0",
+    "packaging==24.1",
+    "PyYAML>=6",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Topic :: Software Development",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 [project.urls]
@@ -53,4 +54,3 @@ qa = [
 
 [project.scripts]
 vertagus = "vertagus.cli:cli"
-

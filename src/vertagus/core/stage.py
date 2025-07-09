@@ -3,6 +3,7 @@ from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.tag_base import AliasBase
+from vertagus.core.bumper_base import BumperBase
 from .package_base import Package
 
 
@@ -14,7 +15,8 @@ class Stage(Package):
                  current_version_rules: list[T.Type[SingleVersionRule]],
                  version_increment_rules: list[VersionComparisonRule],
                  manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-                 aliases: list[type[AliasBase]] = None
+                 aliases: T.Optional[list[type[AliasBase]]] = None,
+                 bumper: T.Optional[BumperBase] = None
                  ):
         super().__init__(
             manifests=manifests,
@@ -24,6 +26,7 @@ class Stage(Package):
         )
         self.name = name
         self.aliases = aliases or []
+        self.bumper = bumper
 
     @property
     def current_version_rules(self):

@@ -16,7 +16,9 @@ from .commands import (
     list_rules_cmd,
     list_aliases_cmd,
     list_manifests_cmd,
-    list_scms_cmd
+    list_scms_cmd,
+    bump_cmd,
+    list_bumpers_cmd
 )
 
 
@@ -32,3 +34,5 @@ cli.add_command(list_rules_cmd)
 cli.add_command(list_aliases_cmd)
 cli.add_command(list_manifests_cmd)
 cli.add_command(list_scms_cmd)
+cli.add_command(bump_cmd)
+cli.add_command(list_bumpers_cmd)

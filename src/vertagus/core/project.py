@@ -5,11 +5,18 @@ from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.tag_base import AliasBase
+from vertagus.core.bumper_base import BumperBase
 from .package_base import Package
 from .stage import Stage
 
 
 logger = getLogger(__name__)
+
+
+class NoBumperDefinedError(Exception):
+    """Exception raised when no bumper is defined for the project."""
+    def __init__(self, message="No bumper is defined for the project."):
+        super().__init__(message)
 
 
 class Project(Package):
@@ -20,7 +27,8 @@ class Project(Package):
                  version_increment_rules: list[VersionComparisonRule],
                  manifest_versions_comparison_rules: list[ManifestsComparisonRule],
                  stages: T.Optional[list[Stage]] = None,
-                 aliases: T.Optional[list[type[AliasBase]]] = None
+                 aliases: T.Optional[list[type[AliasBase]]] = None,
+                 bumper: T.Optional[BumperBase] = None
                  ):
         super().__init__(
             manifests=manifests,
@@ -30,6 +38,8 @@ class Project(Package):
         )
         self._stages = stages or []
         self.aliases = aliases or []
+        self.bumper = bumper
+
     @property
     def stages(self):
         return self._stages
@@ -67,6 +77,21 @@ class Project(Package):
         if not validated:
             return validated
         return self._run_manifest_versions_comparison_rules(stage_name)
+
+    def bump_version(self, stage_name: T.Optional[str] = None, *bumper_args, write: bool = True):
+        if not self.bumper:
+            raise NoBumperDefinedError("Bumper is not set for the project.")
+        
+        new_version = self.bumper.bump(
+            self.get_version(stage_name),
+            *bumper_args
+        )
+        
+        if write:
+            for manifest in self._get_manifests(stage_name):
+                manifest.update_version(new_version)
+                
+        return new_version
 
     def _get_version_aliases(self, version: str) -> list[AliasBase]:
         return [alias(version) for alias in self.aliases]

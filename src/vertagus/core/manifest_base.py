@@ -45,3 +45,9 @@ class ManifestBase:
                 )
             p = p[k]
         return p
+
+    def update_version(self, version: str, write: bool = True):
+        raise NotImplementedError(
+            "Method `update_version` is not implemented for Manifest of type "
+            f"{self.__class__.__name__!r}."
+        )

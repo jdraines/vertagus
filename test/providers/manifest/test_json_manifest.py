@@ -31,3 +31,10 @@ def test_full_path():
     assert manifest._full_path() == "test.json"
     manifest_root = JsonManifest("test", "test.json", root="root")
     assert manifest_root._full_path() == "root/test.json"
+
+
+def test_update_version():
+    manifest = JsonManifest("test", "test.json", loc=["version"])
+    assert manifest.version == "1.0.0"
+    manifest.update_version("2.0.0", write=False)
+    assert manifest.version == "2.0.0"
