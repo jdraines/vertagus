@@ -26,6 +26,10 @@ class ScmConfigBase(T.TypedDict):
 
 ScmConfig = T.Union[ScmConfigBase, dict]
 
+class BumperConfig(T.TypedDict):
+    type: str
+    tag: T.Optional[str]
+
 
 class ProjectConfig(T.TypedDict):
     manifests: list["ManifestConfig"]
@@ -33,6 +37,7 @@ class ProjectConfig(T.TypedDict):
     stages: dict[str, "StageConfig"]
     aliases: T.Optional[list[str]]
     root: T.Optional[str]
+    bumper: T.Optional[BumperConfig]
 
 
 class ManifestConfig(T.TypedDict):
@@ -57,6 +62,7 @@ class StageConfig(T.TypedDict):
     manifests: T.Optional[list[ManifestConfig]]
     rules: T.Optional["RulesConfig"]
     aliases: T.Optional[list[str]]
+    bumper: T.Optional[BumperConfig]
 
 
 class MasterConfig(T.TypedDict):
@@ -98,22 +104,39 @@ class ManifestData:
         return self._OutputConfig(name=self.name, path=self.path, loc=self.loc)
 
 
+class BumperData:
+    def __init__(self, type: str, **kwargs: T.Any):
+        self.type: str = type
+        self._kwargs = kwargs
+
+    def config(self) -> dict[str, T.Any]:
+        return dict(type=self.type, **self._kwargs)
+
+    def kwargs(self) -> dict[str, T.Any]:
+        return self._kwargs
+
 class StageData:
 
     def __init__(self,
                  name: str,
                  manifests: list[ManifestData],
                  rules: RulesData,
-                 aliases: T.Optional[list[str]] = None
+                 aliases: T.Optional[list[str]] = None,
+                 bumper: T.Optional[BumperData] = None
                  ):
         self.name: str = name
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
         self.aliases: T.Optional[list[str]] = aliases
+        self.bumper: T.Optional[BumperData] = bumper
 
     @classmethod
     def from_stage_config(cls, name: str, config: StageConfig):
         manifest_configs: list[ManifestConfig] = config.get("manifests", []) or []
+        bumper_data = None
+        bumper_config = getdefault(config, "bumper", None)
+        if bumper_config:
+            bumper_data = BumperData(**bumper_config)
         return cls(
             name=name,
             manifests=[ManifestData(**m) for m in manifest_configs],
@@ -123,6 +146,7 @@ class StageData:
                 manifest_comparisons=getdefault(getdefault(config, "rules", {}), "manifest_comparisons", []),
             ),
             aliases=config.get("aliases", []),
+            bumper=bumper_data
         )
 
     def config(self):
@@ -133,6 +157,7 @@ class StageData:
             version_increment_rules=self.rules.increment,
             manifest_versions_comparison_rules=self.rules.manifest_comparisons,
             aliases=self.aliases,
+            bumper=self.bumper.config() if self.bumper else None
         )
 
 
@@ -143,16 +168,19 @@ class ProjectData:
                  rules: RulesData,
                  stages: T.Optional[list[StageData]] = None,
                  aliases: T.Optional[list[str]] = None,
-                 root: T.Optional[str] = None 
+                 root: T.Optional[str] = None,
+                 bumper: T.Optional[BumperData] = None
                  ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
         self.stages: T.Optional[list[StageData]] = stages
         self.aliases: T.Optional[list[str]] = aliases
         self.root: T.Optional[str] = root or os.getcwd()
+        self.bumper: T.Optional[BumperData] = bumper
 
     def config(self):
         stages = self.stages or []
+
         return dict(
             manifests=[m.config() for m in self.manifests],
             stages=[stage.config() for stage in stages],
@@ -160,12 +188,18 @@ class ProjectData:
             version_increment_rules=self.rules.increment,
             manifest_versions_comparison_rules=self.rules.manifest_comparisons,
             aliases=self.aliases,
+            root=self.root,
+            bumper=self.bumper.config() if self.bumper else None,
         )
     
     @classmethod
     def from_project_config(cls, config: ProjectConfig):
         stages = config.get("stages", {})
         manifests: list[ManifestConfig] = config.get("manifests", [])
+        bumper_data = None
+        bumper_config = getdefault(config, "bumper", None)
+        if bumper_config:
+            bumper_data = BumperData(**bumper_config)
         return cls(
             manifests=[ManifestData(**m) for m in manifests],
             rules=RulesData(
@@ -175,7 +209,8 @@ class ProjectData:
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in stages.items()],
             aliases=config.get("aliases", []),
-            root=config.get("root", None)
+            root=config.get("root", None),
+            bumper=bumper_data
         )
 
 

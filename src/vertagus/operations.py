@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Optional
+from typing import Optional, Sequence
 
 from vertagus.core.project import Project
 from vertagus.core.tag_base import Tag
@@ -51,3 +51,15 @@ def create_aliases(scm: ScmBase,
     aliases = project.get_aliases(stage_name)
     for alias in aliases:
         scm.migrate_alias(alias, ref=ref)
+
+
+def bump_version(scm: ScmBase,
+                 project: Project,
+                 stage_name: Optional[str] = None,
+                 write: bool = True,
+                 bumper_args: Optional[Sequence[str]] = None
+                 ) -> str:
+    if bumper_args is None:
+        bumper_args = []
+    return project.bump_version(stage_name, *bumper_args, write=write)
+    

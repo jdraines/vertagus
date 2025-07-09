@@ -32,3 +32,10 @@ def test_full_path():
     assert manifest._full_path() == "test.yaml"
     manifest_root = YamlManifest("test", "test.yaml", root="root")
     assert manifest_root._full_path() == "root/test.yaml"
+
+
+def test_update_version():
+    manifest = YamlManifest("test", "test.yaml", loc=["version"])
+    assert manifest.version == "1.0.0"
+    manifest.update_version("2.0.0", write=False)
+    assert manifest.version == "2.0.0"

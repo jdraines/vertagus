@@ -14,6 +14,8 @@ from vertagus.providers.manifest.registry import get_manifest_cls
 from vertagus.aliases.loader import get_aliases
 from vertagus.rules.single_version.loader import get_rules as get_single_version_rules
 from vertagus.rules.comparison.loader import get_rules as get_version_comparison_rules
+from vertagus.bumpers.registry import get_bumper_cls, BumperBase
+
 
 from .configuration import types as t
 
@@ -29,6 +31,7 @@ def create_project(data: t.ProjectData) -> Project:
         ) if data.rules.manifest_comparisons else [],
         stages=create_stages(data.stages, data.root) if data.stages else None,
         aliases=create_aliases((data.aliases or [])),
+        bumper=create_bumper(data.bumper) if data.bumper else None
     )
 
 
@@ -77,6 +80,7 @@ def create_stages(stage_data: list[t.StageData], project_root: Optional[str] = N
                 {"manifests": data.rules.manifest_comparisons}
             ) if data.rules.manifest_comparisons else [],
             aliases=create_aliases((data.aliases or [])),
+            bumper=create_bumper(data.bumper) if data.bumper else None,
         ))
     return stages
 
@@ -84,3 +88,11 @@ def create_stages(stage_data: list[t.StageData], project_root: Optional[str] = N
 def create_scm(data: t.ScmData) -> ScmBase:
     scm_cls = get_scm_cls(data.scm_type)
     return scm_cls(**data.config())
+
+
+def create_bumper(data: t.BumperData) -> BumperBase:
+    """
+    Create a bumper instance based on the provided data.
+    """
+    bumper_cls = get_bumper_cls(data.type)
+    return bumper_cls(**data.kwargs())

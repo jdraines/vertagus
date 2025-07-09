@@ -331,3 +331,20 @@ def test_get_aliases(test_project: Project,
     aliases = test_project.get_aliases("test_stage") 
     alias_strs = [alias.as_string("prefix-") for alias in aliases]
     assert alias_strs == ["prefix-projtest-0.0.0", "prefix-test-0.0.0"]
+
+
+def test_bump_version(test_project: Project):
+    test_project = copy(test_project)
+    test_project.bumper = MagicMock()
+    test_project.bumper.bump = MagicMock(return_value="1.1.0")
+    manifest = MagicMock()
+    test_project.get_version = MagicMock(return_value="1.0.0")
+    test_project._get_manifests = MagicMock(return_value=[manifest])
+    new_version = test_project.bump_version("test_stage", "foo")
+    test_project.bumper.bump.assert_called_once_with(
+        "1.0.0", "foo"
+    )
+    manifest.update_version.assert_called_once_with(
+        "1.1.0"
+    )
+    assert new_version == "1.1.0"

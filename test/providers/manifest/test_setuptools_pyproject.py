@@ -29,3 +29,9 @@ def test_init(manifest, manifest_doc):
 
 def test_version(manifest):
     assert manifest.version == "1.0.0"
+
+
+def test_update_version(manifest):
+    assert manifest.version == "1.0.0"
+    manifest.update_version("2.0.0", write=False)
+    assert manifest.version == "2.0.0"
