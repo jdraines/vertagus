@@ -86,7 +86,6 @@ class SemanticBumper(BumperBase):
             int(major), int(minor), int(patch), tag
         )
 
-
         if tag is None:
             return f"{major}.{minor}.{patch}"
         else:
@@ -114,7 +113,9 @@ class SemanticBumper(BumperBase):
 
     def _bump_tag(self, major, minor, patch, tag):
         if tag is None:
-            return None
+            if self.tag is None:
+                raise SemverBumperException("No tag specified and no existing tag to increment.")
+            tag = f"{self.tag}0"
         match = re.match(r'(\D+)(\d+)', tag)
         if match:
             prefix, number = match.groups()
