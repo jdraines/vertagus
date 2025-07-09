@@ -1,7 +1,15 @@
-from ..core.bumper_base import BumperBase
+import typing as T
+from ..core.bumper_base import BumperBase, BumperException
 import re
 from packaging import version as versionmod
 
+
+class SemverBumperException(BumperException):
+    pass
+
+
+class NoLevelSpecified(SemverBumperException):
+    pass
 
 
 class SemanticBumper(BumperBase):
@@ -21,10 +29,10 @@ class SemanticBumper(BumperBase):
         """
         release = version.release
         if len(release) < 3:
-            raise ValueError(f"Invalid version format: {version}. Expected format is 'major.minor.patch'.")
+            raise SemverBumperException(f"Invalid version format: {version}. Expected format is 'major.minor.patch'.")
         return release[0], release[1], release[2]
 
-    def _extract_tag(self, version: versionmod.Version, versionstr: str) -> str | None:
+    def _extract_tag(self, version: versionmod.Version, versionstr: str) -> T.Union[str, None]:
         """
         Extract the tag from a version string.
         """
@@ -45,12 +53,15 @@ class SemanticBumper(BumperBase):
                 else:
                     _tag += part
             return _tag
-        raise ValueError(f"Unable to extract tag from version: {version}.")
+        raise SemverBumperException(f"Unable to extract tag from version: {version}.")
 
-    def bump(self, version: str, level: str) -> str:
+    def bump(self, version: str, level: str = None) -> str:
         """
         Bump the version according to the specified level.
         """
+        if level is None:
+            raise NoLevelSpecified("Level must be specified. Use 'major', 'minor', 'patch', or 'tag'.")
+
         tag_sep = "."
 
         v = versionmod.parse(version)
@@ -89,7 +100,7 @@ class SemanticBumper(BumperBase):
             "tag": self._bump_tag
         }
         if level not in _bumpers:
-            raise ValueError(f"Invalid level: {level}. Must be one of {list(_bumpers.keys())}.")
+            raise SemverBumperException(f"Invalid level: {level}. Must be one of {list(_bumpers.keys())}.")
         return _bumpers[level]
 
     def _bump_major(self, major, minor, patch, tag):
@@ -108,7 +119,7 @@ class SemanticBumper(BumperBase):
         if match:
             prefix, number = match.groups()
             if self.tag and self.tag != prefix:
-                raise ValueError(f"Tag prefix '{self.tag}' does not match existing tag prefix '{prefix}'.")
+                raise SemverBumperException(f"Tag prefix '{self.tag}' does not match existing tag prefix '{prefix}'.")
             number = int(number) + 1
             tag = f"{prefix}{number}"
 

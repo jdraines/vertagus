@@ -1,6 +1,11 @@
 CHANGELOG
 ===
 
+0.2.4
+---
+
+* **Version bumping** A new primitive, `Bumper` has been added, providing some sort of logic to bump a version via a `.bump(version, *args)` method. Currently only implemented for semver, expecting the argument `level` to be one of `major`, `minor`, or `patch`. See README for fuller description.
+
 0.2.3
 ---
 

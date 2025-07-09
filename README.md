@@ -53,6 +53,7 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
   `dev`, `staging`, or `prod`, or it could be whatever else you like, depending on how you plan to use it.
 - **Tag Prefixes** in case you're developing in a repository that holds multiple packages. Or maybe you just like 
   prefixes.
+- **Version bumping handler** if you'd like an automated version bumper.
 
 You declare these in either a `vertagus.toml` or `vertagus.yaml` file next to your package in your repository. 
 Here's an example of the yaml format:
@@ -72,6 +73,8 @@ project:
     - type: setuptools_pyproject
       path: ./pyproject.toml
       name: pyproject
+  bumper:
+    type: semver
   stages:
     dev:
       rules:
@@ -144,6 +147,28 @@ The `create-tag` command will check your configuration and create tags for the c
 for any aliases that may be declared. These tags are created locally, but then pushed to your remote.
 
 _Additionally, Vertagus provides a number of commands for discovering the names of rules, aliases, manifets, ans scm providers:_
+
+#### `bump`
+
+The `bump` command looks like this:
+
+```
+vertagus bump [--stage-name STAGE_NAME --config CONFIG_FILEPATH --no-write *BUMPER_ARGS]
+```
+
+If you have configured your vertagus config to use the semver bumper, for example:
+
+```yaml
+project:
+  bumper:
+    type: semver
+```
+
+Then the following command would update your manifest in-place locally to bump the minor version:
+
+```
+vertagus bump minor
+```
 
 #### `list-rules`
 

@@ -13,3 +13,10 @@ class BumperBase(BumperABC):
 
     def __init__(self, *args):
         pass
+
+
+class BumperException(ValueError):
+    """
+    Base exception for all bumper-related errors.
+    """
+    pass

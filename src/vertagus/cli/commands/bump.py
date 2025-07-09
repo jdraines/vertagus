@@ -9,6 +9,7 @@ from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
 from vertagus.core.project import NoBumperDefinedError
+from vertagus.core.bumper_base import BumperException
 
 _cwd = Path(os.getcwd())
 
@@ -81,6 +82,10 @@ def bump_cmd(context, config, stage_name, scm_branch, no_write):
     except NoBumperDefinedError as e:
         click.echo(click.style(f"Error: {e}", fg="red"), err=True)
         sys.exit(1)
+    except BumperException as e:
+        click.echo(click.style(f"{e.__class__.__name__}: {e}", fg="red"), err=True)
+        sys.exit(1)
+    
     except Exception as e:
         click.echo(click.style(f"An unexpected error occurred: {e}", fg="red"), err=True)
         sys.exit(1)
