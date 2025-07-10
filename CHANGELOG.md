@@ -1,6 +1,12 @@
 CHANGELOG
 ===
 
+0.2.5
+---
+
+* **Version bumping kwargs** The `Bumper` class' `.bump()` method now accepts `**kwargs` and calling operations (e.g., `vertagus.operations.bump_version`) now inject only kwargs. The CLI expects key-values, so `vertagus bump level=minor` would be the new usage. However, to maintain backwards compatibility with `0.2.4`, a single bumper argument without an `=` sign will be handled as the equivalent of `level={arg}`.
+
+
 0.2.4
 ---
 
