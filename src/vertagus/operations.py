@@ -53,13 +53,12 @@ def create_aliases(scm: ScmBase,
         scm.migrate_alias(alias, ref=ref)
 
 
-def bump_version(scm: ScmBase,
-                 project: Project,
+def bump_version(project: Project,
                  stage_name: Optional[str] = None,
                  write: bool = True,
-                 bumper_args: Optional[Sequence[str]] = None
+                 bumper_kwargs: Optional[dict[str, str]] = None
                  ) -> str:
-    if bumper_args is None:
-        bumper_args = []
-    return project.bump_version(stage_name, *bumper_args, write=write)
-    
+    if bumper_kwargs is None:
+        bumper_kwargs = {}
+    return project.bump_version(stage_name, write=write, **bumper_kwargs)
+

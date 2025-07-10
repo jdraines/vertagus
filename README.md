@@ -153,8 +153,10 @@ _Additionally, Vertagus provides a number of commands for discovering the names 
 The `bump` command looks like this:
 
 ```
-vertagus bump [--stage-name STAGE_NAME --config CONFIG_FILEPATH --no-write *BUMPER_ARGS]
+vertagus bump [--stage-name STAGE_NAME --config CONFIG_FILEPATH --no-write [BUMPER_KWARGS]]
 ```
+
+The `BUMPER_KWARGS` should be string arguments of type `key=value` set apart by spaces that meet the call requirements of the bumper that has been configured.
 
 If you have configured your vertagus config to use the semver bumper, for example:
 
@@ -167,8 +169,11 @@ project:
 Then the following command would update your manifest in-place locally to bump the minor version:
 
 ```
-vertagus bump minor
+vertagus bump level=minor
 ```
+
+This is because the `semver` bumper accepts a keyword argument `level` which you provide as a `BUMPER_KWARG`
+
 
 #### `list-rules`
 

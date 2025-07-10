@@ -78,13 +78,13 @@ class Project(Package):
             return validated
         return self._run_manifest_versions_comparison_rules(stage_name)
 
-    def bump_version(self, stage_name: T.Optional[str] = None, *bumper_args, write: bool = True):
+    def bump_version(self, stage_name: T.Optional[str] = None, write: bool = True, **bumper_kwargs):
         if not self.bumper:
             raise NoBumperDefinedError("Bumper is not set for the project.")
         
         new_version = self.bumper.bump(
             self.get_version(stage_name),
-            *bumper_args
+            **bumper_kwargs
         )
         
         if write:

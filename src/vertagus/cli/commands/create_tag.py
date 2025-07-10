@@ -3,10 +3,10 @@ from pathlib import Path
 
 import click
 
-from vertagus.configuration import load
 from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
+from vertagus.cli import utils as cli_utils
 
 
 @click.command(name="create-tag")
@@ -29,13 +29,10 @@ from vertagus import operations as ops
     help="An SCM ref that should be tagged. Default is current commit."
 )
 def create_tag_cmd(config, stage_name, ref):
-    master_config = load.load_config(config)
+    master_config = cli_utils.load_config(config)
     scm = factory.create_scm(
         data=cfgtypes.ScmData(**master_config["scm"])
     )
-    default_package_root = Path(config).parent
-    if "root" not in master_config["project"]:
-        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"]),
     )

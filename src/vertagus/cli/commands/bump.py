@@ -1,28 +1,13 @@
-import os
-from pathlib import Path
 import sys
 
 import click
 
-from vertagus.configuration import load
 from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
 from vertagus.core.project import NoBumperDefinedError
 from vertagus.core.bumper_base import BumperException
-
-_cwd = Path(os.getcwd())
-
-
-def _try_get_config_path_in_cwd():
-    if "vertagus.toml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.toml")
-    elif "vertagus.yml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.yml")
-    elif "vertagus.yaml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.yaml")
-    else:
-        return None
+from vertagus.cli import utils as cli_utils
 
 
 @click.command(
@@ -46,38 +31,24 @@ def _try_get_config_path_in_cwd():
     help="Name of a stage"
 )
 @click.option(
-    "--scm-branch",
-    "-b",
-    default=None,
-    help="Optional SCM branch to validate against. Defaults to configured branch."
-)
-@click.option(
     "--no-write",
     "-n",
     is_flag=True,
     default=False,
     help="If set, the version will not be written to the manifest files."
 )
-def bump_cmd(context, config, stage_name, scm_branch, no_write):
-    if not config:
-        config = _try_get_config_path_in_cwd()
-    master_config = load.load_config(config)
-    scm = factory.create_scm(
-        cfgtypes.ScmData(**master_config["scm"])
-    )
-    default_package_root = Path(config).parent
-    if "root" not in master_config["project"]:
-        master_config["project"]["root"] = default_package_root
+def bump_cmd(context, config, stage_name, no_write):
+    master_config = cli_utils.load_config(config)
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"])
     )
+    bumper_kwargs = _parse_context_args_to_kwargs(context.args)
     try:
         new_version = ops.bump_version(
-            scm=scm,
             project=project,
             stage_name=stage_name,
             write=not no_write,
-            bumper_args=context.args
+            bumper_kwargs=bumper_kwargs
         )
     except NoBumperDefinedError as e:
         click.echo(click.style(f"Error: {e}", fg="red"), err=True)
@@ -96,3 +67,24 @@ def bump_cmd(context, config, stage_name, scm_branch, no_write):
     else:
         click.echo(f"Version bumped to: {new_version}")
         sys.exit(0)
+
+
+class BumperArgumentInvalidFormat(BumperException):
+    pass
+
+
+def _parse_context_args_to_kwargs(args) -> dict[str, str]:
+    """
+    Parse context args to kwargs for the bump command.
+    """
+    kwargs = {}
+    for arg in args:
+        if "=" in arg:
+            key, value = arg.split("=", 1)
+            kwargs[key] = value
+        else:
+            if len(kwargs) == 0:
+                kwargs["level"] = arg # Maintain backward compatibility for 0.2.4
+            else:
+                raise BumperArgumentInvalidFormat(f"Invalid argument format: {arg}. Expected 'key=value'.")
+    return kwargs

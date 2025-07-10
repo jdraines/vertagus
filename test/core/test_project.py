@@ -340,9 +340,9 @@ def test_bump_version(test_project: Project):
     manifest = MagicMock()
     test_project.get_version = MagicMock(return_value="1.0.0")
     test_project._get_manifests = MagicMock(return_value=[manifest])
-    new_version = test_project.bump_version("test_stage", "foo")
+    new_version = test_project.bump_version("test_stage", level="foo")
     test_project.bumper.bump.assert_called_once_with(
-        "1.0.0", "foo"
+        "1.0.0", level="foo"
     )
     manifest.update_version.assert_called_once_with(
         "1.1.0"
