@@ -55,7 +55,7 @@ class SemanticBumper(BumperBase):
             return _tag
         raise SemverBumperException(f"Unable to extract tag from version: {version}.")
 
-    def bump(self, version: str, level: str = None) -> str:
+    def bump(self, version: str, level: T.Optional[str] = None) -> str:
         """
         Bump the version according to the specified level.
         """

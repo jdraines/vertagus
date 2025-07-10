@@ -1,7 +1,6 @@
 import typing as t
 from click.formatting import (
     HelpFormatter,
-    measure_table,
     iter_rows,
     wrap_text as click_wrap_text
 )
@@ -45,7 +44,7 @@ class DisplayTableFormatter(HelpFormatter):
                     header: bool = False
                     ) -> None:
         rows = list(rows)
-        col_widths = set_col_widths(col_widths, self.width)
+        col_widths = set_col_widths(t.cast(list[int], col_widths), self.width)
         for row_idx, cells in enumerate(iter_rows(rows, len(rows[0]))):
             is_header = header and row_idx == 0
             row_height = 1

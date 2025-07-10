@@ -17,7 +17,7 @@ def getdefault(d: DictType, k: str, default: V)  -> V:
 
 
 class ScmConfigBase(T.TypedDict):
-    scm_type: str
+    type: str
     version_strategy: T.Optional[T.Literal['tag', 'branch']]
     target_branch: T.Optional[str]
     manifest_path: T.Optional[str]
@@ -67,7 +67,7 @@ class StageConfig(T.TypedDict):
 
 class MasterConfig(T.TypedDict):
     project: ProjectConfig
-    scm: T.Union[ScmConfigBase, dict]
+    scm: ScmConfigBase
 
 
 @dataclass
@@ -219,7 +219,7 @@ class ScmData:
     def __init__(self,
                  type: str,
                  root: T.Optional[str] = None,
-                 version_strategy: str = "tag", 
+                 version_strategy: T.Optional[T.Literal["tag", "branch"]] = "tag",
                  target_branch: T.Optional[str] = None,
                  manifest_path: T.Optional[str] = None, 
                  manifest_type: T.Optional[str] = None,
@@ -228,7 +228,7 @@ class ScmData:
                  ):
         self.scm_type = type
         self.root = root
-        self.version_strategy = version_strategy
+        self.version_strategy = version_strategy or "tag"
         self.target_branch = target_branch
         self.manifest_path = manifest_path
         self.manifest_type = manifest_type
@@ -236,7 +236,7 @@ class ScmData:
         self.kwargs = kwargs
 
     def config(self) -> dict[str, T.Any]:
-        config_dict = dict(
+        config_dict: dict[str, T.Any] = dict(
             root=self.root,
             version_strategy=self.version_strategy,
             **self.kwargs

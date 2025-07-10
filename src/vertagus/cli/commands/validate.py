@@ -4,23 +4,10 @@ import sys
 
 import click
 
-from vertagus.configuration import load
 from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
-
-_cwd = Path(os.getcwd())
-
-
-def _try_get_config_path_in_cwd():
-    if "vertagus.toml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.toml")
-    elif "vertagus.yml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.yml")
-    elif "vertagus.yaml" in os.listdir(_cwd):
-        return str(_cwd / "vertagus.yaml")
-    else:
-        return None
+from vertagus.cli import utils as cli_utils
 
 
 @click.command("validate")
@@ -43,15 +30,10 @@ def _try_get_config_path_in_cwd():
     help="Optional SCM branch to validate against. Defaults to configured branch."
 )
 def validate_cmd(config, stage_name, scm_branch):
-    if not config:
-        config = _try_get_config_path_in_cwd()
-    master_config = load.load_config(config)
+    master_config = cli_utils.load_config(config)
     scm = factory.create_scm(
         cfgtypes.ScmData(**master_config["scm"])
     )
-    default_package_root = Path(config).parent
-    if "root" not in master_config["project"]:
-        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"])
     )

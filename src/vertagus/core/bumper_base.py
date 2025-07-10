@@ -5,7 +5,7 @@ class BumperABC(ABC):
     name = "base"
     
     @abstractmethod
-    def bump(self, version: str, *args) -> str:
+    def bump(self, version: str, *args, **kwargs) -> str:
         pass
 
 
