@@ -99,13 +99,18 @@ class TestSemanticCommitBumper:
             (["perf: improve performance"], ("perf", None, None, "improve performance")),
             (["feat!: add breaking change"], ("feat", None, "!", "add breaking change")),
             (["fix(scope): fix bug"], ("fix", "scope", None, "fix bug")),
-            (["chore(scope)!: did too much on this chore"], ("chore", "scope", "!", "did too much on this chore"))
+            (["chore(scope)!: did too much on this chore"], ("chore", "scope", "!", "did too much on this chore")),
+            (["fix method name"], None),
+            (["BREAKING CHANGE! check this out"], None),
         ]
     )
     def test__extract_conventional_commits(self, commit_messages, expected):
         bumper = SemanticCommitBumper()
-        assert bumper._extract_conventional_commits(commit_messages)[0] == expected
-
+        result = bumper._extract_conventional_commits(commit_messages)
+        if len(result) != 0:
+            assert result[0] == expected
+        else:
+            assert expected is None
 
     def test_bump(self):
         bumper = SemanticCommitBumper()
