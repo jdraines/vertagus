@@ -137,7 +137,7 @@ class SemanticCommitBumper(SemanticBumper):
     https://www.conventionalcommits.org/en/v1.0.0/
     """
 
-    name = "semver_commit"
+    name = "semantic_commit"
     inject_scm = True
 
     def __init__(self, tag=None):
@@ -147,8 +147,16 @@ class SemanticCommitBumper(SemanticBumper):
         """
         Bump the version according to the specified level for commit messages.
         """
-        level = self.determine_bump_level(scm)
-        return super().bump(version, level)
+        ordered_bumps = ["tag", "patch", "minor", "major"]
+        determined_level = self.determine_bump_level(scm)
+        if level is not None:
+            if level != determined_level:
+                if ordered_bumps.index(level) < ordered_bumps.index(determined_level):
+                    raise SemverBumperException(
+                        f"Specified level '{level}' is lower than determined level '{determined_level}'."
+                    ) 
+                determined_level = level
+        return super().bump(version, determined_level)
 
     def determine_bump_level(
         self,
@@ -171,7 +179,6 @@ class SemanticCommitBumper(SemanticBumper):
             "feat": "minor",
             "fix": "patch",
             "perf": "patch",
-            "revert": "revert",
             "chore": "patch",
             "docs": "patch",
             "style": "patch",

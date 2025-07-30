@@ -1,10 +1,11 @@
 from typing import Type
 from ..core.bumper_base import BumperBase
-from .semantic import SemanticBumper
+from .semantic import SemanticBumper, SemanticCommitBumper
 
 
 _bumpers = {
-    SemanticBumper.name: SemanticBumper
+    SemanticBumper.name: SemanticBumper,
+    SemanticCommitBumper.name: SemanticCommitBumper
 }
 
 
