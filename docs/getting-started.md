@@ -54,8 +54,9 @@ scm:
   tag_prefix: "v"
   version_strategy: "branch"
   target_branch: "main"
-  manifest_path: "./pyproject.toml"
-  manifest_type: "setuptools_pyproject"
+  manifest_path: "./package.json"
+  manifest_type: "json"
+  manifest_loc: "version"
 
 project:
   rules:
@@ -68,43 +69,32 @@ project:
       rules:
         current: ["regex_dev_mmp"]
     
-    beta:
-      aliases: ["string:latest"]
-      rules:
-        current: ["regex_beta_mmp"]
-    
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
       rules:
         current: ["regex_mmp"]
 
   manifests:
-    - type: "setuptools_pyproject"
-      path: "./pyproject.toml"
-      name: "pyproject"
+    - type: "json"
+      path: "./package.json"
+      loc: "version"
+      name: "package.json"
 ```
 
 ## Basic Usage
 
-### Check Current Version
 
-To check if your current version is valid:
+### Validate version
 
-```bash
-vertagus check
-```
-
-### Compare Versions
-
-To compare your current version with what's in your SCM:
+Check that the version declared in your current working codebase satisfies the rules you've configured:
 
 ```bash
-vertagus compare
+vertagus validate
 ```
 
 ### Bump Version
 
-To automatically bump your version:
+To automatically bump your version, which will change the version in your manifest file:
 
 ```bash
 vertagus bump
@@ -113,9 +103,7 @@ vertagus bump
 You can also specify the bump type:
 
 ```bash
-vertagus bump --type patch
-vertagus bump --type minor
-vertagus bump --type major
+vertagus bump level=minor
 ```
 
 ### Create Tags
@@ -123,26 +111,8 @@ vertagus bump --type major
 To create git tags based on your current version:
 
 ```bash
-vertagus tag
+vertagus create-tag
 ```
-
-## Common Workflows
-
-### Development Workflow
-
-1. Make your changes
-2. Commit with semantic commit messages (e.g., `feat: add new feature`)
-3. Run `vertagus bump` to automatically increment version
-4. Run `vertagus tag` to create git tags
-5. Push changes and tags
-
-### Release Workflow
-
-1. Ensure you're on the target branch (usually `main`)
-2. Run `vertagus check` to validate current state
-3. Run `vertagus bump --stage prod` for production release
-4. Run `vertagus tag` to create release tags
-5. Push changes and tags
 
 ## Next Steps
 
