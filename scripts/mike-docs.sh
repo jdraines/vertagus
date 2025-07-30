@@ -164,6 +164,9 @@ case "${1:-}" in
     set-default)
         set_default "$2"
         ;;
+    get-current-version)
+        get_current_version
+        ;;
     help|--help|-h)
         print_usage
         ;;

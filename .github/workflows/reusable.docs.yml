@@ -2,6 +2,12 @@ name: Documentation
 
 on:
   workflow_call:
+    inputs:
+      dev:
+        required: false
+        type: boolean
+        default: false
+        description: 'If true, deploys to the development version of the documentation. Defaults to false.'
 
 permissions:
   contents: write
@@ -49,13 +55,10 @@ jobs:
         env:
           CI: true
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            # Extract version from tag (remove 'v' prefix if present)
-            VERSION=${GITHUB_REF#refs/tags/}
-            VERSION=${VERSION#v}
-            echo "Deploying documentation for version: $VERSION"
-            ./scripts/mike-docs.sh release $VERSION
-          else
+          if [[ "${{ inputs.dev }}" == "true" ]]; then
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev
+          else
+            VERSION=$(./scripts/mike-docs.sh get-current-version)
+            ./scripts/mike-docs.sh deploy "$VERSION"
           fi
