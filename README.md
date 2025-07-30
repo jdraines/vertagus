@@ -3,7 +3,7 @@ Vertagus
 
 Vertagus is a tool to enable automation around maintining versions for your source code via a source control
 management tool like git. You can automate checks to compare the current code version string with version string(s)
-found on a specific branch of your repo or in repo tags.
+found on a specific branch of your repo or in repo tags, automate bumping based on semantic commit messages, and automate creating version tags in your git repo.
 
 Features
 --------
