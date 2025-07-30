@@ -32,9 +32,9 @@ def _try_get_config_path_in_cwd():
         return None
 
 
-def load_config(config_path: Optional[str]) -> cfgtypes.MasterConfig:
+def load_config(config_path: Optional[str], suppress_logging=False) -> cfgtypes.MasterConfig:
     config_path = validate_config_path(config_path)
-    master_config = load.load_config(config_path)
+    master_config = load.load_config(config_path, suppress_logging)
     default_package_root = str(Path(config_path).parent)
     if "root" not in master_config["project"]:
         master_config["project"]["root"] = default_package_root

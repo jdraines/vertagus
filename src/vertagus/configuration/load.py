@@ -8,8 +8,9 @@ from vertagus.utils.config import is_yaml, is_toml
 logger = getLogger(__name__)
 
 
-def load_config(filepath: str) -> MasterConfig:
-    logger.info(f"Loading configuration from {filepath}")
+def load_config(filepath: str, suppress_logging=False) -> MasterConfig:
+    if not suppress_logging:
+        logger.info(f"Loading configuration from {filepath}")
     with open(filepath, "rt") as f:
         doc = f.read()
 

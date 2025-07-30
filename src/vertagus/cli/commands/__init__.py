@@ -8,3 +8,4 @@ from .list_scms import list_scms_cmd
 from .bump import bump_cmd
 from .list_bumpers import list_bumpers_cmd
 from .init import init_cmd
+from .show_version import show_version_cmd

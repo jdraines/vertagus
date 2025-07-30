@@ -35,7 +35,7 @@ print_usage() {
 }
 
 get_current_version() {
-    python -c "import tomli; print(tomli.load(open('$ROOT_DIR/pyproject.toml', 'rb'))['project']['version'])"
+    vertagus show-version
 }
 
 init_mike() {

@@ -59,6 +59,6 @@ jobs:
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev
           else
-            VERSION=$(./scripts/mike-docs.sh get-current-version)
+            VERSION=$(vertagus show-version)
             ./scripts/mike-docs.sh deploy "$VERSION"
           fi

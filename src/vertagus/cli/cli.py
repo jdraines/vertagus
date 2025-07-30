@@ -19,7 +19,8 @@ from .commands import (
     list_scms_cmd,
     bump_cmd,
     list_bumpers_cmd,
-    init_cmd
+    init_cmd,
+    show_version_cmd
 )
 
 
@@ -38,3 +39,4 @@ cli.add_command(list_manifests_cmd)
 cli.add_command(list_scms_cmd)
 cli.add_command(bump_cmd)
 cli.add_command(list_bumpers_cmd)
+cli.add_command(show_version_cmd)
