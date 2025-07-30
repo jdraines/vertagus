@@ -13,19 +13,21 @@ The `scm` section configures source control management settings:
 
 ```yaml
 scm:
-  type: "git"                    # SCM type (currently only "git" is supported)
+  type: "git"                   # SCM type (currently only "git" is supported)
   tag_prefix: "v"               # Prefix for version tags (e.g., "v1.0.0")
   version_strategy: "branch"    # Strategy: "branch" or "tag"
   target_branch: "main"         # Target branch for version operations
-  manifest_path: "./pyproject.toml"    # Path to main manifest file
-  manifest_type: "setuptools_pyproject" # Type of manifest
+  manifest_path: "./package.json"    # Path to main manifest file
+  manifest_type: "json"         # Type of manifest
+  manifest_loc: "version"       # A dot-separated path indicating the location of the version within the manifest's object structure
 ```
 
 #### Supported Manifest Types
 
+- `toml` 
+- `yaml`
+- `json`
 - `setuptools_pyproject` - Python projects using pyproject.toml
-- `package_json` - Node.js projects using package.json
-- `cargo_toml` - Rust projects using Cargo.toml
 
 ### Project Section
 
@@ -36,19 +38,19 @@ project:
   rules:
     current: ["not_empty"]           # Rules for current version validation
     increment: ["any_increment"]     # Rules for version increment validation
-    manifest_comparisons: []         # Additional comparison rules
+    manifest_comparisons: []         # Additional comparison rules to ensure version numbers in two manifests are in sync
   
   stages:
     # Development stage
     dev:
       rules:
-        current: ["regex_dev_mmp"]   # Allow dev versions like "1.0.0-dev.1"
+        current: ["regex_dev_mmp"]   # Allow dev versions like "1.0.0.dev0"
     
     # Beta/staging stage
     beta:
       aliases: ["string:latest"]      # Create "latest" tag alias
       rules:
-        current: ["regex_beta_mmp"]   # Allow beta versions like "1.0.0-beta.1"
+        current: ["regex_beta_mmp"]   # Allow beta versions like "1.0.0.b1"
     
     # Production stage
     prod:
@@ -70,8 +72,8 @@ project:
 
 - `not_empty` - Version string must not be empty
 - `regex_mmp` - Standard major.minor.patch format (e.g., "1.0.0")
-- `regex_dev_mmp` - Development versions (e.g., "1.0.0-dev.1")
-- `regex_beta_mmp` - Beta versions (e.g., "1.0.0-beta.1")
+- `regex_dev_mmp` - Development versions (e.g., "1.0.0.dev0")
+- `regex_beta_mmp` - Beta versions (e.g., "1.0.0.b0")
 
 #### Increment Rules
 
@@ -79,19 +81,6 @@ project:
 - `major_increment` - Only major version increments
 - `minor_increment` - Only minor version increments  
 - `patch_increment` - Only patch version increments
-
-### Custom Rules
-
-You can define custom validation rules using regular expressions:
-
-```yaml
-project:
-  rules:
-    custom_rules:
-      my_version_pattern:
-        pattern: "^\\d+\\.\\d+\\.\\d+(-rc\\d+)?$"
-        description: "Allows release candidate versions"
-```
 
 ## Stage Configuration
 
@@ -101,7 +90,6 @@ Stages allow you to define different versioning behaviors for different environm
 
 - `aliases` - Git tag aliases to create/maintain
 - `rules` - Validation rules specific to this stage
-- `bump_strategy` - How to bump versions in this stage
 
 ### Example Multi-Stage Setup
 
@@ -112,21 +100,18 @@ project:
     dev:
       rules:
         current: ["regex_dev_mmp"]
-      bump_strategy: "prerelease"
     
     # Staging - beta versions only
     staging:
       aliases: ["string:staging"]
       rules:
         current: ["regex_beta_mmp"]
-      bump_strategy: "prerelease"
     
     # Production - stable releases only
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
       rules:
         current: ["regex_mmp"]
-      bump_strategy: "release"
 ```
 
 ## Alias Configuration
