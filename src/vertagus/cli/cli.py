@@ -1,13 +1,5 @@
 import logging
 import os
-
-logging.basicConfig(
-    level=os.environ.get("VERTAGUS_LOG_LEVEL", "INFO"),
-    format="{message}",
-    style="{"
-)
-
-
 import click
 from .commands import (
     validate_cmd,
@@ -21,8 +13,11 @@ from .commands import (
     list_bumpers_cmd,
     init_cmd,
     show_version_cmd,
-    show_alias_cmd
+    show_alias_cmd,
 )
+
+
+logging.basicConfig(level=os.environ.get("VERTAGUS_LOG_LEVEL", "INFO"), format="{message}", style="{")
 
 
 @click.group()

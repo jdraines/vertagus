@@ -22,26 +22,23 @@ class GitManifestNotFoundError(Exception):
 
 
 class GitScm(ScmBase):
-
     scm_type = "git"
-    _default_user_data = {
-        "name": "vertagus",
-        "email": "vertagus@none"
-    }
+    _default_user_data = {"name": "vertagus", "email": "vertagus@none"}
     _default_remote_name = "origin"
     _default_version_strategy = "tag"
 
-    def __init__(self,
-                 root: Optional[str] = None,
-                 tag_prefix: Optional[str] = None,
-                 remote_name: Optional[str] = None,
-                 version_strategy: Optional[str] = "tag",
-                 target_branch: Optional[str] = None,
-                 manifest_path: Optional[str] = None,
-                 manifest_type: Optional[str] = None,
-                 manifest_loc: Optional[list[str]] = None,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        root: Optional[str] = None,
+        tag_prefix: Optional[str] = None,
+        remote_name: Optional[str] = None,
+        version_strategy: Optional[str] = "tag",
+        target_branch: Optional[str] = None,
+        manifest_path: Optional[str] = None,
+        manifest_type: Optional[str] = None,
+        manifest_loc: Optional[list[str]] = None,
+        **kwargs,
+    ):
         self.root = root or os.getcwd()
         self.tag_prefix = tag_prefix
         self.remote_name = remote_name or self._default_remote_name
@@ -56,7 +53,6 @@ class GitScm(ScmBase):
     def remote(self) -> Remote:
         return self._repo.remotes[self.remote_name]
 
-
     def create_tag(self, tag: Tag, ref: Optional[str] = None):
         tag_prefix = self.tag_prefix or ""
         tag_text = tag.as_string(tag_prefix)
@@ -66,67 +62,43 @@ class GitScm(ScmBase):
             commit = self._repo.head.commit
         if isinstance(commit, Commit):
             commit = commit.hexsha
-        logger.info(
-            f"Creating tag {tag_text} at commit {commit}"
-        )
+        logger.info(f"Creating tag {tag_text} at commit {commit}")
         self._repo.create_tag(
             path=tag_text,
             ref=commit,
             message=tag_text,
         )
         self._repo.git.push(tags=True)
-    
-    def delete_tag(self, tag: Tag, suppress_warnings: bool=False):
+
+    def delete_tag(self, tag: Tag, suppress_warnings: bool = False):
         _tags = [t.name for t in self._repo.tags]
-        logger.debug(
-            f"Tags found: {_tags}"
-        )
+        logger.debug(f"Tags found: {_tags}")
         tag_text = tag.as_string(self.tag_prefix)
         try:
             self._repo.delete_tag(tag_text)
         except GitCommandError as e:
             if not suppress_warnings:
-                logger.warning(
-                    f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}"
-                )
+                logger.warning(f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}")
         try:
             self._repo.git.execute(["git", "push", "--delete", self.remote_name, tag_text])
         except GitCommandError as e:
             if not suppress_warnings:
-                logger.warning(
-                    f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}"
-                )
+                logger.warning(f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}")
         self._repo.git.push(tags=True)
 
     def list_tags(self, prefix: Optional[str] = None):
-
         def _ls_remote() -> str:
-            return cast(
-                str,
-                self._repo.git.execute(
-                        ["git", "ls-remote", "--tags", self.remote_name]
-                    )
-                )
+            return cast(str, self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]))
 
-        tags = [
-            t.split("tags/")[-1].strip() for t in
-            _ls_remote().split("\n")
-            if not t.endswith("^{}")
-        ]
+        tags = [t.split("tags/")[-1].strip() for t in _ls_remote().split("\n") if not t.endswith("^{}")]
         if not prefix and self.tag_prefix:
             prefix = self.tag_prefix
         if prefix:
             tags = [tag for tag in tags if tag.startswith(prefix)]
         return tags
 
-    def migrate_alias(self,
-                      alias: AliasBase,
-                      ref: Optional[str] = None,
-                      suppress_warnings: bool=True
-                      ):
-        logger.info(
-            f"Migrating alias {alias.name} to ref {ref}"
-        )
+    def migrate_alias(self, alias: AliasBase, ref: Optional[str] = None, suppress_warnings: bool = True):
+        logger.info(f"Migrating alias {alias.name} to ref {ref}")
         try:
             self.delete_tag(alias, suppress_warnings=suppress_warnings)
         except GitCommandError as e:
@@ -134,11 +106,8 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self,
-                            prefix: Optional[str] = None,
-                            branch: Optional[str] = None
-                            ) -> Optional[str]:
-        if self.version_strategy == 'branch':
+    def get_highest_version(self, prefix: Optional[str] = None, branch: Optional[str] = None) -> Optional[str]:
+        if self.version_strategy == "branch":
             if not branch and not self.target_branch:
                 raise ValueError("Branch-based strategy requires a target_branch to be configured or passed")
             if not self.manifest_path or not self.manifest_type:
@@ -146,14 +115,14 @@ class GitScm(ScmBase):
 
             branch = cast(str, branch or self.target_branch)
 
-            manifest_path = self.manifest_path.lstrip('./')
+            manifest_path = self.manifest_path.lstrip("./")
             version = self.get_branch_manifest_version(
                 branch=branch,
                 manifest_path=manifest_path,
                 manifest_type=self.manifest_type,
-                manifest_loc=self.manifest_loc
+                manifest_loc=self.manifest_loc,
             )
-            
+
             if version is None:
                 logger.error(f"Could not retrieve version from branch '{self.target_branch}'")
             return version
@@ -167,7 +136,7 @@ class GitScm(ScmBase):
             versions = tags
             if prefix:
                 versions = [tag.replace(prefix, "") for tag in tags]
-            
+
             valid_versions = []
             for version in versions:
                 try:
@@ -178,38 +147,28 @@ class GitScm(ScmBase):
             if not valid_versions:
                 return None
             return max(valid_versions, key=lambda v: parse_version(v))
-    
+
     def _initialize_repo(self):
         repo = git.Repo(self.root)
         user_data = self._get_user_data(repo)
-        logger.debug(
-            f"Initializing git repository at {self.root} "
-            f"with user data {user_data}."
-        )
-        repo.config_writer().set_value(
-            "user", "name", user_data['name']
-        ).release()
-        repo.config_writer().set_value(
-            "user", "email", user_data['email']
-        ).release()
+        logger.debug(f"Initializing git repository at {self.root} with user data {user_data}.")
+        repo.config_writer().set_value("user", "name", user_data["name"]).release()
+        repo.config_writer().set_value("user", "email", user_data["email"]).release()
         return repo
 
     def _get_user_data(self, repo: git.Repo):
-        try: 
+        try:
             return {
                 "name": repo.config_reader().get_value("user", "name"),
-                "email": repo.config_reader().get_value("user", "email")
+                "email": repo.config_reader().get_value("user", "email"),
             }
         except NoSectionError:
             logger.warning("No user data found in git config. Setting default values.")
             return self._default_user_data
 
-    def get_branch_manifest_version(self,
-                                    branch: str,
-                                    manifest_path: str,
-                                    manifest_type: str,
-                                    manifest_loc: Optional[list[str]] = None
-                                    ) -> Optional[str]:
+    def get_branch_manifest_version(
+        self, branch: str, manifest_path: str, manifest_type: str, manifest_loc: Optional[list[str]] = None
+    ) -> Optional[str]:
         """
         Get the version from a manifest file on a specific branch.
         """
@@ -219,25 +178,15 @@ class GitScm(ScmBase):
         file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
         if not file_content:
             raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}")
-        
-        manifest_cls = get_manifest_cls(manifest_type)
-        return manifest_cls.version_from_content(
-            content=file_content,
-            name=manifest_path,
-            loc=manifest_loc
-        )
 
-    def get_commit_messages_since_highest_version(
-        self,
-        branch: Optional[str] = None
-    ) -> list[str]:
+        manifest_cls = get_manifest_cls(manifest_type)
+        return manifest_cls.version_from_content(content=file_content, name=manifest_path, loc=manifest_loc)
+
+    def get_commit_messages_since_highest_version(self, branch: Optional[str] = None) -> list[str]:
         """
         Get commit messages since the highest version tag.
         """
-        highest_version = self.get_highest_version(
-            prefix=self.tag_prefix if self.tag_prefix else None,
-            branch=branch
-        )
+        highest_version = self.get_highest_version(prefix=self.tag_prefix if self.tag_prefix else None, branch=branch)
         if not highest_version:
             logger.warning("No tags found to compare against.")
             return []
@@ -249,8 +198,5 @@ class GitScm(ScmBase):
             logger.error(f"Tag {tag_name} not found.")
             return []
         tagged_commit_date = tag_commit.committed_datetime + timedelta(seconds=1)
-        commits = list(self._repo.iter_commits(
-            since=tagged_commit_date.isoformat(),
-            branch=branch)
-        )
+        commits = list(self._repo.iter_commits(since=tagged_commit_date.isoformat(), branch=branch))
         return [commit.message.strip() for commit in commits]

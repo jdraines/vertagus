@@ -4,10 +4,9 @@ from vertagus.utils import regex as regex_utils
 
 
 class classproperty(object):
-
     def __init__(self, f):
         self.f = f
-    
+
     def __get__(self, obj, owner):
         return self.f(owner)
 
@@ -19,7 +18,7 @@ class NotEmpty(SingleVersionRule):
     @classmethod
     def validate_version(cls, version):
         return bool(version)
-    
+
 
 class RegexRuleBase(SingleVersionRule):
     pattern: str = ""
@@ -34,6 +33,7 @@ class RegexRuleBase(SingleVersionRule):
 
 
 # Major-Minor-Patch Regex Rules
+
 
 class RegexMmp(RegexRuleBase):
     name = "regex_mmp"
@@ -62,6 +62,7 @@ class RegexAlphaMmp(RegexRuleBase):
 
 # Major-Minor Regex Rules
 
+
 class RegexMm(RegexRuleBase):
     name = "regex_mm"
     pattern = regex_utils.patterns["mm"]
@@ -85,4 +86,3 @@ class RegexRcMm(RegexRuleBase):
 class RegexAlphaMm(RegexRuleBase):
     name = "regex_alpha_mm"
     pattern = regex_utils.patterns["alpha_mm"]
-

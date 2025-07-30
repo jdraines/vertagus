@@ -23,4 +23,3 @@ def is_toml(doc: str, filepath: str = None) -> bool:
         if filepath and filepath.endswith(".toml"):
             raise e
         return False
-    

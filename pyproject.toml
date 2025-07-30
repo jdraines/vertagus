@@ -22,7 +22,7 @@ dependencies = [
     "PyYAML>=6",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Software Development",
     "License :: OSI Approved :: MIT License",
@@ -66,10 +66,7 @@ vertagus = "vertagus.cli:cli"
 indent-width = 4
 line-length = 120
 exclude = [
-    "tests/**/*.py",
-    "notebooks/**/*.ipynb",
-    "notebooks/**/*.py",
-    "typings/**/*.pyi",
+    "test/**/*.py"
 ]
 
 [tool.ruff.format]

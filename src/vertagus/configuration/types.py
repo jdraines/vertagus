@@ -2,11 +2,11 @@ import typing as T
 from dataclasses import dataclass, field
 import os
 
-V = T.TypeVar('V', bound=T.Any)
+V = T.TypeVar("V", bound=T.Any)
 DictType = T.Union[T.Dict, T.TypedDict]
 
 
-def getdefault(d: DictType, k: str, default: V)  -> V:
+def getdefault(d: DictType, k: str, default: V) -> V:
     """
     Get a value from a dictionary, returning a default if the key is not present.
     """
@@ -18,13 +18,15 @@ def getdefault(d: DictType, k: str, default: V)  -> V:
 
 class ScmConfigBase(T.TypedDict):
     type: str
-    version_strategy: T.Optional[T.Literal['tag', 'branch']]
+    version_strategy: T.Optional[T.Literal["tag", "branch"]]
     target_branch: T.Optional[str]
     manifest_path: T.Optional[str]
     manifest_type: T.Optional[str]
     manifest_loc: T.Optional[T.Union[str, list[str]]]
 
+
 ScmConfig = T.Union[ScmConfigBase, dict]
+
 
 class BumperConfig(T.TypedDict):
     type: str
@@ -115,15 +117,16 @@ class BumperData:
     def kwargs(self) -> dict[str, T.Any]:
         return self._kwargs
 
-class StageData:
 
-    def __init__(self,
-                 name: str,
-                 manifests: list[ManifestData],
-                 rules: RulesData,
-                 aliases: T.Optional[list[str]] = None,
-                 bumper: T.Optional[BumperData] = None
-                 ):
+class StageData:
+    def __init__(
+        self,
+        name: str,
+        manifests: list[ManifestData],
+        rules: RulesData,
+        aliases: T.Optional[list[str]] = None,
+        bumper: T.Optional[BumperData] = None,
+    ):
         self.name: str = name
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
@@ -146,7 +149,7 @@ class StageData:
                 manifest_comparisons=getdefault(getdefault(config, "rules", {}), "manifest_comparisons", []),
             ),
             aliases=config.get("aliases", []),
-            bumper=bumper_data
+            bumper=bumper_data,
         )
 
     def config(self):
@@ -157,20 +160,20 @@ class StageData:
             version_increment_rules=self.rules.increment,
             manifest_versions_comparison_rules=self.rules.manifest_comparisons,
             aliases=self.aliases,
-            bumper=self.bumper.config() if self.bumper else None
+            bumper=self.bumper.config() if self.bumper else None,
         )
 
 
 class ProjectData:
-    
-    def __init__(self,
-                 manifests: list[ManifestData],
-                 rules: RulesData,
-                 stages: T.Optional[list[StageData]] = None,
-                 aliases: T.Optional[list[str]] = None,
-                 root: T.Optional[str] = None,
-                 bumper: T.Optional[BumperData] = None
-                 ):
+    def __init__(
+        self,
+        manifests: list[ManifestData],
+        rules: RulesData,
+        stages: T.Optional[list[StageData]] = None,
+        aliases: T.Optional[list[str]] = None,
+        root: T.Optional[str] = None,
+        bumper: T.Optional[BumperData] = None,
+    ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
         self.stages: T.Optional[list[StageData]] = stages
@@ -191,7 +194,7 @@ class ProjectData:
             root=self.root,
             bumper=self.bumper.config() if self.bumper else None,
         )
-    
+
     @classmethod
     def from_project_config(cls, config: ProjectConfig):
         stages = config.get("stages", {})
@@ -210,22 +213,22 @@ class ProjectData:
             stages=[StageData.from_stage_config(name, data) for name, data in stages.items()],
             aliases=config.get("aliases", []),
             root=config.get("root", None),
-            bumper=bumper_data
+            bumper=bumper_data,
         )
 
 
 class ScmData:
-    
-    def __init__(self,
-                 type: str,
-                 root: T.Optional[str] = None,
-                 version_strategy: T.Optional[T.Literal["tag", "branch"]] = "tag",
-                 target_branch: T.Optional[str] = None,
-                 manifest_path: T.Optional[str] = None, 
-                 manifest_type: T.Optional[str] = None,
-                 manifest_loc: T.Optional[T.Union[str, list[str]]] = None,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        type: str,
+        root: T.Optional[str] = None,
+        version_strategy: T.Optional[T.Literal["tag", "branch"]] = "tag",
+        target_branch: T.Optional[str] = None,
+        manifest_path: T.Optional[str] = None,
+        manifest_type: T.Optional[str] = None,
+        manifest_loc: T.Optional[T.Union[str, list[str]]] = None,
+        **kwargs,
+    ):
         self.scm_type = type
         self.root = root
         self.version_strategy = version_strategy or "tag"
@@ -236,19 +239,15 @@ class ScmData:
         self.kwargs = kwargs
 
     def config(self) -> dict[str, T.Any]:
-        config_dict: dict[str, T.Any] = dict(
-            root=self.root,
-            version_strategy=self.version_strategy,
-            **self.kwargs
-        )
+        config_dict: dict[str, T.Any] = dict(root=self.root, version_strategy=self.version_strategy, **self.kwargs)
         if self.target_branch:
-            config_dict['target_branch'] = self.target_branch
+            config_dict["target_branch"] = self.target_branch
         if self.manifest_path:
-            config_dict['manifest_path'] = self.manifest_path
+            config_dict["manifest_path"] = self.manifest_path
         if self.manifest_type:
-            config_dict['manifest_type'] = self.manifest_type
+            config_dict["manifest_type"] = self.manifest_type
         if self.manifest_loc:
-            config_dict['manifest_loc'] = self.manifest_loc
+            config_dict["manifest_loc"] = self.manifest_loc
         return config_dict
 
     def _parse_manifest_loc(self, manifest_loc) -> T.Optional[list[str]]:

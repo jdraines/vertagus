@@ -15,26 +15,27 @@ logger = getLogger(__name__)
 
 class NoBumperDefinedError(Exception):
     """Exception raised when no bumper is defined for the project."""
+
     def __init__(self, message="No bumper is defined for the project."):
         super().__init__(message)
 
 
 class Project(Package):
-    
-    def __init__(self,
-                 manifests: list[ManifestBase],
-                 current_version_rules: list[T.Type[SingleVersionRule]],
-                 version_increment_rules: list[VersionComparisonRule],
-                 manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-                 stages: T.Optional[list[Stage]] = None,
-                 aliases: T.Optional[list[type[AliasBase]]] = None,
-                 bumper: T.Optional[BumperBase] = None
-                 ):
+    def __init__(
+        self,
+        manifests: list[ManifestBase],
+        current_version_rules: list[T.Type[SingleVersionRule]],
+        version_increment_rules: list[VersionComparisonRule],
+        manifest_versions_comparison_rules: list[ManifestsComparisonRule],
+        stages: T.Optional[list[Stage]] = None,
+        aliases: T.Optional[list[type[AliasBase]]] = None,
+        bumper: T.Optional[BumperBase] = None,
+    ):
         super().__init__(
             manifests=manifests,
             current_version_rules=current_version_rules,
             version_increment_rules=version_increment_rules,
-            manifest_versions_comparison_rules=manifest_versions_comparison_rules
+            manifest_versions_comparison_rules=manifest_versions_comparison_rules,
         )
         self._stages = stages or []
         self.aliases = aliases or []
@@ -43,7 +44,7 @@ class Project(Package):
     @property
     def stages(self):
         return self._stages
-    
+
     def get_version(self, stage_name: T.Optional[str] = None):
         manifests = self._get_manifests(stage_name)
         if not manifests:
@@ -78,23 +79,16 @@ class Project(Package):
             return validated
         return self._run_manifest_versions_comparison_rules(stage_name)
 
-    def bump_version(self,
-                     stage_name: T.Optional[str] = None,
-                     write: bool = True,
-                     **bumper_kwargs
-                     ):
+    def bump_version(self, stage_name: T.Optional[str] = None, write: bool = True, **bumper_kwargs):
         if not self.bumper:
             raise NoBumperDefinedError("Bumper is not set for the project.")
-        
-        new_version = self.bumper.bump(
-            self.get_version(stage_name),
-            **bumper_kwargs
-        )
-        
+
+        new_version = self.bumper.bump(self.get_version(stage_name), **bumper_kwargs)
+
         if write:
             for manifest in self._get_manifests(stage_name):
                 manifest.update_version(new_version)
-                
+
         return new_version
 
     def _get_version_aliases(self, version: str) -> list[AliasBase]:
@@ -103,14 +97,10 @@ class Project(Package):
     def _run_current_version_rules(self, current_version, stage_name=None):
         validated = True
         for rule in self._get_current_version_rules(stage_name):
-            logger.info(
-                f"Validating rule {rule.name!r} for {current_version}"
-            )
+            logger.info(f"Validating rule {rule.name!r} for {current_version}")
             validated = rule.validate_version(current_version)
             if not validated:
-                logger.error(
-                    f"Validation failed for rule {rule.name!r}: {rule.description}"
-                )
+                logger.error(f"Validation failed for rule {rule.name!r}: {rule.description}")
                 return validated
         return validated
 
@@ -118,14 +108,10 @@ class Project(Package):
         validated = True
         versions = [previous_version, current_version]
         for rule in self._get_version_increment_rules(stage_name):
-            logger.info(
-                f"Validating rule {rule.name!r} for {versions}"
-            )
+            logger.info(f"Validating rule {rule.name!r} for {versions}")
             validated = rule.validate_comparison(versions)
             if not validated:
-                logger.error(
-                    f"Validation failed for rule  {rule.name!r}: {rule.description}"
-                )
+                logger.error(f"Validation failed for rule  {rule.name!r}: {rule.description}")
                 return validated
         return validated
 
@@ -134,22 +120,14 @@ class Project(Package):
         for rule in self._get_manifest_versions_comparison_rules(stage_name):
             if not rule.manifest_names:
                 continue
-            manifests = [
-                m for m in
-                self._get_manifests(stage_name)
-                if m.name in rule.manifest_names
-            ]
+            manifests = [m for m in self._get_manifests(stage_name) if m.name in rule.manifest_names]
             if not manifests:
                 raise ValueError(f"Manifests {rule.manifest_names} not found.")
             versions = [m.version for m in manifests]
-            logger.info(
-                f"Validating rule {rule.name!r} for {versions}"
-            )
+            logger.info(f"Validating rule {rule.name!r} for {versions}")
             validated = rule.validate_comparison(versions)
             if not validated:
-                logger.error(
-                    f"Validation failed for rule {rule.name!r}: {rule.description}"
-                )
+                logger.error(f"Validation failed for rule {rule.name!r}: {rule.description}")
                 return validated
         return validated
 
@@ -159,14 +137,14 @@ class Project(Package):
             stage = self._get_stage(stage_name)
             manifests.extend(stage.manifests)
         return list(dict.fromkeys(manifests).keys())
-    
+
     def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRule]:
         rules = self._current_version_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.current_version_rules)
         return list(dict.fromkeys(rules).keys())
-    
+
     def _get_version_increment_rules(self, stage_name=None) -> list[VersionComparisonRule]:
         rules = self._version_increment_rules.copy()
         if stage_name:

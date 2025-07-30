@@ -3,24 +3,24 @@ import typing as T
 
 
 class ScmBase:
-    
     scm_type = "base"
     tag_prefix: T.Optional[str] = None
 
-    def __init__(self,
-                 root: T.Optional[str] = None,
-                 version_strategy: T.Optional[str] = "tag",
-                 target_branch: T.Optional[str] = None,
-                 manifest_path: T.Optional[str] = None,
-                 manifest_type: T.Optional[str] = None,
-                 manifest_loc: T.Optional[str] = None,
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        root: T.Optional[str] = None,
+        version_strategy: T.Optional[str] = "tag",
+        target_branch: T.Optional[str] = None,
+        manifest_path: T.Optional[str] = None,
+        manifest_type: T.Optional[str] = None,
+        manifest_loc: T.Optional[str] = None,
+        **kwargs,
+    ):
         raise NotImplementedError()
 
     def create_tag(self, tag: Tag, ref: T.Optional[str] = None):
         raise NotImplementedError()
-    
+
     def delete_tag(self, tag_name: str, suppress_warnings: bool = False):
         raise NotImplementedError()
 
@@ -36,21 +36,18 @@ class ScmBase:
     def get_branch_manifest_version(self, branch: str, manifest_path: str, manifest_type: str) -> T.Optional[str]:
         """
         Get the version from a manifest file on a specific branch.
-        
+
         Args:
             branch: The branch name to check
             manifest_path: Path to the manifest file relative to repo root
             manifest_type: Type of manifest (e.g., 'setuptools_pyproject')
-        
+
         Returns:
             The version string from the manifest, or None if not found
         """
         raise NotImplementedError()
 
-    def get_commit_messages_since_highest_version(
-        self,
-        branch: T.Optional[str] = None
-    ) -> list[str]:
+    def get_commit_messages_since_highest_version(self, branch: T.Optional[str] = None) -> list[str]:
         raise NotImplementedError(
             "This method should be implemented by subclasses to retrieve commit messages since the highest version."
         )

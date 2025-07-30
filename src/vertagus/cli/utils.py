@@ -9,7 +9,7 @@ from vertagus.configuration import types as cfgtypes
 
 def get_cwd() -> Path:
     return Path(os.getcwd())
-    
+
 
 def validate_config_path(config_path: Optional[str]) -> str:
     if not config_path:
