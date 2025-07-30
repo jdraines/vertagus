@@ -41,9 +41,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Make helper script executable
-        run: chmod +x scripts/mike-docs.sh
-
       - name: Show deployment context
         run: |
           echo "GitHub Event: ${{ github.event_name }}"
@@ -55,10 +52,12 @@ jobs:
         env:
           CI: true
         run: |
+          VERSION=$(vertagus show-version)
+          echo "Running mike-docs.sh with dev=${{ inputs.dev }}"
+          echo "Using version: $VERSION"
           if [[ "${{ inputs.dev }}" == "true" ]]; then
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev
           else
-            VERSION=$(vertagus show-version)
             ./scripts/mike-docs.sh deploy "$VERSION"
           fi
