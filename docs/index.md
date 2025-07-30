@@ -44,7 +44,6 @@ pip install vertagus
 - **[Configuration](configuration.md)** - Detailed configuration options
 - **[CLI Reference](cli-reference.md)** - Complete command-line interface documentation
 - **[Contributing](contributing.md)** - Contribution guide
-- **[Examples](examples.md)** - Real-world usage examples
 
 ## License
 
