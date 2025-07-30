@@ -59,7 +59,7 @@ class ManifestComparisonConfig(T.TypedDict):
 
 
 class RulesConfig(T.TypedDict):
-    current: list[str] | TypeAndConfig
+    current: T.Union[list[str], TypeAndConfig]
     increment: list[str]
     manifest_comparisons: list[ManifestComparisonConfig]
 
