@@ -35,7 +35,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/jdraines/vertagus"
-Documentation = "https://github.com/jdraines/vertagus/blob/main/docs/index.md"
+Documentation = "https://jdraines.github.io/vertagus/"
 Repository = "https://github.com/jdraines/vertagus"
 "Bug Tracker" = "https://github.com/jdraines/vertagus/issues"
 
@@ -46,11 +46,66 @@ file = "LICENSE"
 dev = [
     "pytest",
     "pytest-cov",
+    "ruff"
 ]
-qa = [
-    "pytest",
-    "pytest-cov",
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
+    "mkdocs-gen-files>=0.4.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mkdocs-section-index>=0.3.0",
 ]
 
 [project.scripts]
 vertagus = "vertagus.cli:cli"
+
+
+[tool.ruff]
+indent-width = 4
+line-length = 120
+exclude = [
+    "tests/**/*.py",
+    "notebooks/**/*.ipynb",
+    "notebooks/**/*.py",
+    "typings/**/*.pyi",
+]
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint]
+ignore = [
+    "D100", # Ignore missing docstring in public module
+    "D101", # Ignore missing docstring in public class
+    "D102", # Ignore missing docstring in public function
+    "D103", # Ignore missing docstring in public method
+    "D104", # Ignore missing docstring in public package
+    "D105", # Ignore missing docstring in magic method
+    "D106", # Ignore missing docstring in public nested class
+    "D107", # Ignore missing docstring in __init__
+    "D205", # Ignore 1 blank line required between summary and description
+    "D401", # Ignore imperative mood requirement for docstring first line
+    "E501", # Ignore line-too-long (handled by formatter)
+    "Q000", # Ignore bad-quotes-inline-string (formatter handles this)
+    "Q001", # Ignore bad-quotes-multiline-string
+    "Q002", # Ignore bad-quotes-docstring
+    "Q003", # Ignore avoidable-escaped-quote
+    "D203", # Ignore 1 blank line required before class docstring
+    "D211", # Ignore 'no blank line before class' (we want 2 blank lines)
+    "D212", # Ignore summary should start at first line; we want D213 (second line)
+]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "double"
+multiline-quotes = "double"
+avoid-escape = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["N8"]
+"tests/**/*.py" = ["N8"]

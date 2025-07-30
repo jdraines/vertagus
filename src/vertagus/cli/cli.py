@@ -18,7 +18,8 @@ from .commands import (
     list_manifests_cmd,
     list_scms_cmd,
     bump_cmd,
-    list_bumpers_cmd
+    list_bumpers_cmd,
+    init_cmd
 )
 
 
@@ -27,6 +28,7 @@ def cli():
     pass
 
 
+cli.add_command(init_cmd)
 cli.add_command(validate_cmd)
 cli.add_command(create_tag_cmd)
 cli.add_command(create_aliases_cmd)
