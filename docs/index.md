@@ -28,9 +28,9 @@ pip install vertagus
    vertagus init
    ```
 
-2. Check your current version:
+2. Validate your current version:
    ```bash
-   vertagus check
+   vertagus validate
    ```
 
 3. Bump your version:

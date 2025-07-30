@@ -117,6 +117,4 @@ vertagus create-tag
 ## Next Steps
 
 - Read the [Configuration](configuration.md) guide for detailed setup options
-- Check out [Examples](examples.md) for real-world usage scenarios
 - Explore the [CLI Reference](cli-reference.md) for all available commands
-- Review the [API Reference](reference/) if you need to integrate Vertagus programmatically
