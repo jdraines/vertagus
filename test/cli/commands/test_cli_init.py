@@ -1,3 +1,4 @@
+from typing import Union
 import pytest
 from unittest.mock import patch
 
@@ -22,8 +23,8 @@ def test_generate_vertagus_config(
     version_strategy: str,
     manifest_type: str,
     create_dev_prod_stages: bool,
-    expected_substring: str | None,
-    expected_not_substring: str | None
+    expected_substring: Union[str, None],
+    expected_not_substring: Union[str, None]
 ):
     result = init._generate_vertagus_config(
         version_strategy=version_strategy,
