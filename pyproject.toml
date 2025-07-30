@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vertagus"
-version = "0.3.1"
+version = "0.4.0"
 description = "A tool to assist the maintenance of package versioning via manifests and source control."
 readme = "README.md"
 authors = [
@@ -55,6 +55,7 @@ docs = [
     "mkdocs-gen-files>=0.4.0",
     "mkdocs-literate-nav>=0.6.0",
     "mkdocs-section-index>=0.3.0",
+    "mike>=2.0.0",
 ]
 
 [project.scripts]

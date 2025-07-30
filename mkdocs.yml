@@ -1,6 +1,6 @@
 site_name: Vertagus
 site_description: A tool to assist the maintenance of package versioning via manifests and source control
-site_url: https://github.com/jdraines/vertagus
+site_url: https://jdraines.github.io/vertagus/
 repo_url: https://github.com/jdraines/vertagus
 repo_name: jdraines/vertagus
 
@@ -25,6 +25,7 @@ theme:
     - toc.follow
     - content.code.copy
     - content.code.annotate
+    - navigation.footer
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
@@ -91,3 +92,8 @@ markdown_extensions:
 
 watch:
   - src/vertagus
+
+extra:
+  version:
+    provider: mike
+    default: latest
