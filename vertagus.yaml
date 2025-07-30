@@ -20,7 +20,7 @@ project:
       name: pyproject
 
   bumper:
-    type: semantic_commit
+    type: semver
 
   stages:
 
