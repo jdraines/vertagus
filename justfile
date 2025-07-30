@@ -36,10 +36,12 @@ docs-build:
 
 # Deploy the documentation to GitHub Pages using Mike
 docs-deploy version="dev":
+  git fetch origin gh-pages
   mike deploy {{version}}
 
 # Deploy a versioned release of the documentation
 docs-deploy-release version:
+  git fetch origin gh-pages
   mike deploy --push --update-aliases {{version}} latest
   mike set-default --push latest
 

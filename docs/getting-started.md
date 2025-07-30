@@ -42,7 +42,8 @@ Navigate to your project directory and run:
 vertagus init
 ```
 
-This will create a `vertagus.yaml` configuration file in your project root with sensible defaults.
+This will walk you through a wizard to create a `vertagus.yml` configuration file in your project root with a working
+project configuration that you can then modify further to meet your needs.
 
 ### 2. Configure Your Project
 
