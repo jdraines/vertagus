@@ -63,6 +63,14 @@ class TestSemanticCommitBumper:
             "BREAKING CHANGE: change API"
         ]) == "major"
 
+    def test__get_level_from_conventional_commits_breaking_change_lower(self):
+        bumper = SemanticCommitBumper()
+        assert bumper._get_level_from_conventional_commits([
+            "feat: add new feature",
+            "fix: fix bug",
+            "breaking change: change API"
+        ]) == "major"
+
     def test__get_level_from_conventional_commits_exclamation(self):
         bumper = SemanticCommitBumper()
         assert bumper._get_level_from_conventional_commits([
