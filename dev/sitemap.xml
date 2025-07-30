@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/cli-reference/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/configuration/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/contributing/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/examples/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/getting-started/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://jdraines.github.io/vertagus/dev/mike-setup/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+</urlset>
