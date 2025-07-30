@@ -8,6 +8,11 @@ on:
         type: boolean
         default: false
         description: 'If true, deploys to the development version of the documentation. Defaults to false.'
+      set_current:
+        required: false
+        type: boolean
+        default: true
+        description: 'If true, sets the cuyrrent alias to the current version. Defaults to true.'
 
 permissions:
   contents: write
@@ -52,7 +57,7 @@ jobs:
         env:
           CI: true
         run: |
-          VERSION=$(vertagus show-version)
+          VERSION=$(vertagus show-alias major.minor)
           echo "Running mike-docs.sh with dev=${{ inputs.dev }}"
           echo "Using version: $VERSION"
           if [[ "${{ inputs.dev }}" == "true" ]]; then
@@ -60,4 +65,8 @@ jobs:
             ./scripts/mike-docs.sh deploy-dev
           else
             ./scripts/mike-docs.sh deploy "$VERSION"
+            if [[ "${{ inputs.set_current }}" == "true" ]]; then
+              echo "Setting current alias to $VERSION"
+              ./scripts/mike-docs.sh set-default "$VERSION"
+            fi
           fi
