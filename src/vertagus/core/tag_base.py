@@ -1,7 +1,7 @@
 from typing import Optional
 
-class Tag:
 
+class Tag:
     def __init__(self, tag_text: str):
         self.tag_text = tag_text
 

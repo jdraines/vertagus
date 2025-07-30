@@ -41,7 +41,7 @@ def test_load_config(mock_load_config, mock_validate_config_path):
 
     config = cli_utils.load_config(None)    
     mock_validate_config_path.assert_called_once_with(None)
-    mock_load_config.assert_called_once_with("/my/config/path.yaml")
+    mock_load_config.assert_called_once_with("/my/config/path.yaml", False)
     assert config == {"project": {"root": str(Path("/mock/root"))}}
 
     mock_load_config.return_value = {"project": {}}

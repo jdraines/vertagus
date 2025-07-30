@@ -3,16 +3,12 @@ import yaml
 import os.path
 from typing import Optional
 
+
 class YamlManifest(ManifestBase):
     manifest_type: str = "yaml"
     description: str = "A YAML file. Users provide a custom `loc` to the version as a list of keys."
 
-    def __init__(self,
-                 name: str,
-                 path: str,
-                 loc: list = None,
-                 root: str = None
-                 ):
+    def __init__(self, name: str, path: str, loc: list = None, root: str = None):
         super().__init__(name, path, loc, root)
         self._doc = self._load_doc()
 
@@ -24,8 +20,7 @@ class YamlManifest(ManifestBase):
         for k in self.loc:
             if k not in p:
                 raise ValueError(
-                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. "
-                    f"Key {k!r} not found in {list(p.keys())}"
+                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. Key {k!r} not found in {list(p.keys())}"
                 )
             p = p[k]
         return p
@@ -43,15 +38,16 @@ class YamlManifest(ManifestBase):
 
     def _write_doc(self):
         path = self._full_path()
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             yaml.safe_dump(self._doc, f, default_flow_style=False)
 
     @classmethod
-    def version_from_content(cls,
-                             content: str,
-                             name: str,
-                             loc: Optional[list[str]] = None,
-                             ) -> str:
+    def version_from_content(
+        cls,
+        content: str,
+        name: str,
+        loc: Optional[list[str]] = None,
+    ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for YamlManifest")
         manifest_content = yaml.load(content, Loader=yaml.SafeLoader)
@@ -64,8 +60,7 @@ class YamlManifest(ManifestBase):
         for k in self.loc[:-1]:
             if k not in p:
                 raise ValueError(
-                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. "
-                    f"Key {k!r} not found in {list(p.keys())}"
+                    f"Invalid loc {self.loc!r} for manifest {self.name!r}. Key {k!r} not found in {list(p.keys())}"
                 )
             p = p[k]
         p[self.loc[-1]] = version

@@ -8,21 +8,21 @@ from .package_base import Package
 
 
 class Stage(Package):
-    
-    def __init__(self,
-                 name: str,
-                 manifests: list[ManifestBase],
-                 current_version_rules: list[T.Type[SingleVersionRule]],
-                 version_increment_rules: list[VersionComparisonRule],
-                 manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-                 aliases: T.Optional[list[type[AliasBase]]] = None,
-                 bumper: T.Optional[BumperBase] = None
-                 ):
+    def __init__(
+        self,
+        name: str,
+        manifests: list[ManifestBase],
+        current_version_rules: list[T.Type[SingleVersionRule]],
+        version_increment_rules: list[VersionComparisonRule],
+        manifest_versions_comparison_rules: list[ManifestsComparisonRule],
+        aliases: T.Optional[list[type[AliasBase]]] = None,
+        bumper: T.Optional[BumperBase] = None,
+    ):
         super().__init__(
             manifests=manifests,
             current_version_rules=current_version_rules,
             version_increment_rules=version_increment_rules,
-            manifest_versions_comparison_rules=manifest_versions_comparison_rules
+            manifest_versions_comparison_rules=manifest_versions_comparison_rules,
         )
         self.name = name
         self.aliases = aliases or []
@@ -31,15 +31,15 @@ class Stage(Package):
     @property
     def current_version_rules(self):
         return self._current_version_rules
-    
+
     @property
     def version_increment_rules(self):
         return self._version_increment_rules
-    
+
     @property
     def manifest_versions_comparison_rules(self):
         return self._manifest_versions_comparison_rules
-    
+
     @property
     def manifests(self):
         return self._manifests

@@ -134,6 +134,17 @@ vertagus create-aliases --stage-name prod
 vertagus create-aliases --ref v1.2.3
 ```
 
+### `vertagus show-version`
+
+Show the current version in the project's primary manifest. This is a convenience command that is often useful in CI automation, providing a single source of logic for version extraction.
+
+**Example:**
+
+```
+$ vergatus show-version
+0.4.0.dev0
+```
+
 ## List Commands
 
 These commands help you discover available components and configurations:

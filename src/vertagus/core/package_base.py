@@ -4,13 +4,13 @@ from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 
 
 class Package:
-
-    def __init__(self,
-                 manifests: list[ManifestBase],
-                 current_version_rules: list[T.Type[SingleVersionRule]],
-                 version_increment_rules: list[VersionComparisonRule],
-                 manifest_versions_comparison_rules: T.Sequence[VersionComparisonRule]
-                 ):
+    def __init__(
+        self,
+        manifests: list[ManifestBase],
+        current_version_rules: list[T.Type[SingleVersionRule]],
+        version_increment_rules: list[VersionComparisonRule],
+        manifest_versions_comparison_rules: T.Sequence[VersionComparisonRule],
+    ):
         self._manifests = manifests or []
         self._current_version_rules = current_version_rules or []
         self._version_increment_rules = version_increment_rules or []

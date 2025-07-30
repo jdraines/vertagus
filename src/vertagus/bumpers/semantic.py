@@ -72,21 +72,14 @@ class SemanticBumper(BumperBase):
             major, minor, patch = self._extract_mmp(v)
             tag = self._extract_tag(v, version)
         except Exception as e:
-            raise ValueError(
-                f"Invalid version format: {version}. Error: "
-                f"{e.__class__.__name__}: {e}"
-            ) from e
+            raise ValueError(f"Invalid version format: {version}. Error: {e.__class__.__name__}: {e}") from e
 
         bumper = self._get_level_bumper(level)
-        
+
         if tag is not None:
             _v = version.replace(tag, "")
             tag_sep = _v.replace(v.base_version, "")
-        (
-            major, minor, patch, tag
-        ) = bumper(
-            int(major), int(minor), int(patch), tag
-        )
+        (major, minor, patch, tag) = bumper(int(major), int(minor), int(patch), tag)
 
         if tag is None:
             return f"{major}.{minor}.{patch}"
@@ -98,7 +91,7 @@ class SemanticBumper(BumperBase):
             "major": self._bump_major,
             "minor": self._bump_minor,
             "patch": self._bump_patch,
-            "tag": self._bump_tag
+            "tag": self._bump_tag,
         }
         if level not in _bumpers:
             raise SemverBumperException(f"Invalid level: {level}. Must be one of {list(_bumpers.keys())}.")
@@ -106,10 +99,10 @@ class SemanticBumper(BumperBase):
 
     def _bump_major(self, major, minor, patch, tag):
         return major + 1, 0, 0, None
-    
+
     def _bump_minor(self, major, minor, patch, tag):
         return major, minor + 1, 0, None
-    
+
     def _bump_patch(self, major, minor, patch, tag):
         return major, minor, patch + 1, None
 
@@ -118,7 +111,7 @@ class SemanticBumper(BumperBase):
             if self.tag is None:
                 raise SemverBumperException("No tag specified and no existing tag to increment.")
             tag = f"{self.tag}0"
-        match = re.match(r'(\D+)(\d+)', tag)
+        match = re.match(r"(\D+)(\d+)", tag)
         if match:
             prefix, number = match.groups()
             if self.tag and self.tag != prefix:
@@ -133,14 +126,14 @@ class SemanticBumper(BumperBase):
 
 class SemanticCommitBumper(SemanticBumper):
     """
-    Bumper that uses semantic commit conventions: 
+    Bumper that uses semantic commit conventions:
     https://www.conventionalcommits.org/en/v1.0.0/
     """
 
     name = "semantic_commit"
     inject_scm = True
 
-    def bump(self, version: str,  scm: ScmBase, level: T.Optional[str] = None) -> str:
+    def bump(self, version: str, scm: ScmBase, level: T.Optional[str] = None) -> str:
         """
         Bump the version according to the specified level for commit messages.
         """
@@ -151,21 +144,17 @@ class SemanticCommitBumper(SemanticBumper):
                 if ordered_bumps.index(level) < ordered_bumps.index(determined_level):
                     raise SemverBumperException(
                         f"Specified level '{level}' is lower than determined level '{determined_level}'."
-                    ) 
+                    )
                 determined_level = level
         return super().bump(version, determined_level)
 
-    def determine_bump_level(
-        self,
-        scm: ScmBase,
-        branch: T.Optional[str] = None
-    ) -> str:
+    def determine_bump_level(self, scm: ScmBase, branch: T.Optional[str] = None) -> str:
         """
         Determine the bump level based on commit messages since the last tag.
         """
         commit_messages = scm.get_commit_messages_since_highest_version(branch)
         return self._get_level_from_conventional_commits(commit_messages)
-        
+
     def _get_level_from_conventional_commits(self, commit_messages: list[str]):
         """
         Extract conventional commit types from commit messages.
@@ -179,11 +168,11 @@ class SemanticCommitBumper(SemanticBumper):
             "docs": "patch",
             "style": "patch",
             "refactor": "patch",
-            "test": "patch"
+            "test": "patch",
         }
         levels = set()
         conventional_commits = self._extract_conventional_commits(commit_messages)
-        for (commit_type, scope, exclamation, description, breaking_change) in conventional_commits:
+        for commit_type, scope, exclamation, description, breaking_change in conventional_commits:
             if commit_type.lower() in conventional_types:
                 levels.add(conventional_types[commit_type.lower()])
                 if exclamation:
@@ -196,21 +185,22 @@ class SemanticCommitBumper(SemanticBumper):
             return "patch"
         return ordered_bumps[max([ordered_bumps.index(level) for level in levels])]
 
-    def _extract_conventional_commits(self, commit_messages: list[str]) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
+    def _extract_conventional_commits(
+        self, commit_messages: list[str]
+    ) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
         """
         Extract conventional commit messages from a list of commit messages.
         """
         conventional_commits = []
         pattern = re.compile(
-            r'^(?P<type>[\w]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$',
-            re.DOTALL
+            r"^(?P<type>[\w]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$", re.DOTALL
         )
         for message in commit_messages:
-            if (match := pattern.match(message)):
+            if match := pattern.match(message):
                 commit_type = match.group("type")
                 scope = match.group("scope")
                 exclamation = match.group("exclamation")
                 description = match.group("description")
-                breaking_change =  "BREAKING CHANGE" in message
+                breaking_change = "BREAKING CHANGE" in message
                 conventional_commits.append((commit_type, scope, exclamation, description, breaking_change))
         return conventional_commits

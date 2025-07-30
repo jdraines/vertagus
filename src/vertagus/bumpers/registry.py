@@ -3,10 +3,7 @@ from ..core.bumper_base import BumperBase
 from .semantic import SemanticBumper, SemanticCommitBumper
 
 
-_bumpers = {
-    SemanticBumper.name: SemanticBumper,
-    SemanticCommitBumper.name: SemanticCommitBumper
-}
+_bumpers = {SemanticBumper.name: SemanticBumper, SemanticCommitBumper.name: SemanticCommitBumper}
 
 
 def register_bumper(bumper_class: Type[BumperBase]) -> Type[BumperBase]:
@@ -15,7 +12,7 @@ def register_bumper(bumper_class: Type[BumperBase]) -> Type[BumperBase]:
     """
     if bumper_class.name in _bumpers:
         raise ValueError(f"Bumper with name '{bumper_class.name}' is already registered.")
-    
+
     _bumpers[bumper_class.name] = bumper_class
     return bumper_class
 

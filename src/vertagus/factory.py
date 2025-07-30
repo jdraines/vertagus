@@ -26,18 +26,17 @@ def create_project(data: t.ProjectData) -> Project:
         current_version_rules=create_single_version_rules(data.rules.current),
         version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
         manifest_versions_comparison_rules=create_manifest_comparison_rules(
-            ["manifests_comparison"],
-            {"manifests": data.rules.manifest_comparisons}
-        ) if data.rules.manifest_comparisons else [],
+            ["manifests_comparison"], {"manifests": data.rules.manifest_comparisons}
+        )
+        if data.rules.manifest_comparisons
+        else [],
         stages=create_stages(data.stages, data.root) if data.stages else None,
         aliases=create_aliases((data.aliases or [])),
-        bumper=create_bumper(data.bumper) if data.bumper else None
+        bumper=create_bumper(data.bumper) if data.bumper else None,
     )
 
 
-def create_manifests(manifest_data: list[t.ManifestData],
-                     root: Optional[str] = None
-                     ) -> list[ManifestBase]:
+def create_manifests(manifest_data: list[t.ManifestData], root: Optional[str] = None) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
         if root:
@@ -55,9 +54,11 @@ def create_version_comparison_rules(rule_names: list[str], config) -> list[Versi
     rule_classes = get_version_comparison_rules(rule_names)
     return [rule_cls(config=config) for rule_cls in rule_classes]
 
+
 def create_manifest_comparison_rules(rule_names: list[str], config) -> list[ManifestsComparisonRule]:
     def _cast(cls: Type[VersionComparisonRule]) -> Type[ManifestsComparisonRule]:
         return cast(Type[ManifestsComparisonRule], cls)
+
     rule_classes = get_version_comparison_rules(rule_names)
     rule_classes = [_cast(rule_cls) for rule_cls in rule_classes]
     return [rule_cls(config=config) for rule_cls in rule_classes]
@@ -70,18 +71,21 @@ def create_aliases(alias_names: list[str]) -> list[Type[AliasBase]]:
 def create_stages(stage_data: list[t.StageData], project_root: Optional[str] = None) -> list[Stage]:
     stages = []
     for data in stage_data:
-        stages.append(Stage(
-            name=data.name,
-            manifests=create_manifests(data.manifests, project_root),
-            current_version_rules=create_single_version_rules(data.rules.current),
-            version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
-            manifest_versions_comparison_rules=create_manifest_comparison_rules(
-                ["manifests_comparison"],
-                {"manifests": data.rules.manifest_comparisons}
-            ) if data.rules.manifest_comparisons else [],
-            aliases=create_aliases((data.aliases or [])),
-            bumper=create_bumper(data.bumper) if data.bumper else None,
-        ))
+        stages.append(
+            Stage(
+                name=data.name,
+                manifests=create_manifests(data.manifests, project_root),
+                current_version_rules=create_single_version_rules(data.rules.current),
+                version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
+                manifest_versions_comparison_rules=create_manifest_comparison_rules(
+                    ["manifests_comparison"], {"manifests": data.rules.manifest_comparisons}
+                )
+                if data.rules.manifest_comparisons
+                else [],
+                aliases=create_aliases((data.aliases or [])),
+                bumper=create_bumper(data.bumper) if data.bumper else None,
+            )
+        )
     return stages
 
 
