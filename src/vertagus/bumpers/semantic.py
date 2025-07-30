@@ -172,7 +172,6 @@ class SemanticCommitBumper(SemanticBumper):
         """
         ordered_bumps = ["patch", "minor", "major"]
         conventional_types = {
-            "breaking change": "major",
             "feat": "minor",
             "fix": "patch",
             "perf": "patch",
@@ -184,10 +183,12 @@ class SemanticCommitBumper(SemanticBumper):
         }
         levels = set()
         conventional_commits = self._extract_conventional_commits(commit_messages)
-        for (commit_type, scope, exclamation, description) in conventional_commits:
+        for (commit_type, scope, exclamation, description, breaking_change) in conventional_commits:
             if commit_type.lower() in conventional_types:
                 levels.add(conventional_types[commit_type.lower()])
                 if exclamation:
+                    levels.add("major")
+                if breaking_change:
                     levels.add("major")
             else:
                 levels.add("patch")
@@ -200,12 +201,16 @@ class SemanticCommitBumper(SemanticBumper):
         Extract conventional commit messages from a list of commit messages.
         """
         conventional_commits = []
-        pattern = re.compile(r'^(?P<type>[\w\s]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$')
+        pattern = re.compile(
+            r'^(?P<type>[\w]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$',
+            re.DOTALL
+        )
         for message in commit_messages:
             if (match := pattern.match(message)):
                 commit_type = match.group("type")
                 scope = match.group("scope")
                 exclamation = match.group("exclamation")
                 description = match.group("description")
-                conventional_commits.append((commit_type, scope, exclamation, description))
+                breaking_change =  "BREAKING CHANGE" in message
+                conventional_commits.append((commit_type, scope, exclamation, description, breaking_change))
         return conventional_commits

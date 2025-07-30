@@ -1,6 +1,16 @@
 CHANGELOG
 ===
 
+0.3.1
+---
+
+* Fix the way `SemanticCommitBumper` is handling the `BREAKING CHANGES` substring. In `0.3.0`, this substring was handled as a semantic commit type, but from now on, is handled in keeping with Conventional Commit documentation, so that if it appears anywhere in the commit message, the bump should be major.
+
+0.3.0
+---
+
+* **Semantic Commit auto version bumping support** A new `SemanticCommmitBumper` class uses commit messages that follow the semantic commit conventions to determin the level of semver bump that should be applied.
+
 0.2.5
 ---
 
