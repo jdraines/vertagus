@@ -5,6 +5,15 @@ Vertagus is a tool to enable automation around maintining versions for your sour
 management tool like git. You can automate checks to compare the current code version string with version string(s)
 found on a specific branch of your repo or in repo tags.
 
+Features
+--------
+
+- Semver version validation
+- Semver version bump automation (semantic commit messge conventions or user configured)
+- Multiple development stage configurations (e.g., dev, staging, prod)
+- Git tag automation (create version tags, maintain alias tags like 'stable', 'latest')
+
+
 Installation
 ------------
 
@@ -53,7 +62,9 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
   `dev`, `staging`, or `prod`, or it could be whatever else you like, depending on how you plan to use it.
 - **Tag Prefixes** in case you're developing in a repository that holds multiple packages. Or maybe you just like 
   prefixes.
-- **Version bumping handler** if you'd like an automated version bumper.
+- **Version bumping handler** if you'd like an automated version bumper. Available options are `semantic_commit` which will
+  read commit messages since the most recent version to determine the semver bump level, or `semver` in which you pass
+  the bump level as a CLI arg.
 
 You declare these in either a `vertagus.toml` or `vertagus.yaml` file next to your package in your repository. 
 Here's an example of the yaml format:
@@ -158,15 +169,24 @@ vertagus bump [--stage-name STAGE_NAME --config CONFIG_FILEPATH --no-write [BUMP
 
 The `BUMPER_KWARGS` should be string arguments of type `key=value` set apart by spaces that meet the call requirements of the bumper that has been configured.
 
-If you have configured your vertagus config to use the semver bumper, for example:
+If you have configured your vertagus config to use the `semantic_commit` bumper, for example:
 
 ```yaml
 project:
   bumper:
-    type: semver
+    type: semantic_commit
+```
+Then when you run
+
+```
+vertagus bump
 ```
 
-Then the following command would update your manifest in-place locally to bump the minor version:
+Vertagus will look at commit messages since the last version and determine a bump level (major, minor, patch)
+by checking for semantic commit messages (e.g. `feat: foo`, `BREAKING CHANGE: bar`).
+
+Or, if you prefer the `semvar` bumper, then the following command would update your manifest in-place locally to
+bump the minor version:
 
 ```
 vertagus bump level=minor

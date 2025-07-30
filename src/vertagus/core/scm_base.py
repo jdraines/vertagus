@@ -46,3 +46,11 @@ class ScmBase:
             The version string from the manifest, or None if not found
         """
         raise NotImplementedError()
+
+    def get_commit_messages_since_highest_version(
+        self,
+        branch: T.Optional[str] = None
+    ) -> list[str]:
+        raise NotImplementedError(
+            "This method should be implemented by subclasses to retrieve commit messages since the highest version."
+        )

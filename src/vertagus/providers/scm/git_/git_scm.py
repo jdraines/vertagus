@@ -2,6 +2,7 @@ import os
 from logging import getLogger
 from configparser import NoSectionError
 from typing import cast, Optional
+from datetime import timedelta
 
 import git
 from git.remote import Remote
@@ -225,3 +226,31 @@ class GitScm(ScmBase):
             name=manifest_path,
             loc=manifest_loc
         )
+
+    def get_commit_messages_since_highest_version(
+        self,
+        branch: Optional[str] = None
+    ) -> list[str]:
+        """
+        Get commit messages since the highest version tag.
+        """
+        highest_version = self.get_highest_version(
+            prefix=self.tag_prefix if self.tag_prefix else None,
+            branch=branch
+        )
+        if not highest_version:
+            logger.warning("No tags found to compare against.")
+            return []
+
+        tag_name = f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version
+        try:
+            tag_commit = self._repo.commit(tag_name)
+        except (ValueError, GitCommandError):
+            logger.error(f"Tag {tag_name} not found.")
+            return []
+        tagged_commit_date = tag_commit.committed_datetime + timedelta(seconds=1)
+        commits = list(self._repo.iter_commits(
+            since=tagged_commit_date.isoformat(),
+            branch=branch)
+        )
+        return [commit.message.strip() for commit in commits]

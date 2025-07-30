@@ -43,8 +43,12 @@ def bump_cmd(context, config, stage_name, no_write):
         cfgtypes.ProjectData.from_project_config(master_config["project"])
     )
     bumper_kwargs = _parse_context_args_to_kwargs(context.args)
+    scm = factory.create_scm(
+        cfgtypes.ScmData(**master_config["scm"])
+    )
     try:
         new_version = ops.bump_version(
+            scm=scm,
             project=project,
             stage_name=stage_name,
             write=not no_write,

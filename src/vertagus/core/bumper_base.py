@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 class BumperABC(ABC):
 
     name = "base"
+    inject_scm: bool = False
     
     @abstractmethod
     def bump(self, version: str, *args, **kwargs) -> str:

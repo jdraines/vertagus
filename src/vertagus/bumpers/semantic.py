@@ -1,7 +1,9 @@
 import typing as T
-from ..core.bumper_base import BumperBase, BumperException
 import re
 from packaging import version as versionmod
+
+from ..core.bumper_base import BumperBase, BumperException
+from ..core.scm_base import ScmBase
 
 
 class SemverBumperException(BumperException):
@@ -127,3 +129,83 @@ class SemanticBumper(BumperBase):
         else:
             tag = f"{tag}1"
         return major, minor, patch, tag
+
+
+class SemanticCommitBumper(SemanticBumper):
+    """
+    Bumper that uses semantic commit conventions: 
+    https://www.conventionalcommits.org/en/v1.0.0/
+    """
+
+    name = "semantic_commit"
+    inject_scm = True
+
+    def bump(self, version: str,  scm: ScmBase, level: T.Optional[str] = None) -> str:
+        """
+        Bump the version according to the specified level for commit messages.
+        """
+        ordered_bumps = ["tag", "patch", "minor", "major"]
+        determined_level = self.determine_bump_level(scm)
+        if level is not None:
+            if level != determined_level:
+                if ordered_bumps.index(level) < ordered_bumps.index(determined_level):
+                    raise SemverBumperException(
+                        f"Specified level '{level}' is lower than determined level '{determined_level}'."
+                    ) 
+                determined_level = level
+        return super().bump(version, determined_level)
+
+    def determine_bump_level(
+        self,
+        scm: ScmBase,
+        branch: T.Optional[str] = None
+    ) -> str:
+        """
+        Determine the bump level based on commit messages since the last tag.
+        """
+        commit_messages = scm.get_commit_messages_since_highest_version(branch)
+        return self._get_level_from_conventional_commits(commit_messages)
+        
+    def _get_level_from_conventional_commits(self, commit_messages: list[str]):
+        """
+        Extract conventional commit types from commit messages.
+        """
+        ordered_bumps = ["patch", "minor", "major"]
+        conventional_types = {
+            "breaking change": "major",
+            "feat": "minor",
+            "fix": "patch",
+            "perf": "patch",
+            "chore": "patch",
+            "docs": "patch",
+            "style": "patch",
+            "refactor": "patch",
+            "test": "patch"
+        }
+        levels = set()
+        conventional_commits = self._extract_conventional_commits(commit_messages)
+        for (commit_type, scope, exclamation, description) in conventional_commits:
+            if commit_type.lower() in conventional_types:
+                levels.add(conventional_types[commit_type.lower()])
+                if exclamation:
+                    levels.add("major")
+            else:
+                levels.add("patch")
+        if not levels:
+            return "patch"
+        return ordered_bumps[max([ordered_bumps.index(level) for level in levels])]
+
+    def _extract_conventional_commits(self, commit_messages: list[str]) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
+        """
+        Extract conventional commit messages from a list of commit messages.
+        """
+        conventional_commits = []
+        pattern = re.compile(r'^(?P<type>[\w\s]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$')
+        for message in commit_messages:
+            if (match := pattern.match(message)):
+                commit_type = match.group("type")
+                scope = match.group("scope")
+                exclamation = match.group("exclamation")
+                description = match.group("description")
+                conventional_commits.append((commit_type, scope, exclamation, description))
+        return conventional_commits
