@@ -1,0 +1,12 @@
+name: Manual Deploy Docs
+
+on:
+    workflow_dispatch:
+
+jobs:
+    deploy_docs:
+        uses: ./.github/workflows/reusable.docs.yml
+        permissions:
+            contents: write
+            pages: write
+            id-token: write

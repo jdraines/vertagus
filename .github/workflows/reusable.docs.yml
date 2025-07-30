@@ -1,12 +1,7 @@
 name: Documentation
 
 on:
-  push:
-    branches: [main]
-    tags:
-      - 'v*'
-  pull_request:
-    branches: [main]
+  workflow_call:
 
 permissions:
   contents: write
@@ -26,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -43,6 +38,13 @@ jobs:
       - name: Make helper script executable
         run: chmod +x scripts/mike-docs.sh
 
+      - name: Show deployment context
+        run: |
+          echo "GitHub Event: ${{ github.event_name }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "GitHub Head Ref: ${{ github.head_ref }}"
+          echo "Repository: ${{ github.repository }}"
+
       - name: Build and deploy documentation
         env:
           CI: true
@@ -53,25 +55,7 @@ jobs:
             VERSION=${VERSION#v}
             echo "Deploying documentation for version: $VERSION"
             ./scripts/mike-docs.sh release $VERSION
-          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+          else
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev
-          else
-            echo "Building documentation for preview (PR)"
-            mkdocs build
           fi
-
-      - name: Upload Pages artifact (for PR preview)
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: ./site
-
-  deploy-preview:
-    if: github.event_name == 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2

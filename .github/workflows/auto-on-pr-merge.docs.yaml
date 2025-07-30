@@ -1,0 +1,26 @@
+name: Deploy Docs on PR Merge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+    
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  
+  deploy_docs:
+    uses: ./.github/workflows/reusable.docs.yml
+    if: ${{ github.event.pull_request.merged == true && ( startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) )}}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
