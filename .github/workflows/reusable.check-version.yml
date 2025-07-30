@@ -23,14 +23,11 @@ jobs:
       - name: install dependencies
         run: pip install -e "." tomli packaging pyyaml
       - name: run dev version check
-        if: ${{ startsWith( github.head_ref, 'dev/' ) }}
+        if: ${{ startsWith( github.head_ref, 'feature/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s dev -b ${{ inputs.target_branch }}
-      - name: run beta version check
-        if: ${{ startsWith( github.head_ref, 'beta/' )}}
-        run: vertagus validate -c ${{ inputs.config_file }} -s beta -b ${{ inputs.target_branch }}
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c ${{ inputs.config_file }} -s prod -b ${{ inputs.target_branch }}
       - name: deny version check
-        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'dev/' ) && !startsWith( github.head_ref, 'beta/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
+        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'feature/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
         run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1

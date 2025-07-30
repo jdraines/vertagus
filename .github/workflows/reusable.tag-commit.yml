@@ -18,9 +18,6 @@ jobs:
           python-version: 3.11
       - name: install dependencies
         run: pip install -e "." tomli packaging pyyaml
-      - name: run beta version tag
-        if: ${{ startsWith( github.head_ref, 'beta/' ) }}
-        run: vertagus create-tag -c ${{ inputs.config_file }} -s beta
       - name: run prod version tag
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus create-tag -c ${{ inputs.config_file }} -s prod

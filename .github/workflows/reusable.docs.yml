@@ -1,0 +1,61 @@
+name: Documentation
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[docs]"
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Make helper script executable
+        run: chmod +x scripts/mike-docs.sh
+
+      - name: Show deployment context
+        run: |
+          echo "GitHub Event: ${{ github.event_name }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "GitHub Head Ref: ${{ github.head_ref }}"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Build and deploy documentation
+        env:
+          CI: true
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # Extract version from tag (remove 'v' prefix if present)
+            VERSION=${GITHUB_REF#refs/tags/}
+            VERSION=${VERSION#v}
+            echo "Deploying documentation for version: $VERSION"
+            ./scripts/mike-docs.sh release $VERSION
+          else
+            echo "Deploying development documentation"
+            ./scripts/mike-docs.sh deploy-dev
+          fi

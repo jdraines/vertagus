@@ -28,12 +28,7 @@ project:
       rules:
         current:
           - regex_dev_mmp
-    beta:
-      aliases:
-        - string:latest
-      rules:
-        current:
-          - regex_beta_mmp
+
     prod:
       aliases:
         - string:stable

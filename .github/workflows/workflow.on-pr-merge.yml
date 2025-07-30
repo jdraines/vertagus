@@ -20,7 +20,7 @@ jobs:
 
   publish-to-pypi:
     name: Upload release to PyPI
-    if: ${{ !startsWith( github.head_ref, 'dev/' ) }}
+    if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
     runs-on: ubuntu-latest
     environment:
       name: pypi
