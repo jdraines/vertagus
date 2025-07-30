@@ -190,10 +190,9 @@ class SemanticCommitBumper(SemanticBumper):
                 if exclamation:
                     levels.add("major")
             else:
-                print(f"Unknown commit type '{commit_type}' in message: '{description}'")
+                levels.add("patch")
         if not levels:
             return "patch"
-        print(levels)
         return ordered_bumps[max([ordered_bumps.index(level) for level in levels])]
 
     def _extract_conventional_commits(self, commit_messages: list[str]) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
