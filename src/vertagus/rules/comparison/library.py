@@ -20,7 +20,7 @@ class ManifestsComparisonRule(VersionComparisonRule):
     def __init__(self, config: dict):
         self.manifest_names = config["manifests"]
 
-    def validate_comparison(self, versions: tuple[str, str]):
+    def validate_comparison(self, versions: list[str]):
         if not versions:
             raise ValueError("No versions to compare.")
         if len(versions) == 1:

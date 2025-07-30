@@ -3,11 +3,15 @@ import typing as T
 from unittest.mock import patch, MagicMock
 
 import pytest
+from vertagus.core.rule_bases import (
+    SingleVersionRuleProtocol,
+    SingleVersionRule,
+    ConfigurableSingleVersionRule,
+    VersionComparisonRule
+)
 from vertagus.core.project import (
     Project,
     ManifestBase,
-    SingleVersionRule,
-    VersionComparisonRule,
     ManifestsComparisonRule,
     Stage
 )
@@ -43,12 +47,21 @@ def mock_current_version_rule_pass():
             return True
     return MockCurrentVersionRulePass
 
+@pytest.fixture
+def mock_configurable_current_version_rule_pass():
+    class MockConfigurableCurrentVersionRulePass(ConfigurableSingleVersionRule):
+        name = "mock_configurable_current_version_rule"
+        def validate_version(self, version: str):
+            return True
+    return MockConfigurableCurrentVersionRulePass({"key": "value"})
+
 
 @pytest.fixture
 def mock_current_version_rules(
-    mock_current_version_rule_pass
-):
-    return [mock_current_version_rule_pass]
+    mock_current_version_rule_pass,
+    mock_configurable_current_version_rule_pass
+) -> list[SingleVersionRuleProtocol]:
+    return [mock_current_version_rule_pass, mock_configurable_current_version_rule_pass]
 
 
 @pytest.fixture
@@ -153,9 +166,9 @@ def mock_stage_with_alias(mock_manifests,
 
 @pytest.fixture
 def test_project(mock_manifests: list[ManifestBase],
-                 mock_current_version_rules: list[T.Type[SingleVersionRule]],
+                 mock_current_version_rules: list[SingleVersionRuleProtocol],
                  mock_version_increment_rules: list[T.Type[VersionComparisonRule]],
-                 mock_manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]],
+                 mock_manifest_versions_comparison_rules: list[T.Type[ManifestsComparisonRule]],
                  mock_stage: Stage
                  ):
     return Project(

@@ -1,13 +1,13 @@
 import click
 
 from vertagus.rules.comparison.loader import get_rules as get_comparison_rules, VersionComparisonRule
-from vertagus.rules.single_version.loader import get_rules as get_single_version_rules, SingleVersionRule
+from vertagus.rules.single_version.loader import get_rules as get_single_version_rules, SingleVersionRuleType
 from vertagus.cli.formatting import DisplayTableFormatter
 
 
 @click.command("list-rules")
 def list_rules_cmd():
-    single_version_rules: list[type[SingleVersionRule]] = get_single_version_rules()
+    single_version_rules: list[SingleVersionRuleType] = get_single_version_rules()
     comparison_rules: list[type[VersionComparisonRule]] = [
         r for r in get_comparison_rules() if r.name != "manifests_comparison"
     ]

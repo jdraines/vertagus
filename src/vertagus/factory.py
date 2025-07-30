@@ -1,11 +1,16 @@
 import os.path
-from typing import Type, cast, Optional
+from typing import Type, cast, Optional, Any
 
 from vertagus.core.project import Project
 from vertagus.core.stage import Stage
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.core.rule_bases import (
+    SingleVersionRuleProtocol,
+    ConfigurableSingleVersionRule,
+    VersionComparisonRule,
+    is_configurable_single_version_rule
+)
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.scm_base import ScmBase
 
@@ -46,8 +51,27 @@ def create_manifests(manifest_data: list[t.ManifestData], root: Optional[str] = 
     return manifests
 
 
-def create_single_version_rules(rule_names: list[str]) -> list[Type[SingleVersionRule]]:
-    return get_single_version_rules(rule_names)
+def create_single_version_rules(rule_items: list[str]) -> list[SingleVersionRuleProtocol]:
+    rule_names = []
+    rule_configurations = {}
+    for item in rule_items:
+        if isinstance(item, str):
+            rule_names.append(item)
+        elif isinstance(item, dict):
+            rule_names.append(item["type"])
+            rule_configurations[item["type"]] = item.get("config", {})
+        else:
+            raise ValueError(f"Invalid rule item: {item}")
+
+    rules = get_single_version_rules(rule_names)
+    final_rules = []
+    for rule in rules:
+        if is_configurable_single_version_rule(rule):
+            rule = cast(Type[ConfigurableSingleVersionRule], rule)
+            final_rules.append(rule(rule_configurations.get(rule.name, {})))
+        else:
+            final_rules.append(rule)
+    return final_rules
 
 
 def create_version_comparison_rules(rule_names: list[str], config) -> list[VersionComparisonRule]:
