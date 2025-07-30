@@ -20,7 +20,8 @@ from .commands import (
     bump_cmd,
     list_bumpers_cmd,
     init_cmd,
-    show_version_cmd
+    show_version_cmd,
+    show_alias_cmd
 )
 
 
@@ -40,3 +41,4 @@ cli.add_command(list_scms_cmd)
 cli.add_command(bump_cmd)
 cli.add_command(list_bumpers_cmd)
 cli.add_command(show_version_cmd)
+cli.add_command(show_alias_cmd)
