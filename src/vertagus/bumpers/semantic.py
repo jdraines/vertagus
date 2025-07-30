@@ -164,9 +164,9 @@ class SemanticCommitBumper(SemanticBumper):
         Determine the bump level based on commit messages since the last tag.
         """
         commit_messages = scm.get_commit_messages_since_highest_version(branch)
-        return self._get_levels_from_conventional_commits(commit_messages)
+        return self._get_level_from_conventional_commits(commit_messages)
         
-    def _get_levels_from_conventional_commits(self, commit_messages: list[str]):
+    def _get_level_from_conventional_commits(self, commit_messages: list[str]):
         """
         Extract conventional commit types from commit messages.
         """

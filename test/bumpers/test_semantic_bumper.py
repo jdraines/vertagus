@@ -55,33 +55,33 @@ class TestSemanticBumper:
 
 class TestSemanticCommitBumper:
 
-    def test__get_levels_from_conventional_commits_breaking_change(self):
+    def test__get_level_from_conventional_commits_breaking_change(self):
         bumper = SemanticCommitBumper()
-        assert bumper._get_levels_from_conventional_commits([
+        assert bumper._get_level_from_conventional_commits([
             "feat: add new feature",
             "fix: fix bug",
             "BREAKING CHANGE: change API"
         ]) == "major"
 
-    def test__get_levels_from_conventional_commits_exclamation(self):
+    def test__get_level_from_conventional_commits_exclamation(self):
         bumper = SemanticCommitBumper()
-        assert bumper._get_levels_from_conventional_commits([
+        assert bumper._get_level_from_conventional_commits([
             "feat!: add a crazy feature",
             "fix: fix bug",
             "chore: update dependencies"
         ]) == "major"
 
-    def test__get_levels_from_conventional_commits_feat(self):
+    def test__get_level_from_conventional_commits_feat(self):
         bumper = SemanticCommitBumper()
-        assert bumper._get_levels_from_conventional_commits([
+        assert bumper._get_level_from_conventional_commits([
             "feat: add new feature",
             "fix: fix bug",
             "chore: update dependencies"
         ]) == "minor"
 
-    def test__get_levels_from_conventional_commits_fix(self):
+    def test__get_level_from_conventional_commits_fix(self):
         bumper = SemanticCommitBumper()
-        assert bumper._get_levels_from_conventional_commits([
+        assert bumper._get_level_from_conventional_commits([
             "fix: fix bug",
             "chore: update dependencies"
         ]) == "patch"
