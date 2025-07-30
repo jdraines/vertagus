@@ -10,7 +10,7 @@ This guide will help you get up and running with Vertagus quickly.
 
 ## Installation
 
-### From PyPI
+### From pip
 
 ```bash
 pip install vertagus
