@@ -78,6 +78,9 @@ project:
   rules:
     current:
       - not_empty
+      - type: custom_regex
+        config:
+          pattern: '^1.+'
     increment:
       - any_increment
   manifests:

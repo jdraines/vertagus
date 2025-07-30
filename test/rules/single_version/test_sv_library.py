@@ -2,7 +2,8 @@ import pytest
 from vertagus.rules.single_version.library import (
     SingleVersionRule,
     NotEmpty, RegexMmp, RegexDevMmp, RegexBetaMmp, RegexRcMmp, RegexAlphaMmp,
-    RegexMm, RegexDevMm, RegexBetaMm, RegexRcMm, RegexAlphaMm
+    RegexMm, RegexDevMm, RegexBetaMm, RegexRcMm, RegexAlphaMm,
+    CustomRegexRule
 )
 from vertagus.utils import regex as regex_utils
 
@@ -50,3 +51,14 @@ def test_version_validators(validator: SingleVersionRule,
 def test_validator_description():
     assert RegexMmp().description == f"Version must match the pattern: {regex_utils.patterns['mmp']}"
     assert NotEmpty().description == "Version must not be empty."
+
+@pytest.mark.parametrize(
+    ["pattern", "version", "expected"], [
+    (r"^\d+\.\d+\.\d+$", "1.0.0", True),
+    (r"^\d+\.\d+\.\d+$", "1.0", False),
+    (r"^\d+\.\d+\.\d+-dev\.\d+$", "1.0.0-dev.1", True),
+    (r"^\d+\.\d+\.\d+-dev\.\d+$", "1.0.0", False),
+])
+def test_custom_regex_rule(pattern: str, version: str, expected: bool):
+    rule = CustomRegexRule({"pattern": pattern})
+    assert rule.validate_version(version) == expected

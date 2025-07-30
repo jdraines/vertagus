@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
+from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.rules.single_version import loader as sv_loader
 
 
@@ -10,7 +11,7 @@ def test_load_rules(library: MagicMock):
     class MockRuleNoSubclass:
         name = "mock_rule_no_subclass"
 
-    class MockRuleYesSubclass(sv_loader.SingleVersionRule):
+    class MockRuleYesSubclass(SingleVersionRule):
         name = "mock_rule_yes_subclass"
     
     library.MockRuleNoSubclass = MockRuleNoSubclass
@@ -30,7 +31,7 @@ def test_load_rules(library: MagicMock):
 @patch('vertagus.rules.single_version.loader.load_rules')
 def test_get_rules(load_rules: MagicMock):
 
-    class MockRule(sv_loader.SingleVersionRule):
+    class MockRule(SingleVersionRule):
         name = "mock_rule"
     
     load_rules.return_value = [MockRule]

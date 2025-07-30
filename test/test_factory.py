@@ -11,7 +11,6 @@ class DummyManifest:
     def __init__(self, **kwargs):
         pass
 
-
     
 @pytest.fixture
 def mock_manifest_cls(monkeypatch):
@@ -226,3 +225,22 @@ def project_data():
         aliases=["alias1", "alias2"]
     )
 
+
+@pytest.mark.parametrize(
+    ["rule_items"],
+    [
+        [["regex_mmp", "regex_dev_mmp", "regex_beta_mmp"]],
+        [[{
+            "type": "custom_regex",
+            "config": {"pattern": r"^\d+\.\d+\.\d+$"}
+        }]],
+        [[
+            "not_empty", 
+            "regex_dev_mm",
+            {"type": "custom_regex", "config": {"pattern": r"^\d+\.\d+$"}}
+        ]],
+    ]
+)
+def test_create_single_version_rules(rule_items):
+    result = factory.create_single_version_rules(rule_items)
+    assert len(result) == len(rule_items)

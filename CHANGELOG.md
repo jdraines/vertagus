@@ -1,6 +1,14 @@
 CHANGELOG
 ===
 
+0.4.0
+---
+
+* Add a `vertagus init` command that runs a wizard to create a vertagus configuration file.
+- Add support for configurable rules for single-version rule evaluation.
+- Add a `custom_regex` rule that can be configured in the vertagus config to provide user-defined regex validation.
+
+
 0.3.1
 ---
 

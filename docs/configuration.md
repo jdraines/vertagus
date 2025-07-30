@@ -68,19 +68,32 @@ project:
 
 ### Built-in Rules
 
-#### Current Version Rules
+You can see which rules are pre-defined in vertagus by running the command:
 
-- `not_empty` - Version string must not be empty
-- `regex_mmp` - Standard major.minor.patch format (e.g., "1.0.0")
-- `regex_dev_mmp` - Development versions (e.g., "1.0.0.dev0")
-- `regex_beta_mmp` - Beta versions (e.g., "1.0.0.b0")
+```
+vertagus list-rules
+```
 
-#### Increment Rules
+The output of this command will be a list of rules, their descriptions, as well as whether the rule
+is intended as an `increment` rule (in which the current working version is compared to the highest one in source control) or as a
+`current` rule, which can be run against the current working version by itself.
 
-- `any_increment` - Any version increment is allowed
-- `major_increment` - Only major version increments
-- `minor_increment` - Only minor version increments  
-- `patch_increment` - Only patch version increments
+### Configurable rules
+
+Configurable rules are rules that accept configuration values. Vertagus currently supports a single configurable rule, `custom_regex`. 
+While other non-configurable rules can be listed by name in the vertagus config, configurable rules should be listed as an object with
+`type` and `config` fields. For example, the following combination is a configurable rule that enforces semantic versioning with a 
+built in rule, but also uses a configurable rule to enforce that the major component of the version must be `1`:
+
+```yaml
+project:
+  rules:
+    current:
+      - regex_mmp
+      - type: custom_regex
+        config:
+          pattern: '^1.+'
+```
 
 ## Stage Configuration
 

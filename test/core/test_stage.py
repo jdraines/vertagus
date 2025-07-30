@@ -3,10 +3,9 @@ import typing as T
 import pytest
 from unittest.mock import patch, MagicMock
 from vertagus.core import stage
+from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
 from vertagus.core.stage import (
     ManifestBase,
-    SingleVersionRule,
-    VersionComparisonRule,
     ManifestsComparisonRule,
     Stage
 )

@@ -1,5 +1,5 @@
 import re
-from vertagus.core.rule_bases import SingleVersionRule
+from vertagus.core.rule_bases import SingleVersionRule, ConfigurableSingleVersionRule
 from vertagus.utils import regex as regex_utils
 
 
@@ -32,8 +32,23 @@ class RegexRuleBase(SingleVersionRule):
         return bool(re.match(cls.pattern, version))
 
 
-# Major-Minor-Patch Regex Rules
+class CustomRegexRule(ConfigurableSingleVersionRule):
 
+    name = "custom_regex"
+
+    def __init__(self, config: dict):
+        self.pattern = config.get("pattern", "")
+        if not self.pattern:
+            raise ValueError("Pattern must be provided in the configuration.")
+
+    def validate_version(self, version: str) -> bool:
+        return bool(re.match(self.pattern, version))
+
+    @classproperty
+    def description(cls):
+        return "Custom regex rule. Version must match a user-defined pattern."
+
+# Major-Minor-Patch Regex Rules
 
 class RegexMmp(RegexRuleBase):
     name = "regex_mmp"

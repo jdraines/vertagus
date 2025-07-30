@@ -16,6 +16,11 @@ def getdefault(d: DictType, k: str, default: V) -> V:
     return r
 
 
+class TypeAndConfig(T.TypedDict):
+    type: str
+    config: dict  
+
+
 class ScmConfigBase(T.TypedDict):
     type: str
     version_strategy: T.Optional[T.Literal["tag", "branch"]]
@@ -54,7 +59,7 @@ class ManifestComparisonConfig(T.TypedDict):
 
 
 class RulesConfig(T.TypedDict):
-    current: list[str]
+    current: T.Union[list[str], TypeAndConfig]
     increment: list[str]
     manifest_comparisons: list[ManifestComparisonConfig]
 
