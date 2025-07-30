@@ -30,6 +30,8 @@ def write_temp_file(content, type, name):
             filepath.unlink()
 
 _CONFIG = """\
+scm:
+  type: git
 project:
   bumper:
     type: semver

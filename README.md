@@ -5,6 +5,15 @@ Vertagus is a tool to enable automation around maintining versions for your sour
 management tool like git. You can automate checks to compare the current code version string with version string(s)
 found on a specific branch of your repo or in repo tags.
 
+Features
+--------
+
+- Semver version validation
+- Semver version bump automation (semantic commit messge conventions or user configured)
+- Multiple development stage configurations (e.g., dev, staging, prod)
+- Git tag automation (create version tags, maintain alias tags like 'stable', 'latest')
+
+
 Installation
 ------------
 

@@ -140,9 +140,6 @@ class SemanticCommitBumper(SemanticBumper):
     name = "semantic_commit"
     inject_scm = True
 
-    def __init__(self, tag=None):
-        super().__init__(tag=tag)
-
     def bump(self, version: str,  scm: ScmBase, level: T.Optional[str] = None) -> str:
         """
         Bump the version according to the specified level for commit messages.
@@ -192,8 +189,11 @@ class SemanticCommitBumper(SemanticBumper):
                 levels.add(conventional_types[commit_type.lower()])
                 if exclamation:
                     levels.add("major")
+            else:
+                print(f"Unknown commit type '{commit_type}' in message: '{description}'")
         if not levels:
             return "patch"
+        print(levels)
         return ordered_bumps[max([ordered_bumps.index(level) for level in levels])]
 
     def _extract_conventional_commits(self, commit_messages: list[str]) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
@@ -201,7 +201,7 @@ class SemanticCommitBumper(SemanticBumper):
         Extract conventional commit messages from a list of commit messages.
         """
         conventional_commits = []
-        pattern = re.compile(r'^(?P<type>\w+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$')
+        pattern = re.compile(r'^(?P<type>[\w\s]+)(?:\((?P<scope>[\w-]+)\))?(?P<exclamation>!)?: (?P<description>.+)$')
         for message in commit_messages:
             if (match := pattern.match(message)):
                 commit_type = match.group("type")

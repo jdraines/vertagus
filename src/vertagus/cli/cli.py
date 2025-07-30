@@ -18,8 +18,7 @@ from .commands import (
     list_manifests_cmd,
     list_scms_cmd,
     bump_cmd,
-    list_bumpers_cmd,
-    commit_messages_cmd
+    list_bumpers_cmd
 )
 
 
@@ -37,4 +36,3 @@ cli.add_command(list_manifests_cmd)
 cli.add_command(list_scms_cmd)
 cli.add_command(bump_cmd)
 cli.add_command(list_bumpers_cmd)
-cli.add_command(commit_messages_cmd)
