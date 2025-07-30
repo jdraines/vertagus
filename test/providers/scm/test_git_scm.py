@@ -119,3 +119,15 @@ def test_get_highest_version(scm, scm_with_branch_strategy):
         branch_scm.get_branch_manifest_version = MagicMock(return_value="2.0.0") 
         branch_scm.manifest_path = None
         branch_scm.get_highest_version()
+
+def test_get_commit_messages_since_highest_version(scm):
+    scm.get_highest_version = MagicMock(
+        return_value=["1.0.0"]
+    )
+    scm._repo = MagicMock()
+    scm._repo.commit.return_value = "TagCommit"
+    later_commit = MagicMock()
+    later_commit.message = "Initial commit"
+    scm._repo.iter_commits.return_value = [later_commit]
+    messages = scm.get_commit_messages_since_highest_version()
+    assert messages == ["Initial commit"]

@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Optional, Sequence
+from typing import Optional, Any
 
 from vertagus.core.project import Project
 from vertagus.core.tag_base import Tag
@@ -53,12 +53,17 @@ def create_aliases(scm: ScmBase,
         scm.migrate_alias(alias, ref=ref)
 
 
-def bump_version(project: Project,
+def bump_version(scm: ScmBase,
+                 project: Project,
                  stage_name: Optional[str] = None,
                  write: bool = True,
-                 bumper_kwargs: Optional[dict[str, str]] = None
+                 bumper_kwargs: Optional[dict[str, Any]] = None
                  ) -> str:
+    if not project.bumper:
+        raise ValueError("Bumper is not set for the project.")
     if bumper_kwargs is None:
         bumper_kwargs = {}
+    if project.bumper.inject_scm:
+        bumper_kwargs['scm'] = scm
     return project.bump_version(stage_name, write=write, **bumper_kwargs)
 
