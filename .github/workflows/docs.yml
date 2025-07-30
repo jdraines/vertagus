@@ -3,11 +3,13 @@ name: Documentation
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -33,21 +35,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[docs]"
 
-      - name: Build documentation
-        run: mkdocs build
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Upload Pages artifact
+      - name: Make helper script executable
+        run: chmod +x scripts/mike-docs.sh
+
+      - name: Build and deploy documentation
+        env:
+          CI: true
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # Extract version from tag (remove 'v' prefix if present)
+            VERSION=${GITHUB_REF#refs/tags/}
+            VERSION=${VERSION#v}
+            echo "Deploying documentation for version: $VERSION"
+            ./scripts/mike-docs.sh release $VERSION
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            echo "Deploying development documentation"
+            ./scripts/mike-docs.sh deploy-dev
+          else
+            echo "Building documentation for preview (PR)"
+            mkdocs build
+          fi
+
+      - name: Upload Pages artifact (for PR preview)
+        if: github.event_name == 'pull_request'
         uses: actions/upload-pages-artifact@v2
         with:
           path: ./site
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
+  deploy-preview:
+    if: github.event_name == 'pull_request'
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
