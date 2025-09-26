@@ -40,7 +40,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[docs]"
-
+      
       - name: Configure git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -60,6 +60,7 @@ jobs:
           VERSION=$(vertagus show-alias major.minor)
           echo "Running mike-docs.sh with dev=${{ inputs.dev }}"
           echo "Using version: $VERSION"
+          git fetch origin gh-pages || echo "Failed to fetch origin gh-pages"
           if [[ "${{ inputs.dev }}" == "true" ]]; then
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev

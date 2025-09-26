@@ -7,7 +7,7 @@ CHANGELOG
 * Add a `vertagus init` command that runs a wizard to create a vertagus configuration file.
 - Expand the capabilities of the single-version rule type that is used to evaluate whether the current version matches some criteria (e.g. regex) so that rules can now accept configuration by users. There is currently one rule that utilizes this feature, `custom_regex`, allowing a user to specify a custom regex expression that the current version should match.
 - Added the `custom_regex` rule that can be configured in the vertagus config to provide user-defined regex validation.
-
+- Added `uv` as the package/project management tool.
 
 0.3.1
 ---
