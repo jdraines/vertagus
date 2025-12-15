@@ -36,12 +36,12 @@ def test__try_get_config_path_in_cwd(mock_getcwd):
 @patch("vertagus.cli.utils.validate_config_path")
 @patch("vertagus.cli.utils.load.load_config")
 def test_load_config(mock_load_config, mock_validate_config_path):
-    mock_validate_config_path.return_value = "/my/config/path.yaml"
-    mock_load_config.return_value = {"project": {"root": "/mock/root"}}
+    mock_validate_config_path.return_value = str(Path("/my/config/path.yaml"))
+    mock_load_config.return_value = {"project": {"root": str(Path("/mock/root"))}}
 
     config = cli_utils.load_config(None)    
     mock_validate_config_path.assert_called_once_with(None)
-    mock_load_config.assert_called_once_with("/my/config/path.yaml", False)
+    mock_load_config.assert_called_once_with(str(Path("/my/config/path.yaml")), False)
     assert config == {"project": {"root": str(Path("/mock/root"))}}
 
     mock_load_config.return_value = {"project": {}}

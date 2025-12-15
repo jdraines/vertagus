@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 from vertagus.providers.manifest.yaml_manifest import YamlManifest
 
@@ -31,7 +32,7 @@ def test_full_path():
     manifest = YamlManifest("test", "test.yaml")
     assert manifest._full_path() == "test.yaml"
     manifest_root = YamlManifest("test", "test.yaml", root="root")
-    assert manifest_root._full_path() == "root/test.yaml"
+    assert manifest_root._full_path() == str(Path("root/test.yaml"))
 
 
 def test_update_version():
