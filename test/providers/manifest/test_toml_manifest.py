@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 from vertagus.providers.manifest.toml_manifest import TomlManifest
 
@@ -30,7 +31,7 @@ def test_full_path():
     manifest = TomlManifest("test", "test.toml")
     assert manifest._full_path() == "test.toml"
     manifest_root = TomlManifest("test", "test.toml", root="root")
-    assert manifest_root._full_path() == "root/test.toml"
+    assert manifest_root._full_path() == str(Path("root/test.toml"))
 
 def test_update_version():
     manifest = TomlManifest("test", "test.toml", loc=["version"])
