@@ -9,10 +9,8 @@ scm:
 project:
 
   rules:
-    current:
-      - not_empty
-    increment:
-      - any_increment
+    - not_empty
+    - any_increment
 
   manifests:
     - type: setuptools_pyproject
@@ -26,8 +24,7 @@ project:
 
     dev:
       rules:
-        current:
-          - regex_dev_mmp
+        - regex_dev_mmp
 
     prod:
       aliases:
@@ -35,5 +32,4 @@ project:
         - string:latest
         - major.minor
       rules:
-        current:
-          - regex_mmp
+        - regex_mmp

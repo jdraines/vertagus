@@ -54,14 +54,7 @@ class ManifestConfig(T.TypedDict):
     loc: T.Optional[T.Union[str, list[str]]]
 
 
-class ManifestComparisonConfig(T.TypedDict):
-    manifests: list[str]
-
-
-class RulesConfig(T.TypedDict):
-    current: T.Union[list[str], TypeAndConfig]
-    increment: list[str]
-    manifest_comparisons: list[ManifestComparisonConfig]
+RulesConfig = list[T.Union[str, TypeAndConfig]]
 
 
 class StageConfig(T.TypedDict):
@@ -79,9 +72,7 @@ class MasterConfig(T.TypedDict):
 
 @dataclass
 class RulesData:
-    current: list[str] = field(default_factory=list)
-    increment: list[str] = field(default_factory=list)
-    manifest_comparisons: list[ManifestComparisonConfig] = field(default_factory=list)
+    rules: list[T.Union[str, dict]] = field(default_factory=list)
 
 
 @dataclass
@@ -149,9 +140,7 @@ class StageData:
             name=name,
             manifests=[ManifestData(**m) for m in manifest_configs],
             rules=RulesData(
-                current=getdefault(getdefault(config, "rules", {}), "current", []),
-                increment=getdefault(getdefault(config, "rules", {}), "increment", []),
-                manifest_comparisons=getdefault(getdefault(config, "rules", {}), "manifest_comparisons", []),
+                rules=getdefault(config, "rules", []),
             ),
             aliases=config.get("aliases", []),
             bumper=bumper_data,
@@ -161,9 +150,7 @@ class StageData:
         return dict(
             name=self.name,
             manifests=[m.config() for m in self.manifests],
-            current_version_rules=self.rules.current,
-            version_increment_rules=self.rules.increment,
-            manifest_versions_comparison_rules=self.rules.manifest_comparisons,
+            rules=self.rules.rules,
             aliases=self.aliases,
             bumper=self.bumper.config() if self.bumper else None,
         )
@@ -192,9 +179,7 @@ class ProjectData:
         return dict(
             manifests=[m.config() for m in self.manifests],
             stages=[stage.config() for stage in stages],
-            current_version_rules=self.rules.current,
-            version_increment_rules=self.rules.increment,
-            manifest_versions_comparison_rules=self.rules.manifest_comparisons,
+            rules=self.rules.rules,
             aliases=self.aliases,
             root=self.root,
             bumper=self.bumper.config() if self.bumper else None,
@@ -211,9 +196,7 @@ class ProjectData:
         return cls(
             manifests=[ManifestData(**m) for m in manifests],
             rules=RulesData(
-                current=config.get("rules", {}).get("current", []),
-                increment=config.get("rules").get("increment", []),
-                manifest_comparisons=config.get("rules").get("manifest_comparisons", []),
+                rules=config.get("rules", []),
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in stages.items()],
             aliases=config.get("aliases", []),

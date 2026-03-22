@@ -1,52 +1,40 @@
 import re
-from vertagus.core.rule_bases import SingleVersionRule, ConfigurableSingleVersionRule
+from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.utils import regex as regex_utils
-
-
-class classproperty(object):
-    def __init__(self, f):
-        self.f = f
-
-    def __get__(self, obj, owner):
-        return self.f(owner)
 
 
 class NotEmpty(SingleVersionRule):
     name = "not_empty"
     description = "Version must not be empty."
 
-    @classmethod
-    def validate_version(cls, version):
+    def validate_version(self, version):
         return bool(version)
 
 
 class RegexRuleBase(SingleVersionRule):
     pattern: str = ""
 
-    @classproperty
-    def description(cls):
-        return f"Version must match the pattern: {cls.pattern}"
+    @property
+    def description(self):
+        return f"Version must match the pattern: {self.pattern}"
 
-    @classmethod
-    def validate_version(cls, version):
-        return bool(re.match(cls.pattern, version))
+    def validate_version(self, version):
+        return bool(re.match(self.pattern, version))
 
 
-class CustomRegexRule(ConfigurableSingleVersionRule):
+class CustomRegexRule(SingleVersionRule):
 
     name = "custom_regex"
+    description = "Custom regex rule. Version must match a user-defined pattern."
 
     def __init__(self, config: dict):
-        self.pattern = config.get("pattern", "")
+        super().__init__(config)
+        self.pattern = self.config.get("pattern", "")
         if not self.pattern:
             raise ValueError("Pattern must be provided in the configuration.")
 
     def validate_version(self, version: str) -> bool:
         return bool(re.match(self.pattern, version))
-
-    @classproperty
-    def description(cls):
-        return "Custom regex rule. Version must match a user-defined pattern."
 
 # Major-Minor-Patch Regex Rules
 

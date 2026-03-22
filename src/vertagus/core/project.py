@@ -3,7 +3,7 @@ from logging import getLogger
 from copy import copy
 
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRuleProtocol, VersionComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.bumper_base import BumperBase
@@ -25,8 +25,8 @@ class Project(Package):
     def __init__(
         self,
         manifests: list[ManifestBase],
-        current_version_rules: list[SingleVersionRuleProtocol],
-        version_increment_rules: list[VersionComparisonRule],
+        current_version_rules: list[SingleVersionRule],
+        version_increment_rules: list[ComparisonRule],
         manifest_versions_comparison_rules: list[ManifestsComparisonRule],
         stages: T.Optional[list[Stage]] = None,
         aliases: T.Optional[list[type[AliasBase]]] = None,
@@ -139,14 +139,14 @@ class Project(Package):
             manifests.extend(stage.manifests)
         return list(dict.fromkeys(manifests).keys())
 
-    def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRuleProtocol]:
+    def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRule]:
         rules = self._current_version_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.current_version_rules)
         return list(dict.fromkeys(rules).keys())
 
-    def _get_version_increment_rules(self, stage_name=None) -> list[VersionComparisonRule]:
+    def _get_version_increment_rules(self, stage_name=None) -> list[ComparisonRule]:
         rules = self._version_increment_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)

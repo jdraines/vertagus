@@ -8,7 +8,7 @@ from vertagus.rules.single_version.library import (
 from vertagus.utils import regex as regex_utils
 
 
-@pytest.mark.parametrize("validator, version, expected", [
+@pytest.mark.parametrize("validator_cls, version, expected", [
     (NotEmpty, "", False),
     (NotEmpty, "1.0.0", True),
     (RegexMmp, "1.0.0", True),
@@ -39,10 +39,11 @@ from vertagus.utils import regex as regex_utils
     (RegexAlphaMm, "1.0-a1", True),
     (RegexAlphaMm, "1.0", False),
 ])
-def test_version_validators(validator: SingleVersionRule,
+def test_version_validators(validator_cls: type[SingleVersionRule],
                             version: str,
                             expected: bool
                             ):
+    validator = validator_cls()
     vresult = validator.validate_version(version)
     assert isinstance(vresult, bool)
     assert validator.validate_version(version) == expected

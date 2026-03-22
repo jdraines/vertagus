@@ -24,7 +24,7 @@ scm:
 
 #### Supported Manifest Types
 
-- `toml` 
+- `toml`
 - `yaml`
 - `json`
 - `setuptools_pyproject` - Python projects using pyproject.toml
@@ -36,33 +36,35 @@ The `project` section defines versioning rules and stages:
 ```yaml
 project:
   rules:
-    current: ["not_empty"]           # Rules for current version validation
-    increment: ["any_increment"]     # Rules for version increment validation
-    manifest_comparisons: []         # Additional comparison rules to ensure version numbers in two manifests are in sync
-  
+    - not_empty             # Validates current version is not empty
+    - regex_mmp             # Validates current version matches semver format
+    - any_increment         # Validates version is greater than previous
+
   stages:
     # Development stage
     dev:
       rules:
-        current: ["regex_dev_mmp"]   # Allow dev versions like "1.0.0.dev0"
-    
+        - regex_dev_mmp     # Allow dev versions like "1.0.0.dev0"
+
     # Beta/staging stage
     beta:
-      aliases: ["string:latest"]      # Create "latest" tag alias
+      aliases: ["string:latest"]
       rules:
-        current: ["regex_beta_mmp"]   # Allow beta versions like "1.0.0.b1"
-    
+        - regex_beta_mmp    # Allow beta versions like "1.0.0.b1"
+
     # Production stage
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
       rules:
-        current: ["regex_mmp"]        # Standard semver like "1.0.0"
-  
+        - regex_mmp         # Standard semver like "1.0.0"
+
   manifests:
     - type: "setuptools_pyproject"
       path: "./pyproject.toml"
       name: "pyproject"
 ```
+
+Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks).
 
 ## Validation Rules
 
@@ -74,25 +76,41 @@ You can see which rules are pre-defined in vertagus by running the command:
 vertagus list-rules
 ```
 
-The output of this command will be a list of rules, their descriptions, as well as whether the rule
-is intended as an `increment` rule (in which the current working version is compared to the highest one in source control) or as a
-`current` rule, which can be run against the current working version by itself.
+The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version).
 
 ### Configurable rules
 
-Configurable rules are rules that accept configuration values. Vertagus currently supports a single configurable rule, `custom_regex`. 
-While other non-configurable rules can be listed by name in the vertagus config, configurable rules should be listed as an object with
-`type` and `config` fields. For example, the following combination is a configurable rule that enforces semantic versioning with a 
-built in rule, but also uses a configurable rule to enforce that the major component of the version must be `1`:
+Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields. For example, the following combination uses a configurable rule to enforce that the major component of the version must be `1`:
 
 ```yaml
 project:
   rules:
-    current:
-      - regex_mmp
-      - type: custom_regex
-        config:
-          pattern: '^1.+'
+    - regex_mmp
+    - type: custom_regex
+      config:
+        pattern: '^1.+'
+```
+
+### Manifest Comparison Rules
+
+To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:
+
+```yaml
+project:
+  rules:
+    - not_empty
+    - any_increment
+    - type: manifests_comparison
+      config:
+        manifests: [pyproject, frontend]
+
+  manifests:
+    - type: "setuptools_pyproject"
+      path: "./pyproject.toml"
+      name: "pyproject"
+    - type: "json"
+      path: "./frontend/package.json"
+      name: "frontend"
 ```
 
 ## Stage Configuration
@@ -112,19 +130,19 @@ project:
     # Development - allows pre-release versions
     dev:
       rules:
-        current: ["regex_dev_mmp"]
-    
+        - regex_dev_mmp
+
     # Staging - beta versions only
     staging:
       aliases: ["string:staging"]
       rules:
-        current: ["regex_beta_mmp"]
-    
+        - regex_beta_mmp
+
     # Production - stable releases only
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
       rules:
-        current: ["regex_mmp"]
+        - regex_mmp
 ```
 
 ## Alias Configuration
@@ -173,24 +191,23 @@ scm:
 
 project:
   rules:
-    current: ["not_empty"]
-    increment: ["any_increment"]
-    manifest_comparisons: []
+    - not_empty
+    - any_increment
 
   stages:
     dev:
       rules:
-        current: ["regex_dev_mmp"]
+        - regex_dev_mmp
 
     beta:
       aliases: ["string:latest"]
       rules:
-        current: ["regex_beta_mmp"]
+        - regex_beta_mmp
 
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
       rules:
-        current: ["regex_mmp"]
+        - regex_mmp
 
   manifests:
     - type: "setuptools_pyproject"
@@ -211,25 +228,19 @@ target_branch = "main"
 manifest_path = "./pyproject.toml"
 manifest_type = "setuptools_pyproject"
 
-[project.rules]
-current = ["not_empty"]
-increment = ["any_increment"]
-manifest_comparisons = []
+[project]
+rules = ["not_empty", "any_increment"]
 
-[project.stages.dev.rules]
-current = ["regex_dev_mmp"]
+[project.stages.dev]
+rules = ["regex_dev_mmp"]
 
 [project.stages.beta]
 aliases = ["string:latest"]
-
-[project.stages.beta.rules]
-current = ["regex_beta_mmp"]
+rules = ["regex_beta_mmp"]
 
 [project.stages.prod]
 aliases = ["string:stable", "string:latest", "major.minor"]
-
-[project.stages.prod.rules]
-current = ["regex_mmp"]
+rules = ["regex_mmp"]
 
 [[project.manifests]]
 type = "setuptools_pyproject"

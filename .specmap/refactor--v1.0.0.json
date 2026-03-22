@@ -1,0 +1,1325 @@
+{
+  "version": 2,
+  "branch": "refactor/v1.0.0",
+  "base_branch": "main",
+  "head_sha": "0ee6ab5aad0ace842aa49d1232133acc7131b035",
+  "updated_at": "2026-03-22T01:51:38.579710Z",
+  "updated_by": "mcp:claude-code",
+  "annotations": [
+    {
+      "id": "a_518524fa17d4",
+      "file": "c/docs/configuration.md",
+      "start_line": 27,
+      "end_line": 27,
+      "description": "Adds `toml` to the list of supported manifest types [1], matching the configuration docs that describe TOML as a supported project format [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Supported Manifest Types",
+          "start_line": 25,
+          "excerpt": "- `toml`\n- `yaml`\n- `json`"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523854Z"
+    },
+    {
+      "id": "a_c7e5b0b9f49c",
+      "file": "c/docs/configuration.md",
+      "start_line": 39,
+      "end_line": 68,
+      "description": "Rewrites the project rules examples to use a single flat `rules` list instead of separate `current` and `increment` buckets, and shows stage-specific rule lists and aliases in the same unified format [1][2]. It also clarifies that Vertagus now auto-detects whether each rule is a single-version check or a comparison check [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Project Section",
+          "start_line": 32,
+          "excerpt": "The `project` section defines versioning rules and stages:\n\n```yaml\nproject:\n  rules:\n    - not_empty"
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523868Z"
+    },
+    {
+      "id": "a_b9f89ec4b91b",
+      "file": "c/docs/configuration.md",
+      "start_line": 79,
+      "end_line": 113,
+      "description": "Updates the validation documentation to explain that configurable rules are expressed as objects with `type` and `config`, and adds a `manifests_comparison` example for enforcing version synchronization across multiple manifests [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523874Z"
+    },
+    {
+      "id": "a_3a00ecb4f9b6",
+      "file": "c/docs/configuration.md",
+      "start_line": 133,
+      "end_line": 145,
+      "description": "Simplifies the stage examples so each stage lists rules as a flat array, showing that development, beta, and production stages each declare their own rule set directly [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Stage Configuration > Example Multi-Stage Setup",
+          "start_line": 125,
+          "excerpt": "```yaml\nproject:\n  stages:\n    # Development - allows pre-release versions"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523879Z"
+    },
+    {
+      "id": "a_c73a9b9c546d",
+      "file": "c/docs/configuration.md",
+      "start_line": 194,
+      "end_line": 210,
+      "description": "Updates the TOML example so stage rules are represented as flat lists in each stage table, instead of nested rule categories [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "TOML Format",
+          "start_line": 218,
+          "excerpt": "[project.stages.dev]\nrules = [\"regex_dev_mmp\"]\n\n[project.stages.beta]\naliases = [\"string:latest\"]"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523883Z"
+    },
+    {
+      "id": "a_a2f80514dc95",
+      "file": "c/docs/configuration.md",
+      "start_line": 231,
+      "end_line": 243,
+      "description": "Revises the TOML stage example to show `rules` as simple lists for each stage, matching the flattened configuration model and keeping aliases separate from validation rules [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "TOML Format",
+          "start_line": 218,
+          "excerpt": "[project.stages.beta]\naliases = [\"string:latest\"]\nrules = [\"regex_beta_mmp\"]"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:29.523888Z"
+    },
+    {
+      "id": "a_a0aee6ebefbc",
+      "file": "c/src/vertagus/cli/commands/init.py",
+      "start_line": 149,
+      "end_line": 151,
+      "description": "Emits the starter `project.rules` block for the generated config as a single flat list, including the built-in single-version rules and the default increment/comparison rule. This matches the unified rule configuration format shown in the configuration spec, where rules are listed together rather than split into separate `current` and `increment` keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Project Section",
+          "start_line": 32,
+          "excerpt": "The `project` section defines versioning rules and stages:\n\n```yaml\nproject:\n  rules:\n    - not_empty             # Validates current version is not empty\n    - regex_mmp             # Validates current version matches semver format\n    - any_increment         # Validates version is greater than previous"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:32.342808Z"
+    },
+    {
+      "id": "a_a6d53142f41f",
+      "file": "c/src/vertagus/cli/commands/init.py",
+      "start_line": 161,
+      "end_line": 161,
+      "description": "Leaves a blank separator in the generated template between the main project rules and the staged configuration section, improving readability of the initialized YAML without changing behavior.",
+      "refs": [],
+      "created_at": "2026-03-22T01:50:32.342833Z"
+    },
+    {
+      "id": "a_bfe8df03503c",
+      "file": "c/src/vertagus/cli/commands/init.py",
+      "start_line": 171,
+      "end_line": 176,
+      "description": "Updates the stage-specific example rules to the new flat-list style, showing `dev` and `prod` stage rules as lists of rule names rather than nested rule categories. This aligns with the configuration docs, which define stage rules as a simple `rules:` array under each stage [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Stage Configuration > Example Multi-Stage Setup",
+          "start_line": 125,
+          "excerpt": "project:\n  stages:\n    dev:\n      rules:\n        - regex_dev_mmp\n\n    beta:\n      aliases: [\"string:latest\"]\n      rules:\n        - regex_beta_mmp"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:32.342849Z"
+    },
+    {
+      "id": "a_927f05cd37b5",
+      "file": "c/src/vertagus/cli/commands/list_rules.py",
+      "start_line": 3,
+      "end_line": 15,
+      "description": "Builds the `vertagus list-rules` output table by loading every registered rule, deriving its category with `get_rule_category`, and collecting each rule’s name and description. This matches the CLI reference for `vertagus list-rules`, which is documented as showing a table of rule names, where they are used, and what they validate [1]. The description lookup handles both rules that expose `description` as a class attribute and those that still require instantiation to read it.",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/cli-reference.md",
+          "heading": "`vertagus list-rules`",
+          "start_line": 152,
+          "excerpt": "### `vertagus list-rules`\n\nDisplay all available validation rules.\n\nShows a table with:\n- **Rule Name** - The name used in configuration\n- **Config Usage** - Where to use it (`current` or `increment`)\n- **Description** - What the rule validates"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:34.913446Z"
+    },
+    {
+      "id": "a_f09b8a3f77aa",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 57,
+      "end_line": 57,
+      "description": "Defines `RulesConfig` as a flat list of rule entries, where each entry is either a simple rule name string or a structured `TypeAndConfig` object for configurable rules. This matches the updated configuration model that treats project rules as a single list rather than separate buckets for different rule kinds [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Project Section > Validation Rules > Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields. For example, the following combination uses a configurable rule to enforce that the major component of the version must be `1`:"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833737Z"
+    },
+    {
+      "id": "a_7aa1ee6419e8",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 75,
+      "end_line": 75,
+      "description": "Updates the project rules field to store a list of either rule names or raw config dictionaries, allowing the parser to accept the new flat rule syntax from YAML/TOML configuration. This supports the unified rules list described in the configuration docs [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Project Section",
+          "start_line": 32,
+          "excerpt": "The `project` section defines versioning rules and stages:"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833782Z"
+    },
+    {
+      "id": "a_b4ab315eb6c3",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 143,
+      "end_line": 143,
+      "description": "Loads the `rules` array from configuration into the project config object, defaulting to an empty list when the key is absent. This reflects the spec’s expectation that project rules are supplied as a single list under `project.rules` [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Project Section",
+          "start_line": 32,
+          "excerpt": "The `project` section defines versioning rules and stages:"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833809Z"
+    },
+    {
+      "id": "a_a9c314d3c88f",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 153,
+      "end_line": 153,
+      "description": "Serializes the project configuration back out by emitting the stage’s rule list directly from `self.rules.rules`. This preserves the unified rule list representation when writing or cloning configuration objects [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Stage Configuration > Stage Properties",
+          "start_line": 120,
+          "excerpt": "- `rules` - Validation rules specific to this stage"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833833Z"
+    },
+    {
+      "id": "a_82f2785053a0",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 182,
+      "end_line": 182,
+      "description": "Copies the stage-specific rules list into the generated config output, keeping stage rule handling consistent with the simplified flat rule structure [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Stage Configuration > Stage Properties",
+          "start_line": 120,
+          "excerpt": "- `rules` - Validation rules specific to this stage"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833855Z"
+    },
+    {
+      "id": "a_2f135aa6b509",
+      "file": "c/src/vertagus/configuration/types.py",
+      "start_line": 199,
+      "end_line": 199,
+      "description": "Reads stage rules from the raw config dictionary using the `rules` key, defaulting to an empty list when no stage rules are configured. This supports stage-specific rule lists in the same unified format used throughout the configuration [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration > Stage Configuration > Stage Properties",
+          "start_line": 120,
+          "excerpt": "- `rules` - Validation rules specific to this stage"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:39.833877Z"
+    },
+    {
+      "id": "a_715e7f8ff994",
+      "file": "c/src/vertagus/core/package_base.py",
+      "start_line": 4,
+      "end_line": 12,
+      "description": "Imports the unified rule base types used by package-level version configuration: `SingleVersionRule` for checks against one version value and `ComparisonRule` for rules that compare versions across states or manifests. This reflects the simplified, flat rule model described in the configuration spec, where rules are listed together and categorized by type rather than split across separate config keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:42.214719Z"
+    },
+    {
+      "id": "a_bbc401cc4a12",
+      "file": "c/src/vertagus/core/package_base.py",
+      "start_line": 4,
+      "end_line": 12,
+      "description": "Types the package base constructor with separate lists for single-version validation rules and comparison rules, using the new rule categories instead of the old `current`/`increment`/`manifest_comparisons` split. This matches the new flat rule configuration style documented in the configuration guide, where rules are declared in one list and Vertagus determines their category automatically [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration Structure > Project Section",
+          "start_line": 32,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:42.214738Z"
+    },
+    {
+      "id": "a_f4bedeaa09a6",
+      "file": "c/src/vertagus/core/project.py",
+      "start_line": 6,
+      "end_line": 6,
+      "description": "Imports the two rule categories used by project configuration: single-version validation rules and comparison rules. This supports the unified flat `project.rules` list described in the configuration spec, where Vertagus auto-detects whether a rule validates one version or compares versions [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:45.105309Z"
+    },
+    {
+      "id": "a_26ef5d7e8e25",
+      "file": "c/src/vertagus/core/project.py",
+      "start_line": 28,
+      "end_line": 29,
+      "description": "Updates the project model to store two typed rule collections: one for current-version checks and one for version-increment checks. This matches the config model where rules are supplied in a single list but are internally categorized into single-version and comparison rules [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:45.105510Z"
+    },
+    {
+      "id": "a_ef805b32a8fb",
+      "file": "c/src/vertagus/core/project.py",
+      "start_line": 142,
+      "end_line": 149,
+      "description": "Defines accessors that return the project’s categorized rules, optionally scoped to a stage. These methods let the rest of the system retrieve the current-version rules and comparison rules separately while still honoring stage-specific configuration [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Stage Configuration",
+          "start_line": 116,
+          "excerpt": "Stages allow you to define different versioning behaviors for different environments:"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:45.105550Z"
+    },
+    {
+      "id": "a_7c4e97470d4d",
+      "file": "c/src/vertagus/core/rule_bases.py",
+      "start_line": 9,
+      "end_line": 23,
+      "description": "Defines the shared `Rule`/comparison-rule base behavior used by the unified rule system: the constructor stores an optional config dict, subclasses must implement `validate_version()` or `validate_comparison()`, and rule instances are hashable by serializing their fields. This matches the refactored flat rule configuration model where rules can carry their own config and are categorized by class hierarchy rather than separate config sections [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:47.574354Z"
+    },
+    {
+      "id": "a_2e3cb7099eca",
+      "file": "c/src/vertagus/core/stage.py",
+      "start_line": 3,
+      "end_line": 3,
+      "description": "Imports the two rule category base classes used to build a stage's validation pipeline: single-version checks and version-comparison checks. This matches the unified rule model where rules are defined as a flat list and categorized automatically by their class hierarchy rather than by separate config keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:50.793270Z"
+    },
+    {
+      "id": "a_c47dbca56476",
+      "file": "c/src/vertagus/core/stage.py",
+      "start_line": 15,
+      "end_line": 16,
+      "description": "Updates the stage constructor type hints so the stage now accepts two lists of rule objects: `current_version_rules` for single-version validation and `version_increment_rules` for comparison-based checks. This reflects the simplified configuration model where stage rules are assembled from the flat rule list and routed into the correct category automatically [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Project Section > Validation Rules",
+          "start_line": 32,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:50.793321Z"
+    },
+    {
+      "id": "a_99e0b20e1c24",
+      "file": "c/src/vertagus/factory.py",
+      "start_line": 2,
+      "end_line": 33,
+      "description": "Defines `create_rules()`, which normalizes rule configuration entries from a flat list into instantiated rule objects and partitions them by category: single-version checks, comparison checks, and manifest-comparison checks. It accepts either a plain rule name or an object with `type` and `config`, matching the unified flat rule configuration format described in [1] and the manifest-comparison example in [2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:\n```yaml\nproject:\n  rules:\n    - not_empty\n    - any_increment"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:54.242698Z"
+    },
+    {
+      "id": "a_9fa7253362c5",
+      "file": "c/src/vertagus/factory.py",
+      "start_line": 35,
+      "end_line": 68,
+      "description": "This region shows the updated call site for the unified rule factory: stages and operations now receive the three rule buckets returned by `create_rules()` instead of pulling from multiple legacy rule config sections. The surrounding factory helpers continue to build manifests from configured paths, preserving the manifest wiring used by the CLI and project configuration examples in [1] and [2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration Structure",
+          "start_line": 8,
+          "excerpt": "The `scm` section configures source control management settings:\n\n```yaml\nscm:\n  type: \"git\"                   # SCM type (currently only \"git\" is supported)"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:54.242740Z"
+    },
+    {
+      "id": "a_773443e6abf4",
+      "file": "c/src/vertagus/factory.py",
+      "start_line": 78,
+      "end_line": 92,
+      "description": "Adds the stage and alias factory helpers, and updates stage construction to use the unified rule list for each stage's validation settings. This aligns stage-specific behavior with the configuration model where stages declare aliases and rules under one project section [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Stage Configuration > Stage Properties",
+          "start_line": 120,
+          "excerpt": "- `aliases` - Git tag aliases to create/maintain\n- `rules` - Validation rules specific to this stage"
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Example Multi-Stage Setup",
+          "start_line": 125,
+          "excerpt": "```yaml\nproject:\n  stages:\n    dev:\n      rules:\n        - regex_dev_mmp"
+        }
+      ],
+      "created_at": "2026-03-22T01:50:54.242746Z"
+    },
+    {
+      "id": "a_73fe0963bede",
+      "file": "c/src/vertagus/rules/comparison/library.py",
+      "start_line": 2,
+      "end_line": 5,
+      "description": "Defines a comparison-rule implementation for monotonic version ordering by subclassing the shared `ComparisonRule` base introduced by the unified rule hierarchy [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 69,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:57.450676Z"
+    },
+    {
+      "id": "a_1af73ea13b8a",
+      "file": "c/src/vertagus/rules/comparison/library.py",
+      "start_line": 16,
+      "end_line": 21,
+      "description": "Provides the `ManifestsComparisonRule` constructor wiring, delegating configuration initialization to the shared `ComparisonRule` base so this rule can be configured consistently with the flattened rule list [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:"
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:57.450707Z"
+    },
+    {
+      "id": "a_a65dc0c906f6",
+      "file": "c/src/vertagus/rules/comparison/loader.py",
+      "start_line": 3,
+      "end_line": 17,
+      "description": "Loads comparison rule classes by scanning available objects and filtering for subclasses of `ComparisonRule`, then exposes a `get_rules()` helper for retrieving those rules by name. This reflects the unified rule registry and auto-detected rule categorization described in the configuration model, where rules are now a single flat list rather than separate config buckets [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration Structure",
+          "start_line": 8,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:50:59.405116Z"
+    },
+    {
+      "id": "a_0fe727d9afd1",
+      "file": "w/src/vertagus/rules/registry.py",
+      "start_line": 1,
+      "end_line": 31,
+      "description": "Builds a single in-memory registry of all rule classes from both the single-version and comparison loaders, then provides lookup and category helpers for the unified rule model [1]. This supports the flat `project.rules` configuration described in the configuration docs, where rules are listed together and the system infers whether each rule is a format check or a comparison check [2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration Structure > Project Section",
+          "start_line": 32,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:01.424857Z"
+    },
+    {
+      "id": "a_4d1905d13301",
+      "file": "c/src/vertagus/rules/single_version/library.py",
+      "start_line": 2,
+      "end_line": 32,
+      "description": "Defines the built-in single-version validation rules as concrete subclasses of `SingleVersionRule`, including a regex-based rule that checks a version string against a configured pattern and a configurable variant that reads that pattern from rule config. This reflects the unified rule model where single-version rules are part of a flat rule list and configurable rules are declared with `type` plus `config` in project configuration [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields. For example, the following combination uses a configurable rule to enforce that the major component of the version must be `1`:"
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:03.421398Z"
+    },
+    {
+      "id": "a_91bb343cb30f",
+      "file": "c/src/vertagus/rules/single_version/loader.py",
+      "start_line": 3,
+      "end_line": 18,
+      "description": "Loads single-version rule classes from the rule modules and filters them to only subclasses of `SingleVersionRule`, then optionally narrows the returned set by name via `get_rules()`. This supports the unified rule registry described in the configuration docs, where rules are presented as a flat list and their type is inferred from the class hierarchy rather than separate config buckets [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:05.759094Z"
+    },
+    {
+      "id": "a_e768705a872c",
+      "file": "c/test/cli/commands/test_cli_bump.py",
+      "start_line": 39,
+      "end_line": 40,
+      "description": "Updates the bump command test fixture to assert the supported bumper rule names now include `not_empty` and `any_increment`, matching the flattened rule list used by configuration [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:07.476284Z"
+    },
+    {
+      "id": "a_2d28fa26e7e4",
+      "file": "c/test/core/test_package_base.py",
+      "start_line": 5,
+      "end_line": 5,
+      "description": "Imports the rule base types used by the test doubles, including the single-version and comparison rule abstractions that the refactor now exposes as the two primary rule categories [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:11.030799Z"
+    },
+    {
+      "id": "a_35dd4ba33cb1",
+      "file": "c/test/core/test_package_base.py",
+      "start_line": 22,
+      "end_line": 33,
+      "description": "Defines mock rule classes for the two rule families and returns them as lists, mirroring the new unified rule creation flow where rules are classified by their base class rather than separate config keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:11.030838Z"
+    },
+    {
+      "id": "a_c987f8be96ff",
+      "file": "c/test/core/test_package_base.py",
+      "start_line": 42,
+      "end_line": 51,
+      "description": "Updates the test fixture signatures to accept lists of single-version rules, comparison rules, and manifest-comparison rules as separate inputs, matching the refactored rule handling path used by configuration loading [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:"
+        }
+      ],
+      "created_at": "2026-03-22T01:51:11.030857Z"
+    },
+    {
+      "id": "a_59561911be37",
+      "file": "c/test/core/test_package_base.py",
+      "start_line": 63,
+      "end_line": 65,
+      "description": "Propagates the same unified rule lists into the package base constructor path, ensuring the tests cover the new single-list configuration model and the shared rule factory behavior [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:11.030876Z"
+    },
+    {
+      "id": "a_294d6e0d4c88",
+      "file": "c/test/core/test_project.py",
+      "start_line": 8,
+      "end_line": 8,
+      "description": "Imports the renamed comparison-rule base class used by the unified rule hierarchy, matching the docs’ split between single-version and comparison validation rules [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273368Z"
+    },
+    {
+      "id": "a_8f83564eb288",
+      "file": "c/test/core/test_project.py",
+      "start_line": 43,
+      "end_line": 52,
+      "description": "Defines mock single-version rule classes, including a configurable variant, to exercise the flattened rule config path where rules are instantiated from a single list with optional `type`/`config` entries [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273380Z"
+    },
+    {
+      "id": "a_f353bcb6e418",
+      "file": "c/test/core/test_project.py",
+      "start_line": 62,
+      "end_line": 62,
+      "description": "Updates the helper return type to a list of single-version rules, reflecting the new factory API that builds rule lists directly from configuration [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273384Z"
+    },
+    {
+      "id": "a_b88e717dd3dc",
+      "file": "c/test/core/test_project.py",
+      "start_line": 70,
+      "end_line": 90,
+      "description": "Defines mock comparison-rule classes and helper returns for both failure and success cases, covering the comparison category that is now detected from the rule class hierarchy rather than a separate config section [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273388Z"
+    },
+    {
+      "id": "a_a3ed1bd4ec3e",
+      "file": "c/test/core/test_project.py",
+      "start_line": 99,
+      "end_line": 99,
+      "description": "Blank placeholder line within the test fixture section; it does not introduce new behavior.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:18.273391Z"
+    },
+    {
+      "id": "a_7cfe6b8e5919",
+      "file": "c/test/core/test_project.py",
+      "start_line": 110,
+      "end_line": 110,
+      "description": "Blank placeholder line within the test fixture section; it does not introduce new behavior.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:18.273395Z"
+    },
+    {
+      "id": "a_7f1ad3007dec",
+      "file": "c/test/core/test_project.py",
+      "start_line": 118,
+      "end_line": 118,
+      "description": "Blank placeholder line within the test fixture section; it does not introduce new behavior.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:18.273397Z"
+    },
+    {
+      "id": "a_3ba47a1f6d8a",
+      "file": "c/test/core/test_project.py",
+      "start_line": 127,
+      "end_line": 127,
+      "description": "Blank placeholder line within the test fixture section; it does not introduce new behavior.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:18.273400Z"
+    },
+    {
+      "id": "a_1e81b0e91329",
+      "file": "c/test/core/test_project.py",
+      "start_line": 167,
+      "end_line": 169,
+      "description": "Updates fixture dependencies to inject the unified single-version, comparison, and manifest-comparison rule lists separately, which matches the new flat rule model and the docs’ distinct rule categories [1][2][3].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:"
+        },
+        {
+          "id": 3,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configuration Structure > Project Section",
+          "start_line": 32,
+          "excerpt": "The `project` section defines versioning rules and stages:"
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273404Z"
+    },
+    {
+      "id": "a_4df71a3f39a1",
+      "file": "c/test/core/test_project.py",
+      "start_line": 249,
+      "end_line": 250,
+      "description": "Adjusts a test fixture to supply both a failing comparison rule and the comparison-rule list, ensuring the project logic handles comparison-based validation in the unified rule pipeline [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273409Z"
+    },
+    {
+      "id": "a_ac29f471a996",
+      "file": "c/test/core/test_project.py",
+      "start_line": 295,
+      "end_line": 296,
+      "description": "Similarly updates another test fixture to pass the comparison rule list and a failing comparison rule together, covering the project behavior when comparison validation is present [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273412Z"
+    },
+    {
+      "id": "a_e81728c3fdf5",
+      "file": "c/test/core/test_project.py",
+      "start_line": 342,
+      "end_line": 342,
+      "description": "Fetches aliases for the `test_stage`, verifying stage-specific alias resolution, which is part of the documented stage configuration and alias behavior [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Stage Configuration > Stage Properties",
+          "start_line": 120,
+          "excerpt": "- `aliases` - Git tag aliases to create/maintain\n- `rules` - Validation rules specific to this stage"
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/cli-reference.md",
+          "heading": "`vertagus create-aliases`",
+          "start_line": 112,
+          "excerpt": "Create alias tags based on configured aliases for a stage."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:18.273417Z"
+    },
+    {
+      "id": "a_93d7d25e6f00",
+      "file": "c/test/core/test_rule_bases.py",
+      "start_line": 6,
+      "end_line": 36,
+      "description": "Adds regression tests for the unified rule base classes and their shared config behavior: default construction should yield an empty config, configured rules should preserve their config, comparison rules should be hashable/equatable by configuration, and validation on single-version rules should still reject version inputs as expected. This aligns with the new flat rule model and the distinction between single-version and comparison rules described in [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:19.922905Z"
+    },
+    {
+      "id": "a_712c9724a4c8",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 6,
+      "end_line": 6,
+      "description": "Imports the rule base classes used by the stage tests, now exercising the unified rule hierarchy with separate single-version and comparison rule types [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:23.478036Z"
+    },
+    {
+      "id": "a_af72c4355e3d",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 40,
+      "end_line": 42,
+      "description": "Defines a mock single-version rule that validates a version string and returns a passing result, matching the expected `single_version` rule category in the new unified rule system [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:23.478085Z"
+    },
+    {
+      "id": "a_d554d0dbdfdf",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 56,
+      "end_line": 76,
+      "description": "Defines mock comparison-rule variants used to test both failing and passing increment checks, including the case where a rule registry returns multiple rules versus a single rule instance [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:23.478113Z"
+    },
+    {
+      "id": "a_a12d8dfe5020",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 85,
+      "end_line": 85,
+      "description": "Separates this test case from the preceding helper definitions, marking a boundary before the next stage validation scenario.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:23.478130Z"
+    },
+    {
+      "id": "a_be2312b3645e",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 96,
+      "end_line": 96,
+      "description": "Separates the test sections, keeping the validation scenarios readable as distinct cases.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:23.478144Z"
+    },
+    {
+      "id": "a_901df70f1b75",
+      "file": "c/test/core/test_stage.py",
+      "start_line": 144,
+      "end_line": 145,
+      "description": "Updates the test fixture type hints to use the new unified rule base classes: single-version rules are modeled as `SingleVersionRule` and increment checks as `ComparisonRule`, reflecting the config system’s two-rule-category design [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:23.478185Z"
+    },
+    {
+      "id": "a_dc75efaa8cb6",
+      "file": "c/test/mock_docs/configs/01-simple.yaml",
+      "start_line": 7,
+      "end_line": 8,
+      "description": "Defines the project rule list as a flat sequence containing `not_empty` and `any_increment`, matching the unified rules configuration described in the config docs, where rules are no longer split across separate `current` and `increment` keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:24.982589Z"
+    },
+    {
+      "id": "a_33a893643fc2",
+      "file": "c/test/rules/comparison/test_comp_library.py",
+      "start_line": 3,
+      "end_line": 3,
+      "description": "Imports the renamed comparison-rule base class, reflecting the unified rule hierarchy where comparison rules now share the common Rule base and are discovered by class type rather than separate configuration categories [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:27.236809Z"
+    },
+    {
+      "id": "a_0b48b98ebce1",
+      "file": "c/test/rules/comparison/test_comp_library.py",
+      "start_line": 19,
+      "end_line": 19,
+      "description": "Updates the version-validator test to type against the new `ComparisonRule` base class, matching the refactored rule API that treats version comparisons as a distinct rule category under the unified registry [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:27.236841Z"
+    },
+    {
+      "id": "a_613cc15b4215",
+      "file": "c/test/rules/comparison/test_comp_loader.py",
+      "start_line": 13,
+      "end_line": 13,
+      "description": "Defines a mock comparison rule by subclassing `comp_loader.ComparisonRule`, exercising the loader’s ability to recognize comparison-rule subclasses under the unified rule hierarchy described in the configuration docs [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:30.007986Z"
+    },
+    {
+      "id": "a_9bb2f692eedb",
+      "file": "c/test/rules/comparison/test_comp_loader.py",
+      "start_line": 24,
+      "end_line": 24,
+      "description": "Temporarily clears `library.ComparisonRule` to simulate the base class being unavailable, allowing the test to verify loader behavior when comparison-rule registration depends on the class hierarchy rather than older separate config buckets [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Manifest Comparison Rules",
+          "start_line": 94,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:\n\n```yaml\nproject:\n  rules:\n    - not_empty\n    - any_increment\n    - type: manifests_comparison"
+        }
+      ],
+      "created_at": "2026-03-22T01:51:30.008025Z"
+    },
+    {
+      "id": "a_ea57dfe67b0b",
+      "file": "c/test/rules/comparison/test_comp_loader.py",
+      "start_line": 33,
+      "end_line": 33,
+      "description": "Defines another mock rule as a `ComparisonRule` subclass, covering the normal discovery/registration path after the loader’s unified rule interface changes [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:30.008045Z"
+    },
+    {
+      "id": "a_8d3a355b3433",
+      "file": "c/test/rules/single_version/test_sv_library.py",
+      "start_line": 11,
+      "end_line": 11,
+      "description": "Parametrizes the single-version rule tests over rule class, input version, and expected validity, exercising the unified rule interface introduced by the config simplification in [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:31.977257Z"
+    },
+    {
+      "id": "a_20296d0759d2",
+      "file": "c/test/rules/single_version/test_sv_library.py",
+      "start_line": 42,
+      "end_line": 46,
+      "description": "Instantiates each validator and runs the shared validation path against the provided version, confirming that single-version rules behave consistently under the new base-class-driven rule handling described in [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:31.977295Z"
+    },
+    {
+      "id": "a_9e681be5565a",
+      "file": "c/test/test_factory.py",
+      "start_line": 5,
+      "end_line": 6,
+      "description": "Imports the rule base classes and the manifests comparison rule used by the factory tests to verify that flat config items are dispatched into the correct rule category [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:36.060646Z"
+    },
+    {
+      "id": "a_b1df572c455f",
+      "file": "c/test/test_factory.py",
+      "start_line": 36,
+      "end_line": 91,
+      "description": "Adds parameterized tests for `factory.create_rules()` to confirm that a single flat `rules` list is split into single-version rules, comparison rules, and manifest-comparison rules, including configurable rules expressed as `{type, config}` objects [1][2].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 71,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 81,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:36.060682Z"
+    },
+    {
+      "id": "a_e1d6f68fda76",
+      "file": "c/test/test_factory.py",
+      "start_line": 110,
+      "end_line": 118,
+      "description": "This test fixture/helper code prepares a user-data object for factory-related tests, supporting scenarios where rule creation depends on project settings or user-provided configuration.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060697Z"
+    },
+    {
+      "id": "a_78c441c05760",
+      "file": "c/test/test_factory.py",
+      "start_line": 149,
+      "end_line": 159,
+      "description": "Placeholder/whitespace region with no functional code changes visible in the diff.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060713Z"
+    },
+    {
+      "id": "a_2fedf34f46bf",
+      "file": "c/test/test_factory.py",
+      "start_line": 179,
+      "end_line": 189,
+      "description": "Placeholder/whitespace region with no functional code changes visible in the diff.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060723Z"
+    },
+    {
+      "id": "a_82088374156a",
+      "file": "c/test/test_factory.py",
+      "start_line": 207,
+      "end_line": 209,
+      "description": "Placeholder/whitespace region with no functional code changes visible in the diff.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060733Z"
+    },
+    {
+      "id": "a_bf3f80f03a0b",
+      "file": "c/test/test_factory.py",
+      "start_line": 224,
+      "end_line": 226,
+      "description": "Placeholder/whitespace region with no functional code changes visible in the diff.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060743Z"
+    },
+    {
+      "id": "a_6e790b22399d",
+      "file": "c/test/test_factory.py",
+      "start_line": 243,
+      "end_line": 245,
+      "description": "Placeholder/whitespace region with no functional code changes visible in the diff.",
+      "refs": [],
+      "created_at": "2026-03-22T01:51:36.060753Z"
+    },
+    {
+      "id": "a_933ffba74d8b",
+      "file": "c/test/test_factory.py",
+      "start_line": 258,
+      "end_line": 263,
+      "description": "Updates the expected test data to use a flat rules list, matching the new configuration model where validation and increment rules are no longer split across separate keys [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:36.060767Z"
+    },
+    {
+      "id": "a_280ef195b630",
+      "file": "c/vertagus.yaml",
+      "start_line": 12,
+      "end_line": 13,
+      "description": "Defines the project-level validation rules as a flat list, combining the base version check and increment check into the new unified rule configuration format [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 69,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ],
+      "created_at": "2026-03-22T01:51:38.579562Z"
+    },
+    {
+      "id": "a_cc762857b79b",
+      "file": "c/vertagus.yaml",
+      "start_line": 27,
+      "end_line": 27,
+      "description": "Adds the development-stage version format rule that allows development prerelease versions, using the stage-specific rule naming now surfaced in the config [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Development stage",
+          "start_line": 44,
+          "excerpt": "dev:\n      rules:\n        - regex_dev_mmp     # Allow dev versions like \"1.0.0.dev0\""
+        }
+      ],
+      "created_at": "2026-03-22T01:51:38.579582Z"
+    },
+    {
+      "id": "a_f5bedac322bc",
+      "file": "c/vertagus.yaml",
+      "start_line": 35,
+      "end_line": 35,
+      "description": "Adds the production-stage version format rule that restricts the stage to standard semantic versions, aligning the prod stage with the documented stage-specific rule set [1].",
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Production stage",
+          "start_line": 55,
+          "excerpt": "prod:\n      aliases: [\"string:stable\", \"string:latest\", \"major.minor\"]\n      rules:\n        - regex_mmp         # Standard semver like \"1.0.0\""
+        }
+      ],
+      "created_at": "2026-03-22T01:51:38.579591Z"
+    }
+  ],
+  "ignore_patterns": [
+    "*.generated.go",
+    "*.lock",
+    "vendor/**"
+  ]
+}

@@ -1,6 +1,6 @@
 import pytest
 from vertagus.rules.comparison.library import (
-    VersionComparisonRule,
+    ComparisonRule,
     Increasing,
     ManifestsComparisonRule
 )
@@ -16,7 +16,7 @@ from vertagus.utils import regex as regex_utils
     (ManifestsComparisonRule({"manifests": []}), ["1.0.0", "1.0.0", "1.0.0"], True),
     (ManifestsComparisonRule({"manifests": []}), ["1.0.0", "1.0.0", "1.0.1"], False),
 ])
-def test_version_validators(validator: VersionComparisonRule,
+def test_version_validators(validator: ComparisonRule,
                             versions: list[str],
                             expected: bool
                             ):

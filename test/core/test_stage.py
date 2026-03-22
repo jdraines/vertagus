@@ -3,7 +3,7 @@ import typing as T
 import pytest
 from unittest.mock import patch, MagicMock
 from vertagus.core import stage
-from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.core.stage import (
     ManifestBase,
     ManifestsComparisonRule,
@@ -37,10 +37,9 @@ def mock_manifest_higher_version():
 def mock_current_version_rule_pass():
     class MockCurrentVersionRulePass(SingleVersionRule):
         name = "mock_current_version_rule"
-        @classmethod
-        def validate_version(cls, version: str):
+        def validate_version(self, version: str):
             return True
-    return MockCurrentVersionRulePass
+    return MockCurrentVersionRulePass()
 
 
 @pytest.fixture
@@ -54,28 +53,27 @@ def mock_current_version_rules(
 def mock_current_version_rule_fail():
     class MockCurrentVersionRuleFail(SingleVersionRule):
         name = "mock_current_version_rule_fail"
-        @classmethod
-        def validate_version(cls, version: str):
+        def validate_version(self, version: str):
             return False
-    return MockCurrentVersionRuleFail
+    return MockCurrentVersionRuleFail()
 
 
 @pytest.fixture
 def mock_version_increment_rules():
-    class MockVersionIncrementRule(VersionComparisonRule):
+    class MockVersionIncrementRule(ComparisonRule):
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-    return [MockVersionIncrementRule({})]
+    return [MockVersionIncrementRule()]
 
 
 @pytest.fixture
 def mock_version_increment_rule_fail():
-    class MockVersionIncrementRule(VersionComparisonRule):
+    class MockVersionIncrementRule(ComparisonRule):
         name = "mock_version_increment_rule_fail"
         def validate_comparison(self, versions: T.Sequence[str]):
             return False
-    return MockVersionIncrementRule({})
+    return MockVersionIncrementRule()
 
 
 @pytest.fixture
@@ -84,7 +82,7 @@ def mock_manifest_versions_comparison_rules():
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-        
+
     config = {"manifests": ["mock_manifest"]}
     return [MockManifetVersionsComparisonRule(config)]
 
@@ -95,7 +93,7 @@ def mock_manifest_versions_comparison_rule_fail():
         name = "mock_version_increment_rule_fail"
         def validate_comparison(self, versions: T.Sequence[str]):
             return False
-        
+
     config = {"manifests": ["mock_manifest"]}
     return MockManifetVersionsComparisonRuleFail(config)
 
@@ -143,8 +141,8 @@ def mock_stage_with_alias(mock_manifests,
 
 def test_stage_init(mock_stage: Stage,
                     mock_manifests: list[ManifestBase],
-                    mock_current_version_rules: list[T.Type[SingleVersionRule]],
-                    mock_version_increment_rules: list[VersionComparisonRule],
+                    mock_current_version_rules: list[SingleVersionRule],
+                    mock_version_increment_rules: list[ComparisonRule],
                     mock_manifest_versions_comparison_rules: list[ManifestsComparisonRule]
                     ):
     assert mock_stage.name == 'test_stage'
