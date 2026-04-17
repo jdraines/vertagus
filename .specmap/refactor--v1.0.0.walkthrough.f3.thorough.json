@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "branch": "refactor/v1.0.0",
+  "head_sha": "b77253fd2b3c6c6aa2ed9899a695e274de1ea1ff",
+  "updated_at": "2026-04-17T14:13:22.671215Z",
+  "updated_by": "server:generate",
+  "familiarity": 3,
+  "depth": "thorough",
+  "summary": "This PR refactors Vertagus v1.0.0 to unify the rule configuration model. Rules are now declared as a flat list instead of separate `current`/`increment` buckets, with automatic detection of rule types based on class hierarchy. The change simplifies configuration while maintaining backward compatibility through the unified rule registry system.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Unified rule base hierarchy",
+      "narrative": "The refactor begins with establishing a **unified rule class hierarchy** that replaces the previous fragmented approach. The new `Rule` base class provides common functionality including config management and hashing, while `SingleVersionRule` and `ComparisonRule` are concrete base classes for the two main rule categories [1]. This hierarchy enables **automatic rule type detection** at runtime rather than requiring explicit configuration buckets.",
+      "file": "src/vertagus/core/rule_bases.py",
+      "start_line": 9,
+      "end_line": 23,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 0,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        }
+      ]
+    },
+    {
+      "step_number": 2,
+      "title": "Centralized rule registry",
+      "narrative": "Building on the unified hierarchy, the new **rule registry** consolidates all rule discovery into a single system [1]. Instead of maintaining separate loaders for different rule types, `get_all_rules()` pulls from both single-version and comparison rule packages, creating one unified name-to-class mapping. The `get_rule_category()` function automatically classifies rules by their class inheritance, eliminating the need for configuration-time type annotations.",
+      "file": "src/vertagus/rules/registry.py",
+      "start_line": 1,
+      "end_line": 31,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 0,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        }
+      ]
+    },
+    {
+      "step_number": 3,
+      "title": "Flattened configuration schema",
+      "narrative": "The configuration types are dramatically simplified with the new **flat rule model**. `RulesConfig` transforms from a complex nested structure with `current`, `increment`, and `manifest_comparisons` buckets into a simple `list[Union[str, TypeAndConfig]]` [1]. The `RulesData` class follows suit, storing rules as a single list instead of separate categorized fields. This represents the core architectural shift toward **declarative simplicity**.",
+      "file": "src/vertagus/configuration/types.py",
+      "start_line": 57,
+      "end_line": 75,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 0,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields. For example, the following combination uses a configurable rule to enforce that the major component of the version must be `1`:"
+        }
+      ]
+    },
+    {
+      "step_number": 4,
+      "title": "Smart rule factory with auto-classification",
+      "narrative": "The new `create_rules()` factory function is the **heart of the unified system** [1]. It parses the flat rule list, instantiates each rule (handling both string names and configurable `{type, config}` objects), then **automatically sorts instances** into single-version, comparison, or manifest-comparison buckets based on their class types [2][3]. This eliminates the need for users to manually categorize rules while maintaining the internal separation needed by the validation logic.",
+      "file": "src/vertagus/factory.py",
+      "start_line": 2,
+      "end_line": 68,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 0,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 0,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        },
+        {
+          "id": 3,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Manifest Comparison Rules",
+          "start_line": 0,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:\n```yaml\nproject:\n  rules:\n    - not_empty\n    - any_increment\n    - type: manifests_comparison"
+        }
+      ]
+    },
+    {
+      "step_number": 5,
+      "title": "Rule implementations adapt to instance-based model",
+      "narrative": "The rule implementations shift from **class-based validation** to **instance-based validation**. Single-version rules now implement `validate_version()` as instance methods rather than class methods, and configurable rules like `CustomRegexRule` properly inherit from `SingleVersionRule` with config initialization [1]. The comparison rules similarly adopt the unified `ComparisonRule` base class while maintaining their validation logic.",
+      "file": "src/vertagus/rules/single_version/library.py",
+      "start_line": 2,
+      "end_line": 32,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Configurable rules",
+          "start_line": 0,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields. For example, the following combination uses a configurable rule to enforce that the major component of the version must be `1`:"
+        }
+      ]
+    },
+    {
+      "step_number": 6,
+      "title": "Project and stage models adopt unified rules",
+      "narrative": "The core domain models update to work with the new rule architecture. `Project` and `Stage` constructors now accept separate lists of `SingleVersionRule` and `ComparisonRule` instances rather than mixed rule collections [1]. The internal accessor methods like `_get_current_version_rules()` return properly typed rule lists, maintaining **type safety** while working with the unified rule instances. This preserves the existing validation API while leveraging the simplified configuration.",
+      "file": "src/vertagus/core/project.py",
+      "start_line": 28,
+      "end_line": 149,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Project Section",
+          "start_line": 0,
+          "excerpt": "The `project` section defines versioning rules and stages:\n\n```yaml\nproject:\n  rules:\n    - not_empty             # Validates current version is not empty\n    - regex_mmp             # Validates current version matches semver format\n    - any_increment         # Validates version is greater than previous"
+        }
+      ]
+    },
+    {
+      "step_number": 7,
+      "title": "CLI commands leverage unified registry",
+      "narrative": "The CLI adapts to the unified model with **streamlined rule discovery**. The `list-rules` command now uses the central registry to display all available rules with their automatically detected types [1], replacing the previous approach of querying separate rule loaders. This provides users with a **single source of truth** for understanding available validation rules and their categories.",
+      "file": "src/vertagus/cli/commands/list_rules.py",
+      "start_line": 3,
+      "end_line": 15,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/cli-reference.md",
+          "heading": "`vertagus list-rules`",
+          "start_line": 0,
+          "excerpt": "### `vertagus list-rules`\n\nDisplay all available validation rules.\n\n```bash\nvertagus list-rules\n```"
+        }
+      ]
+    },
+    {
+      "step_number": 8,
+      "title": "Configuration generation reflects new schema",
+      "narrative": "The `init` command generates configuration files using the **flattened rule syntax** [1]. Instead of creating nested `current` and `increment` sections, it outputs a simple list like `[\"not_empty\", \"regex_mmp\", \"any_increment\"]`. Stage configurations similarly use flat rule lists, making the generated configs immediately aligned with the new documentation examples while maintaining all the same validation capabilities.",
+      "file": "src/vertagus/cli/commands/init.py",
+      "start_line": 149,
+      "end_line": 176,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Project Section",
+          "start_line": 0,
+          "excerpt": "The `project` section defines versioning rules and stages:\n\n```yaml\nproject:\n  rules:\n    - not_empty             # Validates current version is not empty\n    - regex_mmp             # Validates current version matches semver format"
+        }
+      ]
+    },
+    {
+      "step_number": 9,
+      "title": "Documentation showcases simplified configuration",
+      "narrative": "The configuration documentation transforms to highlight the **flat rule model** [1]. Examples now show rules as simple lists rather than nested structures, demonstrating stage-specific rules, configurable rules with `type`/`config` syntax [2], and manifest comparison rules [3]. The documentation emphasizes that **Vertagus automatically detects rule types**, removing the cognitive burden of manual categorization from users.",
+      "file": "docs/configuration.md",
+      "start_line": 39,
+      "end_line": 113,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 0,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 0,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        },
+        {
+          "id": 3,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Manifest Comparison Rules",
+          "start_line": 0,
+          "excerpt": "To ensure that version numbers across multiple manifests stay in sync, use the `manifests_comparison` rule:"
+        }
+      ]
+    },
+    {
+      "step_number": 10,
+      "title": "Comprehensive test suite adaptation",
+      "narrative": "The test suite undergoes **extensive adaptation** to the unified model. Mock rule classes become instance-based, test fixtures provide properly typed rule lists, and factory tests verify that the new `create_rules()` function correctly parses flat rule configurations and sorts instances into the right categories. The tests ensure that both simple rule names and configurable `{type, config}` objects work correctly, validating the **backward compatibility** of the refactor.",
+      "file": "test/test_factory.py",
+      "start_line": 36,
+      "end_line": 91,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Built-in Rules",
+          "start_line": 0,
+          "excerpt": "The output of this command will be a list of rules, their descriptions, and their type (`single_version` for format validation rules, `comparison` for rules that compare the current version to a previous version)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules > Configurable rules",
+          "start_line": 0,
+          "excerpt": "Configurable rules are rules that accept configuration values. To use a configurable rule, list it as an object with `type` and `config` fields."
+        }
+      ]
+    },
+    {
+      "step_number": 11,
+      "title": "Real-world configuration migration",
+      "narrative": "The Vertagus project's own configuration demonstrates the **practical migration path** [1]. The `vertagus.yaml` transforms from nested rule buckets to a clean flat list: `[\"not_empty\", \"any_increment\"]` at the project level, with stage-specific rules like `[\"regex_dev_mmp\"]` and `[\"regex_mmp\"]` [2]. This real-world example shows how the refactor **simplifies configuration** while maintaining all the same validation capabilities that ensure development and production version formats are properly enforced.",
+      "file": "vertagus.yaml",
+      "start_line": 12,
+      "end_line": 35,
+      "refs": [
+        {
+          "id": 1,
+          "spec_file": "docs/configuration.md",
+          "heading": "Validation Rules",
+          "start_line": 0,
+          "excerpt": "Rules are defined as a flat list. Vertagus automatically detects whether each rule validates a single version (e.g., format checks) or compares versions (e.g., increment checks)."
+        },
+        {
+          "id": 2,
+          "spec_file": "docs/configuration.md",
+          "heading": "Production stage",
+          "start_line": 0,
+          "excerpt": "prod:\n      aliases: [\"string:stable\", \"string:latest\", \"major.minor\"]\n      rules:\n        - regex_mmp         # Standard semver like \"1.0.0\""
+        }
+      ]
+    }
+  ]
+}
