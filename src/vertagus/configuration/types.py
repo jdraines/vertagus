@@ -70,9 +70,32 @@ class MasterConfig(T.TypedDict):
     scm: ScmConfigBase
 
 
+_OLD_RULES_FORMAT_MESSAGE = """\
+Invalid `rules` configuration: expected a flat list of rules, but found a mapping \
+with the key(s) {keys}.
+
+The config schema changed in vertagus 0.5.0. Rules are no longer grouped under \
+`current`, `increment`, or `manifest_comparisons` — list them all directly under \
+`rules` instead:
+
+    rules:                      rules:
+      current:          --->      - not_empty
+        - not_empty               - any_increment
+      increment:
+        - any_increment
+
+See https://github.com/jdraines/vertagus/blob/main/docs/configuration.md for details.\
+"""
+
+
 @dataclass
 class RulesData:
     rules: list[T.Union[str, dict]] = field(default_factory=list)
+
+    def __post_init__(self):
+        if isinstance(self.rules, dict):
+            keys = ", ".join(repr(k) for k in self.rules)
+            raise ValueError(_OLD_RULES_FORMAT_MESSAGE.format(keys=keys))
 
 
 @dataclass

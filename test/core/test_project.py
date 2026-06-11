@@ -291,6 +291,16 @@ def test__get_current_version_rules(test_project: Project,
     assert test_project._get_current_version_rules("test_stage") == mock_current_version_rules + [mock_current_version_rule_fail]
 
 
+def test__get_current_version_rules_dedupes_distinct_instances(
+    test_project: Project,
+    mock_current_version_rules: list[SingleVersionRule],
+):
+    from vertagus.rules.single_version.library import NotEmpty
+    test_project._current_version_rules = mock_current_version_rules + [NotEmpty()]
+    test_project._stages[0]._current_version_rules = [NotEmpty()]
+    assert test_project._get_current_version_rules("test_stage") == mock_current_version_rules + [NotEmpty()]
+
+
 def test__get_version_increment_rules(test_project: Project,
                                      mock_version_increment_rules: list[ComparisonRule],
                                      mock_version_increment_rule_fail: ComparisonRule

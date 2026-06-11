@@ -160,3 +160,21 @@ def test_scm_data_config_with_manifest_info():
     assert config_output["manifest_type"] == "setuptools_pyproject"
     assert config_output["tag_prefix"] == "v"
     assert "root" in config_output
+
+
+def test_rules_data_accepts_flat_list():
+    data = configtypes.RulesData(rules=["not_empty", "any_increment"])
+    assert data.rules == ["not_empty", "any_increment"]
+
+
+def test_rules_data_rejects_old_mapping_format():
+    with pytest.raises(ValueError, match="schema changed in vertagus 0.5.0"):
+        configtypes.RulesData(rules={"current": ["not_empty"], "increment": ["any_increment"]})
+
+
+def test_project_data_rejects_old_mapping_format():
+    with pytest.raises(ValueError, match="schema changed in vertagus 0.5.0"):
+        configtypes.ProjectData.from_project_config({
+            "manifests": [],
+            "rules": {"current": ["not_empty"]},
+        })

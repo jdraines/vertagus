@@ -19,6 +19,15 @@ class ManifestsComparisonRule(ComparisonRule):
 
     def __init__(self, config: dict):
         super().__init__(config)
+        if "manifests" not in self.config:
+            raise ValueError(
+                "The `manifests_comparison` rule requires a `manifests` config listing "
+                "the manifest names to compare, e.g.:\n\n"
+                "    rules:\n"
+                "      - type: manifests_comparison\n"
+                "        config:\n"
+                "          manifests: [pyproject, package_json]"
+            )
         self.manifest_names = config["manifests"]
 
     def validate_comparison(self, versions: list[str]):

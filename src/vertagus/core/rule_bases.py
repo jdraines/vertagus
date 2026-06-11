@@ -9,6 +9,12 @@ class Rule:
     def __init__(self, config: T.Optional[dict] = None):
         self.config = config or {}
 
+    def __eq__(self, other):
+        return type(self) is type(other) and self.config == other.config
+
+    def __hash__(self):
+        return hash((type(self), json.dumps(self.config, default=str, sort_keys=True)))
+
 
 class SingleVersionRule(Rule):
     def validate_version(self, version: str) -> bool:
@@ -18,6 +24,3 @@ class SingleVersionRule(Rule):
 class ComparisonRule(Rule):
     def validate_comparison(self, versions: T.Sequence[str]) -> bool:
         raise NotImplementedError("Method validate_comparison must be implemented in subclass")
-
-    def __hash__(self):
-        return hash(json.dumps(self.__dict__, default=str, sort_keys=True))

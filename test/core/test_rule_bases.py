@@ -24,6 +24,17 @@ def test_comparison_rule_hash():
     assert hash(rule1) == hash(rule3)
 
 
+def test_rule_equality_by_class_and_config():
+    assert rb.Rule(config={"key": "value"}) == rb.Rule(config={"key": "value"})
+    assert rb.Rule(config={"key": "value"}) != rb.Rule(config={"key": "other"})
+    assert rb.SingleVersionRule() != rb.ComparisonRule()
+
+
+def test_distinct_equal_rule_instances_dedupe():
+    rules = [rb.SingleVersionRule(), rb.SingleVersionRule()]
+    assert list(dict.fromkeys(rules)) == [rules[0]]
+
+
 def test_comparison_rule_validate_comparison_is_virtual():
     rule = rb.ComparisonRule(config={})
     with pytest.raises(NotImplementedError):

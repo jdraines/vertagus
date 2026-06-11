@@ -36,6 +36,11 @@ def test_any_greater_than_none():
     assert Increasing({}).validate_comparison([None, "1.0.0"]) == True
     assert Increasing({}).validate_comparison(["", "1.0.0"]) == True
 
+def test_manifests_comparison_requires_manifests_config():
+    with pytest.raises(ValueError, match="requires a `manifests` config"):
+        ManifestsComparisonRule({})
+
+
 def test_manifests_require_multiple_versions():
     with pytest.raises(ValueError):
         ManifestsComparisonRule({"manifests": []}).validate_comparison([])

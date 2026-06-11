@@ -60,20 +60,15 @@ scm:
   manifest_loc: "version"
 
 project:
-  rules:
-    current: ["not_empty"]
-    increment: ["any_increment"]
-    manifest_comparisons: []
+  rules: ["not_empty", "any_increment"]
 
   stages:
     dev:
-      rules:
-        current: ["regex_dev_mmp"]
+      rules: ["regex_dev_mmp"]
     
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
-      rules:
-        current: ["regex_mmp"]
+      rules: ["regex_mmp"]
 
   manifests:
     - type: "json"
