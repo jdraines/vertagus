@@ -1,9 +1,12 @@
 from vertagus.core.manifest_base import ManifestBase
+from . import yaml_edit
+from .in_place import InPlaceVersionWriter
 import yaml
 import os.path
+import typing as T
 
 
-class YamlManifest(ManifestBase):
+class YamlManifest(InPlaceVersionWriter, ManifestBase):
     manifest_type: str = "yaml"
     description: str = "A YAML file. Users provide a custom `loc` to the version as a list of keys."
 
@@ -36,9 +39,16 @@ class YamlManifest(ManifestBase):
         return path
 
     def _write_doc(self):
+        """Rewrite the whole document from the parsed data, losing comments and formatting."""
         path = self._full_path()
         with open(path, "w") as f:
             yaml.safe_dump(self._doc, f, default_flow_style=False)
+
+    def _parse_text(self, text: str):
+        return yaml.safe_load(text)
+
+    def _replace_version_text(self, text: str, loc: T.Sequence[str | int], version: str) -> str | None:
+        return yaml_edit.replace_value(text, [str(k) for k in loc], version)
 
     @classmethod
     def version_from_content(
@@ -64,4 +74,4 @@ class YamlManifest(ManifestBase):
             p = p[k]
         p[self.loc[-1]] = version
         if write:
-            self._write_doc()
+            self._write_version(version)
