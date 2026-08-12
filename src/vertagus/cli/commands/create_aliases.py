@@ -1,24 +1,20 @@
-import os
-from pathlib import Path
-
 import click
 
-from vertagus.configuration import load
 from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
+from vertagus.cli import utils as cli_utils
+from vertagus.cli.options import configless_options
 
 
 @click.command(name="create-aliases")
-@click.option("--config", "-c", default=str(Path(os.getcwd()) / "vertagus.toml"), help="Path to the configuration file")
+@click.option("--config", "-c", default=None, help="Path to the configuration file")
 @click.option("--stage-name", "-s", default=None, help="Name of a stage")
 @click.option("--ref", "-r", default=None, help="An SCM ref that should be tagged. Default is current commit.")
-def create_aliases_cmd(config, stage_name, ref):
-    master_config = load.load_config(config)
+@configless_options
+def create_aliases_cmd(config, stage_name, ref, **cli_opts):
+    master_config = cli_utils.resolve_config(config, cli_opts, stage_name=stage_name)
     scm = factory.create_scm(data=cfgtypes.ScmData(**master_config["scm"]))
-    default_package_root = Path(config).parent
-    if "root" not in master_config["project"]:
-        master_config["project"]["root"] = default_package_root
     project = factory.create_project(
         cfgtypes.ProjectData.from_project_config(master_config["project"]),
     )

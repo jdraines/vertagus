@@ -1,9 +1,15 @@
 import click
+import copy
 import sys
 import os
 from pathlib import Path
+
+import yaml
+
+from vertagus.configuration import from_cli
 from vertagus.configuration import load
 from vertagus.configuration import types as cfgtypes
+from vertagus.errors import ConfigurationError
 
 
 def get_cwd() -> Path:
@@ -38,3 +44,75 @@ def load_config(config_path: str | None, suppress_logging=False) -> cfgtypes.Mas
     if "root" not in master_config["project"]:
         master_config["project"]["root"] = default_package_root
     return master_config
+
+
+def resolve_config(
+    config_path: str | None,
+    cli_opts: dict | None = None,
+    stage_name: str | None = None,
+    suppress_logging: bool = False,
+) -> cfgtypes.MasterConfig:
+    """Resolve the configuration a command should run with.
+
+    With no configuration options on the command line, this behaves exactly like
+    :func:`load_config`. Otherwise the options either overlay a configuration file, when
+    one was named with ``--config``, or stand in for it entirely. In the latter case no
+    configuration file is discovered in the current directory, so that an ad hoc
+    invocation cannot silently pick up settings the user did not ask for.
+    """
+    cli_opts = dict(cli_opts or {})
+    print_config = cli_opts.pop("print_config", False)
+    opts = from_cli.CliConfigOptions(**cli_opts)
+
+    if not opts.any_provided():
+        master_config = load_config(config_path, suppress_logging or print_config)
+    elif config_path:
+        master_config = from_cli.merge_config(load_config(config_path, suppress_logging or print_config), opts)
+    else:
+        if stage_name:
+            raise ConfigurationError(
+                f"Cannot use --stage-name {stage_name!r} without a configuration file: stages are "
+                "defined in a vertagus configuration file. Pass --config, or configure the stage's "
+                "rules directly with --rule."
+            )
+        master_config = from_cli.build_master_config(opts)
+
+    if print_config:
+        echo_config_and_exit(master_config)
+    return master_config
+
+
+def echo_config_and_exit(master_config: cfgtypes.MasterConfig) -> None:
+    """Print a resolved configuration as YAML and exit successfully."""
+    click.echo(yaml.dump(_portable_config(master_config), default_flow_style=False, sort_keys=False))
+    sys.exit(0)
+
+
+def _portable_config(master_config: cfgtypes.MasterConfig) -> dict:
+    """Rewrite a resolved configuration so that it is worth saving as a file.
+
+    Options resolve manifest paths against the project root to reach the right file from
+    wherever the command ran. Printed back out verbatim, those absolute paths would make
+    a configuration file that only works on the machine that produced it, so they are
+    turned back into the root-relative paths a hand-written file would have used. A root
+    that is merely the directory the file will sit in is dropped, since that is what
+    vertagus assumes anyway.
+    """
+    config = copy.deepcopy(dict(master_config))
+    project = config.get("project") or {}
+    root = project.get("root")
+    if not root or not os.path.isabs(root):
+        return config
+
+    for manifest in project.get("manifests") or []:
+        path = manifest.get("path")
+        if not path or not os.path.isabs(path):
+            continue
+        relative = os.path.relpath(path, root)
+        # A manifest outside the root is clearer left absolute than as a trail of '..'.
+        if not relative.startswith(os.pardir):
+            manifest["path"] = relative
+
+    if os.path.abspath(root) == os.path.abspath(os.getcwd()):
+        project.pop("root", None)
+    return config

@@ -12,6 +12,7 @@ Features
 - Semver version bump automation (semantic commit messge conventions or user configured)
 - Multiple development stage configurations (e.g., dev, staging, prod)
 - Git tag automation (create version tags, maintain alias tags like 'stable', 'latest')
+- Runs from a config file, or entirely from CLI options with no config file at all
 
 
 Installation
@@ -66,7 +67,9 @@ Vertagus lets you declare some things about how you'd like to maintain your vers
   read commit messages since the most recent version to determine the semver bump level, or `semver` in which you pass
   the bump level as a CLI arg.
 
-You declare these in either a `vertagus.toml` or `vertagus.yaml` file next to your package in your repository. 
+You declare these in either a `vertagus.toml` or `vertagus.yaml` file next to your package in your repository,
+or you pass them as CLI options and skip the file entirely. (See
+[Using vertagus without a config file](#using-vertagus-without-a-config-file) below.)
 Here's an example of the yaml format:
 
 ```yaml
@@ -217,6 +220,56 @@ vertagus list-manifests
 ```
 vertagus list-scms
 ````
+
+### Using vertagus without a config file
+
+The settings that make up a single project configuration can each be passed as a CLI option, so
+vertagus runs in a project that has no `vertagus.yaml`:
+
+```
+vertagus validate --manifest src/pyproject.toml --rule not_empty --rule any_increment
+```
+
+`--manifest` takes either a bare path, whose manifest type is inferred from the file name, or a
+comma-separated list of `key=value` pairs using the keys `path`, `type`, `loc` and `name`:
+
+```
+vertagus validate --manifest 'path=package.json,type=json,loc=version' --rule regex_mmp
+```
+
+`--rule` takes either a bare rule name or a rule name followed by a colon and a JSON object of
+rule configuration:
+
+```
+vertagus validate -m pyproject.toml --rule 'custom_regex:{"pattern": "^1\\..+"}'
+```
+
+The rest of the configuration has an option apiece: `--alias`, `--bumper`, `--root`, `--scm-type`,
+`--tag-prefix`, `--version-strategy`, `--target-branch` and `--scm-manifest`. Under the `branch`
+version strategy, the SCM reads the same file as your first `--manifest` unless you point it
+elsewhere with `--scm-manifest`:
+
+```
+vertagus validate -m pyproject.toml --rule any_increment --version-strategy branch --target-branch main
+```
+
+These options work with `validate`, `bump`, `create-tag`, `create-aliases`, `show-version` and
+`show-alias`. Passed alongside `--config`, they override the corresponding settings in that file,
+which is handy in CI when one job needs a single setting changed. Passed without `--config`, they
+are the whole configuration, and no config file is read from the current directory.
+
+A few settings stay file-only, because they describe more than one configuration at once or
+belong to a specific provider: stages (so `--stage-name` requires a file), a bumper's own options
+beyond its type, and the git SCM's `root` and `remote_name`.
+
+Finally, `--print-config` prints the configuration a command would run with and exits, so you can
+turn a working command into a config file:
+
+```
+vertagus validate -m pyproject.toml --rule not_empty --print-config > vertagus.yaml
+```
+
+For the full details, see the [CLI reference](https://github.com/jdraines/vertagus/blob/main/docs/cli-reference.md#configuration-free-usage).
 
 ### Continuous Integration
 

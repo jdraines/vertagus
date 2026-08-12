@@ -60,6 +60,14 @@ class Project(Package):
             aliases.extend(stage.get_version_aliases(version))
         return list(dict.fromkeys(aliases).keys())
 
+    def has_rules(self, stage_name: str | None = None) -> bool:
+        """Whether validating against this stage would run any rule at all."""
+        return bool(
+            self._get_current_version_rules(stage_name)
+            or self._get_version_increment_rules(stage_name)
+            or self._get_manifest_versions_comparison_rules(stage_name)
+        )
+
     def validate_version(self, previous_version: str, stage_name: str | None = None):
         primary_manifest = self._get_manifests(stage_name)[0]
         current_version = self.get_version(stage_name)

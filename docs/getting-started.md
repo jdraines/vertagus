@@ -79,6 +79,19 @@ project:
 
 ## Basic Usage
 
+### Try it without a configuration file
+
+You don't need a configuration file to get started. The settings that describe a single project
+can all be passed on the command line instead, which is useful for a quick look before you commit
+to a configuration:
+
+```bash
+vertagus validate --manifest pyproject.toml --rule not_empty --rule any_increment
+```
+
+Add `--print-config` to any command to see the configuration it would run with — redirect it to
+`vertagus.yaml` to turn a working command into a working configuration file. See
+[Configuration-Free Usage](cli-reference.md#configuration-free-usage) for the full set of options.
 
 ### Validate version
 
