@@ -4,6 +4,10 @@ CHANGELOG
 0.5.0
 ---
 
+**Fixes.**
+
+* **Bumping a version in a TOML manifest no longer strips the file's comments and formatting.** `vertagus bump` previously reserialized the entire document, which discarded every comment and blank line and reflowed the file's arrays and quoting — a whole-file diff for a change of a few characters. The version is now rewritten in place, leaving every other byte of the file untouched. If the version cannot be located and replaced safely, vertagus logs a warning and falls back to the previous whole-file rewrite. YAML and JSON manifests are still rewritten in full.
+
 **Breaking changes.**
 
 * **Rules are now configured as a flat list.** The `rules` block is no longer split into `current`, `increment`, and `manifest_comparisons` sub-keys. List every rule directly under `rules`; vertagus infers from the rule class whether it validates a single version or compares versions. A 0.4.x-style mapping is detected and raises an error explaining the migration.
