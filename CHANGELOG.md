@@ -22,8 +22,19 @@ CHANGELOG
 **Fixes.**
 
 * **Bumping a version in a TOML or YAML manifest no longer strips the file's comments and formatting.** `vertagus bump` previously reserialized the entire document, which discarded every comment and blank line and reflowed the file's collections, quoting and indentation — a whole-file diff for a change of a few characters. The version is now rewritten in place, leaving every other byte of the file untouched. If the version cannot be located and replaced safely, vertagus logs a warning and falls back to the previous whole-file rewrite. In YAML, the replacement is always quoted so that a version like `1.0` cannot be rewritten as a float. JSON manifests, which have no comments to lose, are still rewritten in full.
+* **`get_commit_messages_since_highest_version` now honours its `branch` argument.** It previously passed the branch to git as `--branches=<name>`. Git implies a trailing `/*` on a pattern containing no glob character, so `--branches=main` matched `refs/heads/main/*` and selected nothing; commit messages were read from `HEAD` whatever branch was named. The branch is now used as the revision to log.
+
+**Security.**
+
+* **GitPython has been replaced by direct `git` invocations with an explicit argument vector.** Values drawn from the configuration file, CLI options, and manifest contents reached `git` in option position, where an argument such as `--upload-pack` or `--output` is arbitrary command execution or arbitrary file write. Because vertagus is designed to run in CI — where a pull-request workflow reads the configuration from the contributor's branch — those values are not trusted. Every one of them is now validated before it reaches a command line: refnames against the `git check-ref-format` rules, remote names against a whitelist, and paths, revisions and config values for option position and control characters. See `SECURITY.md`.
+* **Vertagus no longer writes to your repository's git config.** It previously set `user.name` and `user.email` in `.git/config` on construction, so read-only commands such as `validate` and `show-version` mutated the repository. The committer identity is now passed per-invocation with `git -c`.
+* Removed `utils.factory.import_object`, an unused helper that imported an arbitrary dotted path.
+* Upgraded dependencies carrying advisories, and added `.github/dependabot.yml`. `packaging` was pinned with `==`, which forced the pin on downstream users and left them unable to remediate; it is now a range.
 
 **Breaking changes.**
+
+* **Configuration values that git would read as an option are now rejected.** A `remote_name`, `tag_prefix`, `target_branch`, `manifest_path`, or `--ref` beginning with `-`, or containing control characters, raises a configuration error instead of being passed to git. Remote names are additionally restricted to letters, digits, `.`, `_` and `-`, and tag and branch names must satisfy `git check-ref-format`. Values that git itself would have accepted are unaffected.
+* `GitScm.remote`, which returned a GitPython `Remote` object, has been removed along with the dependency.
 
 * **Rules are now configured as a flat list.** The `rules` block is no longer split into `current`, `increment`, and `manifest_comparisons` sub-keys. List every rule directly under `rules`; vertagus infers from the rule class whether it validates a single version or compares versions. A 0.4.x-style mapping is detected and raises an error explaining the migration.
 

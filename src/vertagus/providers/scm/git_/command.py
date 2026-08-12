@@ -18,8 +18,7 @@ from logging import getLogger
 
 from vertagus.errors import VertagusError
 
-from .validation import validate_config_value
-
+from .validation import validate_config_key, validate_config_value
 
 logger = getLogger(__name__)
 
@@ -47,12 +46,14 @@ class GitCommand:
             raise VertagusError(f"No such directory: {self.root!r}")
         self._config = dict(config or {})
         for key, value in self._config.items():
+            validate_config_key(key)
             validate_config_value(value, f"git config value for {key}")
 
     def _argv(self, args: Sequence[str], config: Mapping[str, str] | None = None) -> list[str]:
         argv = ["git", "-C", self.root]
         merged = {**self._config, **(config or {})}
         for key, value in merged.items():
+            validate_config_key(key)
             validate_config_value(value, f"git config value for {key}")
             argv += ["-c", f"{key}={value}"]
         for arg in args:

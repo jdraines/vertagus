@@ -118,6 +118,30 @@ def test_upload_pack_injection_does_not_execute(repo, tmp_path):
     assert not canary.exists()
 
 
+def test_get_commit_messages_is_restricted_to_the_named_branch(repo):
+    """`branch` selects the revision to log; it must exclude other branches.
+
+    A `--branches=<name>` pattern would not do this: git implies a trailing
+    '/*' when the pattern has no glob character, so it silently matches nothing
+    and every commit on HEAD comes back regardless.
+    """
+    scm = GitScm(root=str(repo), tag_prefix="v")
+    scm.create_tag(Tag("1.2.3"))
+
+    _git(repo, "checkout", "-b", "sidebranch")
+    (repo / "side.txt").write_text("side")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "only on sidebranch", date="2025-01-01T13:00:00+00:00")
+
+    _git(repo, "checkout", "main")
+    (repo / "main.txt").write_text("main")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "only on main", date="2025-01-01T14:00:00+00:00")
+
+    assert scm.get_commit_messages_since_highest_version(branch="main") == ["only on main"]
+    assert scm.get_commit_messages_since_highest_version(branch="sidebranch") == ["only on sidebranch"]
+
+
 def test_command_reports_failures(repo):
     git = GitCommand(str(repo))
     with pytest.raises(GitCommandError) as excinfo:

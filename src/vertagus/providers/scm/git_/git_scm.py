@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from logging import getLogger
+from typing import ClassVar
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
@@ -18,7 +19,6 @@ from .validation import (
     validate_tag_prefix,
 )
 
-
 logger = getLogger(__name__)
 
 
@@ -28,7 +28,7 @@ class GitManifestNotFoundError(Exception):
 
 class GitScm(ScmBase):
     scm_type = "git"
-    _default_user_data = {"name": "vertagus", "email": "vertagus@none"}
+    _default_user_data: ClassVar[dict[str, str]] = {"name": "vertagus", "email": "vertagus@none"}
     _default_remote_name = "origin"
     _default_version_strategy = "tag"
 
@@ -184,9 +184,7 @@ class GitScm(ScmBase):
         try:
             file_content = self._git.run("show", f"{self.remote_name}/{branch}:{manifest_path}")
         except GitCommandError as e:
-            raise GitManifestNotFoundError(
-                f"Manifest file {manifest_path} not found on branch {branch}: {e}"
-            ) from e
+            raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}: {e}") from e
         if not file_content:
             raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}")
 
@@ -202,17 +200,19 @@ class GitScm(ScmBase):
             logger.warning("No tags found to compare against.")
             return []
 
-        tag_name = f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version
+        tag_name = validate_ref_name(
+            f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version, "tag"
+        )
         try:
-            tag_name = validate_ref_name(tag_name, "tag")
             tagged_commit_date = datetime.fromisoformat(self._git.run("log", "-1", "--format=%cI", tag_name))
         except (ValueError, GitCommandError):
             logger.error(f"Tag {tag_name} not found.")
             return []
         since = (tagged_commit_date + timedelta(seconds=1)).isoformat()
-        args = ["log", f"--since={since}", "--format=%B%x00"]
-        if branch:
-            args.append(f"--branches={validate_ref_name(branch, 'branch')}")
-        args.append("HEAD")
-        output = self._git.run(*args)
+        # The revision goes last and is the only one: `--branches=<name>` would
+        # not do this job, because git implies a trailing '/*' on a pattern with
+        # no glob character, so `--branches=main` matches refs/heads/main/* and
+        # silently selects nothing.
+        rev = validate_rev(branch, "branch") if branch else "HEAD"
+        output = self._git.run("log", f"--since={since}", "--format=%B%x00", rev)
         return [message.strip() for message in output.split("\x00") if message.strip()]

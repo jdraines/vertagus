@@ -37,36 +37,51 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
+        # --locked installs exactly what uv.lock records, so the docs build runs
+        # the same resolved versions that are pinned and scanned for advisories.
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[docs]"
-      
+          python -m pip install --upgrade uv
+          uv sync --locked --extra docs
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
       - name: Configure git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Show deployment context
+        # Context values are passed through the environment rather than
+        # interpolated into `run:`. github.head_ref is the branch name of the
+        # pull request, which on a fork is chosen by someone with no write
+        # access and may contain shell metacharacters -- interpolating it here
+        # would run them.
+        env:
+          GITHUB_EVENT: ${{ github.event_name }}
+          GITHUB_REF_NAME: ${{ github.ref }}
+          GITHUB_HEAD_REF_NAME: ${{ github.head_ref }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
-          echo "GitHub Event: ${{ github.event_name }}"
-          echo "GitHub Ref: ${{ github.ref }}"
-          echo "GitHub Head Ref: ${{ github.head_ref }}"
-          echo "Repository: ${{ github.repository }}"
+          echo "GitHub Event: $GITHUB_EVENT"
+          echo "GitHub Ref: $GITHUB_REF_NAME"
+          echo "GitHub Head Ref: $GITHUB_HEAD_REF_NAME"
+          echo "Repository: $GITHUB_REPO"
 
       - name: Build and deploy documentation
         env:
           CI: true
+          DEPLOY_DEV: ${{ inputs.dev }}
+          SET_CURRENT: ${{ inputs.set_current }}
         run: |
           VERSION=$(vertagus show-alias major.minor)
-          echo "Running mike-docs.sh with dev=${{ inputs.dev }}"
+          echo "Running mike-docs.sh with dev=$DEPLOY_DEV"
           echo "Using version: $VERSION"
           git fetch origin gh-pages || echo "Failed to fetch origin gh-pages"
-          if [[ "${{ inputs.dev }}" == "true" ]]; then
+          if [[ "$DEPLOY_DEV" == "true" ]]; then
             echo "Deploying development documentation"
             ./scripts/mike-docs.sh deploy-dev
           else
             ./scripts/mike-docs.sh deploy "$VERSION"
-            if [[ "${{ inputs.set_current }}" == "true" ]]; then
+            if [[ "$SET_CURRENT" == "true" ]]; then
               echo "Setting current alias to $VERSION"
               ./scripts/mike-docs.sh set-default "$VERSION"
             fi

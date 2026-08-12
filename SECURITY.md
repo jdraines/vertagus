@@ -37,3 +37,14 @@ Git is invoked with an explicit argument vector and never through a shell.
 
 Vertagus does not modify the configuration of the repository it operates on. The
 committer identity used for tagging is supplied per-invocation with `git -c`.
+
+## This repository's own CI
+
+The same reasoning applies to the workflows in `.github/workflows`. Values that
+originate outside the repository — `github.head_ref` above all, which on a fork
+is the branch name chosen by someone with no write access, and which may contain
+shell metacharacters — are passed to `run:` steps through `env:` rather than
+interpolated into the script with `${{ }}`. An interpolated value is substituted
+before the shell sees the line, so a branch named ``release/`id` `` would
+otherwise execute. Workflow permissions are scoped per job, and third-party
+actions holding `id-token: write` are pinned by commit SHA.
