@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vertagus"
-version = "0.5.0.dev2"
+version = "0.5.0.dev3"
 description = "A tool to assist the maintenance of package versioning via manifests and source control."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,9 +16,8 @@ authors = [
 ]
 dependencies = [
     "click>=8.1.7,<9",
-    "GitPython==3.1.43",
     "tomli-w>=1.2.0,<2",
-    "packaging==24.1",
+    "packaging>=24.1,<26",
     "PyYAML>=6",
 ]
 classifiers = [
