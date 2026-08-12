@@ -26,11 +26,15 @@ logger = getLogger(__name__)
 class GitCommandError(VertagusError):
     """Raised when a git invocation exits non-zero."""
 
-    def __init__(self, argv: Sequence[str], returncode: int, stderr: str):
+    def __init__(self, argv: Sequence[str], returncode: int, stderr: str, guidance: str | None = None):
         self.argv = list(argv)
         self.returncode = returncode
         self.stderr = stderr.strip()
-        super().__init__(f"`{' '.join(self.argv)}` exited with status {returncode}: {self.stderr}")
+        self.guidance = guidance
+        message = f"`{' '.join(self.argv)}` exited with status {returncode}: {self.stderr}"
+        if guidance:
+            message = f"{message}\n{guidance}"
+        super().__init__(message)
 
 
 class GitNotFoundError(VertagusError):

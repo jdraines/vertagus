@@ -76,6 +76,34 @@ def test_create_tag_does_not_write_repo_config(repo):
     assert scm.list_tags() == ["v1.2.3"]
 
 
+def test_create_tag_does_not_push_unrelated_local_tags(repo, upstream):
+    """A stale local tag -- common on a reused CI build directory -- stays local."""
+    _git(repo, "tag", "v9.9.9-leftover")
+    scm = GitScm(root=str(repo), tag_prefix="v")
+    scm.create_tag(Tag("1.2.3"))
+    assert scm.list_tags() == ["v1.2.3"]
+
+
+def test_get_commit_messages_on_a_shallow_clone(tmp_path, repo, upstream):
+    """GitLab CI clones at GIT_DEPTH: 20 by default, so the tag may be missing."""
+    scm = GitScm(root=str(repo), tag_prefix="v")
+    scm.create_tag(Tag("1.2.3"))
+    (repo / "file.txt").write_text("hello")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "a second commit", date="2025-01-01T13:00:00+00:00")
+    _git(repo, "push", "origin", "main")
+
+    # file:// so that git honours --depth; it is ignored for local-path clones.
+    shallow = tmp_path / "shallow"
+    _git(tmp_path, "clone", "--depth", "1", f"file://{upstream}", str(shallow))
+    assert "v1.2.3" not in subprocess.run(
+        ["git", "tag"], cwd=shallow, check=True, capture_output=True, text=True
+    ).stdout.split()
+
+    shallow_scm = GitScm(root=str(shallow), tag_prefix="v")
+    assert shallow_scm.get_commit_messages_since_highest_version() == ["a second commit"]
+
+
 def test_get_branch_manifest_version(repo):
     scm = GitScm(
         root=str(repo),

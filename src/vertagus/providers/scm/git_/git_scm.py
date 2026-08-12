@@ -31,6 +31,17 @@ class GitScm(ScmBase):
     _default_user_data: ClassVar[dict[str, str]] = {"name": "vertagus", "email": "vertagus@none"}
     _default_remote_name = "origin"
     _default_version_strategy = "tag"
+    _push_guidance = (
+        "The remote rejected the push. In CI this is usually one of:\n"
+        "  - The checkout's credentials are read-only. GitLab CI's default CI_JOB_TOKEN cannot push to the\n"
+        "    repository; use a project access token or a deploy key with write access.\n"
+        "  - The tag matches a protected tag pattern and the pushing identity may not create it.\n"
+        "  - The tag already exists on the remote at a different commit."
+    )
+    _shallow_guidance = (
+        "If the clone is shallow, set GIT_DEPTH: 0 (GitLab CI) or fetch-depth: 0 (actions/checkout) on the "
+        "checkout step."
+    )
 
     def __init__(
         self,
@@ -59,7 +70,10 @@ class GitScm(ScmBase):
         commit = self._resolve_commit(ref) if ref else self._resolve_commit("HEAD")
         logger.info(f"Creating tag {tag_text} at commit {commit}")
         self._git.run("tag", "-a", "-m", tag_text, tag_text, commit, config=self._identity_config())
-        self._git.run("push", "--tags")
+        # The tag is named explicitly, and pushed to the configured remote: a
+        # bare `push --tags` would publish every unrelated tag that happens to
+        # be in the local clone, and would ignore `remote_name` besides.
+        self._push(self.remote_name, tag_text)
 
     def delete_tag(self, tag: Tag, suppress_warnings: bool = False):
         tag_text = self._tag_text(tag)
@@ -69,11 +83,10 @@ class GitScm(ScmBase):
             if not suppress_warnings:
                 logger.warning(f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}")
         try:
-            self._git.run("push", "--delete", self.remote_name, tag_text)
+            self._push("--delete", self.remote_name, tag_text)
         except GitCommandError as e:
             if not suppress_warnings:
                 logger.warning(f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}")
-        self._git.run("push", "--tags")
 
     def list_tags(self, prefix: str | None = None):
         output = self._git.run("ls-remote", "--tags", self.remote_name)
@@ -157,6 +170,19 @@ class GitScm(ScmBase):
             "user.email": email or self._default_user_data["email"],
         }
 
+    def _push(self, *args: str) -> str:
+        """Run ``git push``, annotating a rejection with its usual causes.
+
+        A push is the one operation whose failure is normally about credentials
+        or branch protection rather than about anything vertagus did, and git's
+        own stderr rarely says which. The guidance rides on the exception rather
+        than a log line so that it survives to the CLI's error output.
+        """
+        try:
+            return self._git.run("push", *args)
+        except GitCommandError as e:
+            raise GitCommandError(e.argv, e.returncode, e.stderr, guidance=self._push_guidance) from e
+
     def _tag_text(self, tag: Tag) -> str:
         """Render a tag to its full text and validate it as a refname.
 
@@ -191,6 +217,26 @@ class GitScm(ScmBase):
         manifest_cls = get_manifest_cls(manifest_type)
         return manifest_cls.version_from_content(content=file_content, name=manifest_path, loc=manifest_loc)
 
+    def _tagged_commit_date(self, tag_name: str) -> datetime:
+        """Resolve a tag's commit date, fetching the tag if the clone lacks it.
+
+        The highest version comes from :meth:`list_tags`, which reads the
+        *remote*, so it may name a tag that the local clone does not have: CI
+        checkouts are commonly shallow (GitLab CI defaults to ``GIT_DEPTH: 20``,
+        actions/checkout to ``fetch-depth: 1``), and a tag older than that depth
+        is absent locally. Fetching the single tag is much cheaper than
+        deepening the clone, and beats reporting no commits at all -- which
+        would silently suppress a version bump rather than fail.
+        """
+        try:
+            return datetime.fromisoformat(self._git.run("log", "-1", "--format=%cI", tag_name))
+        except GitCommandError:
+            logger.info(f"Tag {tag_name} is not present locally; fetching it from remote {self.remote_name!r}.")
+            # `--no-tags` suppresses git's usual tag auto-following, so this
+            # fetches the one tag asked for and nothing else.
+            self._git.run("fetch", "--no-tags", self.remote_name, "tag", tag_name)
+            return datetime.fromisoformat(self._git.run("log", "-1", "--format=%cI", tag_name))
+
     def get_commit_messages_since_highest_version(self, branch: str | None = None) -> list[str]:
         """
         Get commit messages since the highest version tag.
@@ -204,9 +250,9 @@ class GitScm(ScmBase):
             f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version, "tag"
         )
         try:
-            tagged_commit_date = datetime.fromisoformat(self._git.run("log", "-1", "--format=%cI", tag_name))
-        except (ValueError, GitCommandError):
-            logger.error(f"Tag {tag_name} not found.")
+            tagged_commit_date = self._tagged_commit_date(tag_name)
+        except (ValueError, GitCommandError) as e:
+            logger.error(f"Could not resolve the commit date of tag {tag_name}: {e}\n{self._shallow_guidance}")
             return []
         since = (tagged_commit_date + timedelta(seconds=1)).isoformat()
         # The revision goes last and is the only one: `--branches=<name>` would
