@@ -6,7 +6,7 @@ CHANGELOG
 
 **New.**
 
-* **Vertagus can now run without a configuration file.** Every setting a config file can hold has a corresponding CLI option, so a command can be configured entirely on the command line:
+* **Vertagus can now run without a configuration file.** The settings that make up a single project configuration each have a corresponding CLI option, so a command can be configured entirely on the command line:
 
   ```bash
   vertagus validate --manifest src/pyproject.toml --rule not_empty --rule any_increment
@@ -14,9 +14,13 @@ CHANGELOG
 
   `--manifest` takes a path (whose manifest type is inferred from the file name) or a `path=...,type=...,loc=...,name=...` spec, and `--rule` takes a rule name optionally followed by `:` and a JSON object of rule config. The remaining settings map to `--alias`, `--bumper`, `--root`, `--scm-type`, `--tag-prefix`, `--version-strategy`, `--target-branch` and `--scm-manifest`. Supported by `validate`, `bump`, `create-tag`, `create-aliases`, `show-version` and `show-alias`.
 
-  Passed alongside `--config`, these options override the corresponding settings in that file. Passed without it, they are the whole configuration and no config file is discovered in the current directory. `--stage-name` still requires a config file, since stages are only definable there.
+  Passed alongside `--config`, these options override the corresponding settings in that file. Passed without it, they are the whole configuration and no config file is discovered in the current directory. Settings that describe more than one configuration at once — stages, and a bumper's own options — remain file-only, so `--stage-name` still requires a file.
 * **`--print-config`** prints the configuration a command would run with and exits, which turns a working ad hoc command into a config file: `vertagus validate -m pyproject.toml --rule not_empty --print-config > vertagus.yaml`.
 * `create-tag` and `create-aliases` now discover `vertagus.yaml`/`.yml`/`.toml` in the current directory like the other commands, instead of defaulting to a `vertagus.toml` path that may not exist.
+
+**Fixes.**
+
+* **Bumping a version in a TOML or YAML manifest no longer strips the file's comments and formatting.** `vertagus bump` previously reserialized the entire document, which discarded every comment and blank line and reflowed the file's collections, quoting and indentation — a whole-file diff for a change of a few characters. The version is now rewritten in place, leaving every other byte of the file untouched. If the version cannot be located and replaced safely, vertagus logs a warning and falls back to the previous whole-file rewrite. In YAML, the replacement is always quoted so that a version like `1.0` cannot be rewritten as a float. JSON manifests, which have no comments to lose, are still rewritten in full.
 
 **Breaking changes.**
 
