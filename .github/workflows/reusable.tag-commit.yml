@@ -6,9 +6,18 @@ on:
         type: string
         description: 'The vertagus configuration file to use for commit tagging configuration'
 
+permissions:
+  contents: read
+
 jobs:
   create-tag:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      # Passed through the environment rather than interpolated into `run:`, so
+      # that a value containing shell metacharacters cannot alter the command.
+      CONFIG_FILE: ${{ inputs.config_file }}
     steps:
       - name: checkout repo content
         uses: actions/checkout@v4
@@ -20,4 +29,4 @@ jobs:
         run: pip install -e "."
       - name: run prod version tag
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus create-tag -c ${{ inputs.config_file }} -s prod
+        run: vertagus create-tag -c "$CONFIG_FILE" -s prod

@@ -1,10 +1,15 @@
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
@@ -20,8 +25,13 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
+      - name: Install uv
+        run: pip install uv
+
       - name: Install dependencies
-        run: pip install -ve ".[dev]"
+        # --locked installs exactly what uv.lock records, so CI tests the same
+        # dependency versions that are pinned and scanned for advisories.
+        run: uv sync --locked --all-extras --python "${{ matrix.python-version }}"
 
       - name: Run tests
-        run: ./test/test.sh
+        run: uv run --locked --no-sync ./test/test.sh
