@@ -1,4 +1,5 @@
 from packaging import version
+
 from vertagus.core.rule_bases import ComparisonRule
 from vertagus.errors import ConfigurationError
 
@@ -36,4 +37,4 @@ class ManifestsComparisonRule(ComparisonRule):
             raise ValueError("No versions to compare.")
         if len(versions) == 1:
             raise ValueError("Only one version to compare. To compare, provide at least two versions.")
-        return all([v == versions[0] for v in versions])
+        return all(v == versions[0] for v in versions)

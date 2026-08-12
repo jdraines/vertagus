@@ -1,5 +1,6 @@
-from . import library
 from vertagus.core.rule_bases import SingleVersionRule
+
+from . import library
 
 
 def load_rules() -> list[type[SingleVersionRule]]:

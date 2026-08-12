@@ -1,18 +1,23 @@
 import os
+from datetime import datetime, timedelta
 from logging import getLogger
-from configparser import NoSectionError
-from typing import cast
-from datetime import timedelta
+from typing import ClassVar
 
-import git
-from git.remote import Remote
-from git.exc import GitCommandError
-from git.objects import Commit
-from packaging.version import parse as parse_version, InvalidVersion
+from packaging.version import InvalidVersion
+from packaging.version import parse as parse_version
+
 from vertagus.core.scm_base import ScmBase
-from vertagus.core.tag_base import Tag, AliasBase
+from vertagus.core.tag_base import AliasBase, Tag
 from vertagus.providers.manifest.registry import get_manifest_cls
 
+from .command import GitCommand, GitCommandError
+from .validation import (
+    validate_path,
+    validate_ref_name,
+    validate_remote_name,
+    validate_rev,
+    validate_tag_prefix,
+)
 
 logger = getLogger(__name__)
 
@@ -23,7 +28,7 @@ class GitManifestNotFoundError(Exception):
 
 class GitScm(ScmBase):
     scm_type = "git"
-    _default_user_data = {"name": "vertagus", "email": "vertagus@none"}
+    _default_user_data: ClassVar[dict[str, str]] = {"name": "vertagus", "email": "vertagus@none"}
     _default_remote_name = "origin"
     _default_version_strategy = "tag"
 
@@ -40,57 +45,39 @@ class GitScm(ScmBase):
         **kwargs,
     ):
         self.root = root or os.getcwd()
-        self.tag_prefix = tag_prefix
-        self.remote_name = remote_name or self._default_remote_name
+        self.tag_prefix = validate_tag_prefix(tag_prefix) if tag_prefix else tag_prefix
+        self.remote_name = validate_remote_name(remote_name or self._default_remote_name)
         self.version_strategy = version_strategy or self._default_version_strategy
-        self.target_branch = target_branch
-        self.manifest_path = manifest_path
+        self.target_branch = validate_ref_name(target_branch, "target_branch") if target_branch else target_branch
+        self.manifest_path = validate_path(manifest_path, "manifest_path") if manifest_path else manifest_path
         self.manifest_type = manifest_type
         self.manifest_loc = manifest_loc
-        self._repo = self._initialize_repo()
-
-    @property
-    def remote(self) -> Remote:
-        return self._repo.remotes[self.remote_name]
+        self._git = self._initialize_repo()
 
     def create_tag(self, tag: Tag, ref: str | None = None):
-        tag_prefix = self.tag_prefix or ""
-        tag_text = tag.as_string(tag_prefix)
-        if ref:
-            commit = self._repo.commit(ref)
-        else:
-            commit = self._repo.head.commit
-        if isinstance(commit, Commit):
-            commit = commit.hexsha
+        tag_text = self._tag_text(tag)
+        commit = self._resolve_commit(ref) if ref else self._resolve_commit("HEAD")
         logger.info(f"Creating tag {tag_text} at commit {commit}")
-        self._repo.create_tag(
-            path=tag_text,
-            ref=commit,
-            message=tag_text,
-        )
-        self._repo.git.push(tags=True)
+        self._git.run("tag", "-a", "-m", tag_text, tag_text, commit, config=self._identity_config())
+        self._git.run("push", "--tags")
 
     def delete_tag(self, tag: Tag, suppress_warnings: bool = False):
-        _tags = [t.name for t in self._repo.tags]
-        logger.debug(f"Tags found: {_tags}")
-        tag_text = tag.as_string(self.tag_prefix)
+        tag_text = self._tag_text(tag)
         try:
-            self._repo.delete_tag(tag_text)
+            self._git.run("tag", "-d", tag_text)
         except GitCommandError as e:
             if not suppress_warnings:
                 logger.warning(f"Error encountered while deleting local tag {tag_text!r}: {e.__class__.__name__}: {e}")
         try:
-            self._repo.git.execute(["git", "push", "--delete", self.remote_name, tag_text])
+            self._git.run("push", "--delete", self.remote_name, tag_text)
         except GitCommandError as e:
             if not suppress_warnings:
                 logger.warning(f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}")
-        self._repo.git.push(tags=True)
+        self._git.run("push", "--tags")
 
     def list_tags(self, prefix: str | None = None):
-        def _ls_remote() -> str:
-            return cast(str, self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]))
-
-        tags = [t.split("tags/")[-1].strip() for t in _ls_remote().split("\n") if not t.endswith("^{}")]
+        output = self._git.run("ls-remote", "--tags", self.remote_name)
+        tags = [t.split("tags/")[-1].strip() for t in output.split("\n") if not t.endswith("^{}")]
         if not prefix and self.tag_prefix:
             prefix = self.tag_prefix
         if prefix:
@@ -113,7 +100,7 @@ class GitScm(ScmBase):
             if not self.manifest_path or not self.manifest_type:
                 raise ValueError("Branch-based strategy requires manifest_path and manifest_type to be configured")
 
-            branch = cast(str, branch or self.target_branch)
+            branch = validate_ref_name(branch or self.target_branch, "branch")  # type: ignore[arg-type]
 
             manifest_path = self.manifest_path.lstrip("./")
             version = self.get_branch_manifest_version(
@@ -148,23 +135,40 @@ class GitScm(ScmBase):
                 return None
             return max(valid_versions, key=lambda v: parse_version(v))
 
-    def _initialize_repo(self):
-        repo = git.Repo(self.root)
-        user_data = self._get_user_data(repo)
-        logger.debug(f"Initializing git repository at {self.root} with user data {user_data}.")
-        repo.config_writer().set_value("user", "name", user_data["name"]).release()
-        repo.config_writer().set_value("user", "email", user_data["email"]).release()
-        return repo
+    def _initialize_repo(self) -> GitCommand:
+        git = GitCommand(self.root)
+        logger.debug(f"Using git repository at {self.root}.")
+        git.run("rev-parse", "--git-dir")
+        return git
 
-    def _get_user_data(self, repo: git.Repo):
-        try:
-            return {
-                "name": repo.config_reader().get_value("user", "name"),
-                "email": repo.config_reader().get_value("user", "email"),
-            }
-        except NoSectionError:
-            logger.warning("No user data found in git config. Setting default values.")
-            return self._default_user_data
+    def _identity_config(self) -> dict[str, str]:
+        """The committer identity to use for commands that write objects.
+
+        Passed per-invocation with ``-c`` rather than written into the
+        repository's config, so that vertagus never modifies a repository it was
+        only asked to read.
+        """
+        name = self._git.run("config", "--get", "user.name", check=False)
+        email = self._git.run("config", "--get", "user.email", check=False)
+        if not name or not email:
+            logger.warning("No user data found in git config. Using default values.")
+        return {
+            "user.name": name or self._default_user_data["name"],
+            "user.email": email or self._default_user_data["email"],
+        }
+
+    def _tag_text(self, tag: Tag) -> str:
+        """Render a tag to its full text and validate it as a refname.
+
+        The version half of this string comes from a manifest, so it is no more
+        trusted than the configured prefix.
+        """
+        return validate_ref_name(tag.as_string(self.tag_prefix or ""), "tag")
+
+    def _resolve_commit(self, ref: str) -> str:
+        """Resolve a revision to a commit sha."""
+        rev = validate_rev(ref)
+        return self._git.run("rev-parse", "--verify", f"{rev}^{{commit}}")
 
     def get_branch_manifest_version(
         self, branch: str, manifest_path: str, manifest_type: str, manifest_loc: list[str] | None = None
@@ -172,10 +176,15 @@ class GitScm(ScmBase):
         """
         Get the version from a manifest file on a specific branch.
         """
+        branch = validate_ref_name(branch, "branch")
+        manifest_path = validate_path(manifest_path, "manifest_path")
         # Fetch the latest changes from remote
-        self._repo.git.fetch(self.remote_name)
+        self._git.run("fetch", self.remote_name)
         # Get the content of the manifest file from the specified branch
-        file_content = self._repo.git.show(f"{self.remote_name}/{branch}:{manifest_path}")
+        try:
+            file_content = self._git.run("show", f"{self.remote_name}/{branch}:{manifest_path}")
+        except GitCommandError as e:
+            raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}: {e}") from e
         if not file_content:
             raise GitManifestNotFoundError(f"Manifest file {manifest_path} not found on branch {branch}")
 
@@ -191,12 +200,19 @@ class GitScm(ScmBase):
             logger.warning("No tags found to compare against.")
             return []
 
-        tag_name = f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version
+        tag_name = validate_ref_name(
+            f"{self.tag_prefix}{highest_version}" if self.tag_prefix else highest_version, "tag"
+        )
         try:
-            tag_commit = self._repo.commit(tag_name)
+            tagged_commit_date = datetime.fromisoformat(self._git.run("log", "-1", "--format=%cI", tag_name))
         except (ValueError, GitCommandError):
             logger.error(f"Tag {tag_name} not found.")
             return []
-        tagged_commit_date = tag_commit.committed_datetime + timedelta(seconds=1)
-        commits = list(self._repo.iter_commits(since=tagged_commit_date.isoformat(), branch=branch))
-        return [commit.message.strip() for commit in commits]
+        since = (tagged_commit_date + timedelta(seconds=1)).isoformat()
+        # The revision goes last and is the only one: `--branches=<name>` would
+        # not do this job, because git implies a trailing '/*' on a pattern with
+        # no glob character, so `--branches=main` matches refs/heads/main/* and
+        # silently selects nothing.
+        rev = validate_rev(branch, "branch") if branch else "HEAD"
+        output = self._git.run("log", f"--since={since}", "--format=%B%x00", rev)
+        return [message.strip() for message in output.split("\x00") if message.strip()]

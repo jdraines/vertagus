@@ -1,4 +1,7 @@
 name: vertagus PR merge workflow
+permissions:
+  contents: read
+
 on:
   pull_request:
     types:
@@ -14,7 +17,8 @@ jobs:
   tag-commit:
     uses: ./.github/workflows/reusable.tag-commit.yml
     if: github.event.pull_request.merged == true
-    permissions: write-all
+    permissions:
+      contents: write
     with:
       config_file: "./vertagus.yaml"
 
@@ -40,4 +44,4 @@ jobs:
         ls -al
         python3 -m build
     - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2

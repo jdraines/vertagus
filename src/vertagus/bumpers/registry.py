@@ -1,12 +1,10 @@
-from typing import Type
 from ..core.bumper_base import BumperBase
 from .semantic import SemanticBumper, SemanticCommitBumper
-
 
 _bumpers = {SemanticBumper.name: SemanticBumper, SemanticCommitBumper.name: SemanticCommitBumper}
 
 
-def register_bumper(bumper_class: Type[BumperBase]) -> Type[BumperBase]:
+def register_bumper(bumper_class: type[BumperBase]) -> type[BumperBase]:
     """
     Register a bumper class in the global registry.
     """
@@ -17,7 +15,7 @@ def register_bumper(bumper_class: Type[BumperBase]) -> Type[BumperBase]:
     return bumper_class
 
 
-def get_bumper_cls(bumper_name: str) -> Type[BumperBase]:
+def get_bumper_cls(bumper_name: str) -> type[BumperBase]:
     if bumper_name not in _bumpers:
         raise ValueError(f"Bumper not found: {bumper_name}")
     return _bumpers[bumper_name]

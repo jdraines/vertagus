@@ -1,8 +1,9 @@
 from vertagus.core.manifest_base import ManifestBase
-from .setuptools_ import SetuptoolsPyprojectManifest
+
 from .json_manifest import JsonManifest
-from .yaml_manifest import YamlManifest
+from .setuptools_ import SetuptoolsPyprojectManifest
 from .toml_manifest import TomlManifest
+from .yaml_manifest import YamlManifest
 
 _manifest_types = {
     SetuptoolsPyprojectManifest.manifest_type: SetuptoolsPyprojectManifest,
@@ -23,4 +24,4 @@ def register_manifest_cls(manifest_cls: type[ManifestBase]):
 
 
 def list_manifest_types() -> list[type[ManifestBase]]:
-    return sorted(list(_manifest_types.values()), key=lambda x: x.manifest_type)
+    return sorted(_manifest_types.values(), key=lambda x: x.manifest_type)

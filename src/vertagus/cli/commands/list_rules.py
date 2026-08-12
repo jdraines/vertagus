@@ -1,7 +1,7 @@
 import click
 
-from vertagus.rules.registry import get_all_rules, get_rule_category
 from vertagus.cli.formatting import DisplayTableFormatter
+from vertagus.rules.registry import get_all_rules, get_rule_category
 
 
 @click.command("list-rules")

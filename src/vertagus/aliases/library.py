@@ -6,7 +6,7 @@ class StringAlias(AliasBase):
     alias_value = ""
     use_prefix = False
 
-    def as_string(self, prefix: str = None) -> str:
+    def as_string(self, prefix: str | None = None) -> str:
         prefix = prefix or ""
         if self.use_prefix:
             return prefix + self.alias_value
@@ -43,7 +43,7 @@ class MajorMinor(AliasBase):
     name = "major.minor"
     description = "A version alias that only includes the major and minor parts of the version."
 
-    def as_string(self, prefix: str = None) -> str:
+    def as_string(self, prefix: str | None = None) -> str:
         prefix = prefix or ""
         parts = self.tag_text.split(".")
         if len(parts) < 2:

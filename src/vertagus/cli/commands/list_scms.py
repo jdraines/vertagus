@@ -1,7 +1,7 @@
 import click
 
-from vertagus.providers.scm.registry import list_scm_types
 from vertagus.cli.formatting import DisplayTableFormatter
+from vertagus.providers.scm.registry import list_scm_types
 
 
 @click.command("list-scms")

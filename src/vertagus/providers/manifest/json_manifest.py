@@ -1,13 +1,14 @@
-from vertagus.core.manifest_base import ManifestBase
 import json
 import os.path
+
+from vertagus.core.manifest_base import ManifestBase
 
 
 class JsonManifest(ManifestBase):
     manifest_type: str = "json"
     description: str = "A JSON file. Users provide a custom `loc` to the version as a list of keys."
 
-    def __init__(self, name: str, path: str, loc: list = None, root: str = None):
+    def __init__(self, name: str, path: str, loc: list | None = None, root: str | None = None):
         super().__init__(name, path, loc, root)
         self._doc = self._load_doc()
 

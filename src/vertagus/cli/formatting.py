@@ -1,6 +1,8 @@
 import typing as t
-from click.formatting import HelpFormatter, iter_rows, wrap_text as click_wrap_text
+
 from click import style
+from click.formatting import HelpFormatter, iter_rows
+from click.formatting import wrap_text as click_wrap_text
 
 
 def wrap_text(
@@ -30,7 +32,7 @@ def set_col_widths(col_widths: list[int], width: int):
 
 class DisplayTableFormatter(HelpFormatter):
     def write_table(
-        self, rows: t.Sequence[t.Tuple], col_widths: t.Sequence[int], col_spacing: int = 2, header: bool = False
+        self, rows: t.Sequence[tuple], col_widths: t.Sequence[int], col_spacing: int = 2, header: bool = False
     ) -> None:
         rows = list(rows)
         col_widths = set_col_widths(t.cast(list[int], col_widths), self.width)
@@ -44,7 +46,7 @@ class DisplayTableFormatter(HelpFormatter):
                     )
                 else:
                     indent_len = 0
-                    for prev_cell_idx in range(0, idx):
+                    for prev_cell_idx in range(idx):
                         indent_len += col_widths[prev_cell_idx] + col_spacing
                     cell_text = wrap_text(cell, col_widths[idx], " " * col_spacing, subsequent_indent=" " * indent_len)
                 cell_height = cell_text.count("\n") + 1

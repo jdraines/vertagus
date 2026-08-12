@@ -1,5 +1,6 @@
-from .git_ import GitScm
 from vertagus.core.scm_base import ScmBase
+
+from .git_ import GitScm
 
 _scm_types = {
     GitScm.scm_type: GitScm,
@@ -17,4 +18,4 @@ def register_scm_cls(scm_cls: type[ScmBase]):
 
 
 def list_scm_types() -> list[str]:
-    return sorted(list(_scm_types.keys()))
+    return sorted(_scm_types.keys())

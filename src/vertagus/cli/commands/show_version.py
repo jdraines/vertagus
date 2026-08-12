@@ -2,10 +2,10 @@ import sys
 
 import click
 
-from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus.cli import utils as cli_utils
 from vertagus.cli.options import configless_options
+from vertagus.configuration import types as cfgtypes
 
 
 @click.command("show-version")

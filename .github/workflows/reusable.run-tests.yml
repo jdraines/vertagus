@@ -1,10 +1,41 @@
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
+  lint:
+    # Lint results do not vary by interpreter, so this runs once rather than
+    # across the test matrix.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Check formatting
+        run: uv run --locked --no-sync ruff format --check .
+
+      - name: Lint
+        run: uv run --locked --no-sync ruff check .
+
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
@@ -20,8 +51,13 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
+      - name: Install uv
+        run: pip install uv
+
       - name: Install dependencies
-        run: pip install -ve ".[dev]"
+        # --locked installs exactly what uv.lock records, so CI tests the same
+        # dependency versions that are pinned and scanned for advisories.
+        run: uv sync --locked --extra dev --python "${{ matrix.python-version }}"
 
       - name: Run tests
-        run: ./test/test.sh
+        run: uv run --locked --no-sync ./test/test.sh

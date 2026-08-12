@@ -1,23 +1,25 @@
 import logging
 import os
 import sys
-import click
-from vertagus.errors import ConfigurationError
-from .commands import (
-    validate_cmd,
-    create_tag_cmd,
-    create_aliases_cmd,
-    list_rules_cmd,
-    list_aliases_cmd,
-    list_manifests_cmd,
-    list_scms_cmd,
-    bump_cmd,
-    list_bumpers_cmd,
-    init_cmd,
-    show_version_cmd,
-    show_alias_cmd,
-)
 
+import click
+
+from vertagus.errors import ConfigurationError
+
+from .commands import (
+    bump_cmd,
+    create_aliases_cmd,
+    create_tag_cmd,
+    init_cmd,
+    list_aliases_cmd,
+    list_bumpers_cmd,
+    list_manifests_cmd,
+    list_rules_cmd,
+    list_scms_cmd,
+    show_alias_cmd,
+    show_version_cmd,
+    validate_cmd,
+)
 
 logging.basicConfig(level=os.environ.get("VERTAGUS_LOG_LEVEL", "INFO"), format="{message}", style="{")
 

@@ -1,20 +1,18 @@
 import os.path
 
+from vertagus.aliases.loader import get_aliases
+from vertagus.bumpers.registry import BumperBase, get_bumper_cls
+from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.project import Project
+from vertagus.core.rule_bases import ComparisonRule, SingleVersionRule
+from vertagus.core.scm_base import ScmBase
 from vertagus.core.stage import Stage
 from vertagus.core.tag_base import AliasBase
-from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.errors import ConfigurationError
-from vertagus.rules.comparison.library import ManifestsComparisonRule
-from vertagus.core.scm_base import ScmBase
-
-from vertagus.providers.scm.registry import get_scm_cls
 from vertagus.providers.manifest.registry import get_manifest_cls
-from vertagus.aliases.loader import get_aliases
+from vertagus.providers.scm.registry import get_scm_cls
+from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.rules.registry import get_rule
-from vertagus.bumpers.registry import get_bumper_cls, BumperBase
-
 
 from .configuration import types as t
 
@@ -50,7 +48,7 @@ def create_rules(
         elif isinstance(rule_instance, SingleVersionRule):
             single_version_rules.append(rule_instance)
         else:
-            raise ValueError(f"Unknown rule type: {rule_cls}")
+            raise ConfigurationError(f"Unknown rule type: {rule_cls}")
 
     return single_version_rules, comparison_rules, manifest_comparison_rules
 
@@ -63,7 +61,7 @@ def create_project(data: t.ProjectData) -> Project:
         version_increment_rules=comp_rules,
         manifest_versions_comparison_rules=manifest_rules,
         stages=create_stages(data.stages, data.root) if data.stages else None,
-        aliases=create_aliases((data.aliases or [])),
+        aliases=create_aliases(data.aliases or []),
         bumper=create_bumper(data.bumper) if data.bumper else None,
     )
 
@@ -93,7 +91,7 @@ def create_stages(stage_data: list[t.StageData], project_root: str | None = None
                 current_version_rules=sv_rules,
                 version_increment_rules=comp_rules,
                 manifest_versions_comparison_rules=manifest_rules,
-                aliases=create_aliases((data.aliases or [])),
+                aliases=create_aliases(data.aliases or []),
                 bumper=create_bumper(data.bumper) if data.bumper else None,
             )
         )

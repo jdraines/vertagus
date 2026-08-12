@@ -1,9 +1,11 @@
-from logging import getLogger
-import yaml
 import tomllib
-from .types import MasterConfig
-from vertagus.utils.config import is_yaml, is_toml
+from logging import getLogger
 
+import yaml
+
+from vertagus.utils.config import is_toml, is_yaml
+
+from .types import MasterConfig
 
 logger = getLogger(__name__)
 

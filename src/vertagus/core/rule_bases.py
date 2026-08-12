@@ -1,5 +1,5 @@
-import typing as T
 import json
+import typing as T
 
 
 class Rule:

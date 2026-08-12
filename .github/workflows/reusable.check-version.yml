@@ -10,9 +10,19 @@ on:
         type: string
         description: 'The target branch for the version check, typically the base branch of the PR.'
 
+permissions:
+  contents: read
+
 jobs:
   version-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Passed through the environment rather than interpolated into `run:`, so
+      # that a value containing shell metacharacters cannot alter the command.
+      CONFIG_FILE: ${{ inputs.config_file }}
+      TARGET_BRANCH: ${{ inputs.target_branch }}
     steps:
       - name: checkout repo content
         uses: actions/checkout@v4
@@ -21,13 +31,13 @@ jobs:
         with:
           python-version: 3.11
       - name: install dependencies
-        run: pip install -e "." tomli packaging pyyaml
+        run: pip install -e "."
       - name: run dev version check
         if: ${{ startsWith( github.head_ref, 'feature/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s dev -b ${{ inputs.target_branch }}
+        run: vertagus validate -c "$CONFIG_FILE" -s dev -b "$TARGET_BRANCH"
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
-        run: vertagus validate -c ${{ inputs.config_file }} -s prod -b ${{ inputs.target_branch }}
+        run: vertagus validate -c "$CONFIG_FILE" -s prod -b "$TARGET_BRANCH"
       - name: deny version check
         if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'feature/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
         run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1

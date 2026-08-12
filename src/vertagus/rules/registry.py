@@ -1,7 +1,7 @@
-from vertagus.core.rule_bases import Rule, SingleVersionRule, ComparisonRule
+from vertagus.core.rule_bases import ComparisonRule, Rule, SingleVersionRule
 from vertagus.errors import ConfigurationError
-from vertagus.rules.single_version.loader import load_rules as load_sv_rules
 from vertagus.rules.comparison.loader import load_rules as load_comp_rules
+from vertagus.rules.single_version.loader import load_rules as load_sv_rules
 
 
 def get_all_rules() -> dict[str, type[Rule]]:

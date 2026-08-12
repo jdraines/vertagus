@@ -2,21 +2,21 @@ import sys
 
 import click
 
-from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
-from vertagus.core.project import NoBumperDefinedError
-from vertagus.core.bumper_base import BumperException
 from vertagus.cli import utils as cli_utils
 from vertagus.cli.options import configless_options
+from vertagus.configuration import types as cfgtypes
+from vertagus.core.bumper_base import BumperException
+from vertagus.core.project import NoBumperDefinedError
 
 
 @click.command(
     "bump",
-    context_settings=dict(
-        ignore_unknown_options=True,
-        allow_extra_args=True,
-    ),
+    context_settings={
+        "ignore_unknown_options": True,
+        "allow_extra_args": True,
+    },
 )
 @click.pass_context
 @click.option("--config", "-c", default=None, help="Path to the configuration file")
@@ -45,7 +45,7 @@ def bump_cmd(context, config, stage_name, no_write, **cli_opts):
         click.echo(click.style(f"{e.__class__.__name__}: {e}", fg="red"), err=True)
         sys.exit(1)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - top-level CLI guard: report, don't traceback
         click.echo(click.style(f"An unexpected error occurred: {e}", fg="red"), err=True)
         sys.exit(1)
 

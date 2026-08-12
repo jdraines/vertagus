@@ -2,9 +2,8 @@ from logging import getLogger
 from typing import Any
 
 from vertagus.core.project import Project
-from vertagus.core.tag_base import Tag
 from vertagus.core.scm_base import ScmBase
-
+from vertagus.core.tag_base import Tag
 
 logger = getLogger(__name__)
 

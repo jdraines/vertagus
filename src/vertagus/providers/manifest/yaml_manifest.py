@@ -1,16 +1,19 @@
-from vertagus.core.manifest_base import ManifestBase
-from . import yaml_edit
-from .in_place import InPlaceVersionWriter
-import yaml
 import os.path
 import typing as T
+
+import yaml
+
+from vertagus.core.manifest_base import ManifestBase
+
+from . import yaml_edit
+from .in_place import InPlaceVersionWriter
 
 
 class YamlManifest(InPlaceVersionWriter, ManifestBase):
     manifest_type: str = "yaml"
     description: str = "A YAML file. Users provide a custom `loc` to the version as a list of keys."
 
-    def __init__(self, name: str, path: str, loc: list = None, root: str = None):
+    def __init__(self, name: str, path: str, loc: list | None = None, root: str | None = None):
         super().__init__(name, path, loc, root)
         self._doc = self._load_doc()
 

@@ -1,8 +1,8 @@
 import click
 
+from vertagus.cli.formatting import DisplayTableFormatter
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.providers.manifest.registry import list_manifest_types
-from vertagus.cli.formatting import DisplayTableFormatter
 
 
 @click.command("list-manifests")
