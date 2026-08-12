@@ -70,3 +70,76 @@ def test_validate_simple(
     load_config_mock.return_value = config
     result = runner.invoke(validate_cmd, ["--config", config_name])
     assert result.exit_code == expected_exit_code
+
+
+@pytest.mark.parametrize(
+    "manifest_name, expected_exit_code",
+    [
+        ("0.2.0.yaml", 0),
+        ("0.1.0.yaml", 1),
+    ],
+)
+def test_validate_without_a_config_file(runner: CliRunner, manifest_name: str, expected_exit_code: int):
+    result = runner.invoke(
+        validate_cmd,
+        [
+            "--manifest",
+            f"path={_mock_manifests_dir / manifest_name},type=yaml,loc=project.version",
+            "--rule",
+            "not_empty",
+            "--rule",
+            "any_increment",
+        ],
+    )
+    assert result.exit_code == expected_exit_code
+
+
+def test_validate_without_a_config_file_ignores_a_config_file_in_the_cwd(runner: CliRunner, load_config_mock):
+    runner.invoke(
+        validate_cmd,
+        ["--manifest", f"path={_mock_manifests_dir / '0.2.0.yaml'},type=yaml,loc=project.version"],
+    )
+    load_config_mock.assert_not_called()
+
+
+def test_validate_cli_options_override_a_config_file(runner: CliRunner, load_config_mock):
+    config = load_config("01-simple.yaml")
+    config["project"]["manifests"] = [
+        {
+            "name": "0.1.0.yaml",
+            "type": "yaml",
+            "path": str(_mock_manifests_dir / "0.1.0.yaml"),
+            "loc": "project.version",
+        }
+    ]
+    load_config_mock.return_value = config
+
+    # The configured manifest is behind the mocked SCM version, so validation only passes
+    # if the manifest named on the command line replaced it.
+    result = runner.invoke(
+        validate_cmd,
+        [
+            "--config",
+            "01-simple.yaml",
+            "--manifest",
+            f"path={_mock_manifests_dir / '0.2.0.yaml'},type=yaml,loc=project.version",
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_validate_rejects_a_stage_name_without_a_config_file(runner: CliRunner):
+    result = runner.invoke(
+        validate_cmd,
+        ["--manifest", f"path={_mock_manifests_dir / '0.2.0.yaml'},type=yaml", "--stage-name", "dev"],
+    )
+    assert result.exit_code != 0
+
+
+def test_validate_print_config(runner: CliRunner):
+    result = runner.invoke(
+        validate_cmd,
+        ["--manifest", f"path={_mock_manifests_dir / '0.2.0.yaml'},type=yaml", "--print-config", "--tag-prefix", "v"],
+    )
+    assert result.exit_code == 0
+    assert "tag_prefix: v" in result.output

@@ -5,6 +5,11 @@ Vertagus uses TOML or YAML for its configuration format. The configuration file 
 !!! tip "Configuration Format"
     While both YAML and TOML are supported, we recommend using YAML for better readability and easier maintenance.
 
+!!! note "No configuration file?"
+    Every setting on this page can also be passed directly to a command as an option, with no
+    configuration file at all. See
+    [Configuration-Free Usage](cli-reference.md#configuration-free-usage).
+
 ## Configuration Structure
 
 ### SCM Section

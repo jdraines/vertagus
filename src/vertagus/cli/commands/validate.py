@@ -6,6 +6,7 @@ from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus import operations as ops
 from vertagus.cli import utils as cli_utils
+from vertagus.cli.options import configless_options
 
 
 @click.command("validate")
@@ -14,8 +15,9 @@ from vertagus.cli import utils as cli_utils
 @click.option(
     "--scm-branch", "-b", default=None, help="Optional SCM branch to validate against. Defaults to configured branch."
 )
-def validate_cmd(config, stage_name, scm_branch):
-    master_config = cli_utils.load_config(config)
+@configless_options
+def validate_cmd(config, stage_name, scm_branch, **cli_opts):
+    master_config = cli_utils.resolve_config(config, cli_opts, stage_name=stage_name)
     scm = factory.create_scm(cfgtypes.ScmData(**master_config["scm"]))
     project = factory.create_project(cfgtypes.ProjectData.from_project_config(master_config["project"]))
     if not ops.validate_project_version(scm=scm, project=project, stage_name=stage_name, scm_branch=scm_branch):

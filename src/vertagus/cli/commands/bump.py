@@ -8,6 +8,7 @@ from vertagus import operations as ops
 from vertagus.core.project import NoBumperDefinedError
 from vertagus.core.bumper_base import BumperException
 from vertagus.cli import utils as cli_utils
+from vertagus.cli.options import configless_options
 
 
 @click.command(
@@ -27,8 +28,9 @@ from vertagus.cli import utils as cli_utils
     default=False,
     help="If set, the version will not be written to the manifest files.",
 )
-def bump_cmd(context, config, stage_name, no_write):
-    master_config = cli_utils.load_config(config)
+@configless_options
+def bump_cmd(context, config, stage_name, no_write, **cli_opts):
+    master_config = cli_utils.resolve_config(config, cli_opts, stage_name=stage_name)
     project = factory.create_project(cfgtypes.ProjectData.from_project_config(master_config["project"]))
     bumper_kwargs = _parse_context_args_to_kwargs(context.args)
     scm = factory.create_scm(cfgtypes.ScmData(**master_config["scm"]))

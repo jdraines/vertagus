@@ -8,7 +8,7 @@ Vertagus is a tool to enable automation around maintaining versions for your sou
 - **Automated version bumping** - Based on semantic commit messages or user configuration
 - **Multi-stage development** - Support for different development stages (dev, staging, prod)
 - **Git tag automation** - Create version tags and maintain alias tags like 'stable', 'latest'
-- **Flexible configuration** - Support for TOML and YAML configuration formats
+- **Flexible configuration** - Support for TOML and YAML configuration formats, or no configuration file at all
 - **Multiple manifest types** - Works with various project manifest files
 
 ## Quick Start
@@ -37,6 +37,12 @@ pip install vertagus
    ```bash
    vertagus bump
    ```
+
+Or skip the configuration file entirely and pass your settings as options:
+
+```bash
+vertagus validate --manifest pyproject.toml --rule not_empty --rule any_increment
+```
 
 ## Documentation Overview
 

@@ -5,12 +5,14 @@ import click
 from vertagus.configuration import types as cfgtypes
 from vertagus import factory
 from vertagus.cli import utils as cli_utils
+from vertagus.cli.options import configless_options
 
 
 @click.command("show-version")
 @click.option("--config", "-c", default=None, help="Path to the configuration file")
-def show_version_cmd(config):
-    master_config = cli_utils.load_config(config, suppress_logging=True)
+@configless_options
+def show_version_cmd(config, **cli_opts):
+    master_config = cli_utils.resolve_config(config, cli_opts, suppress_logging=True)
     project = factory.create_project(cfgtypes.ProjectData.from_project_config(master_config["project"]))
     version = project.get_version()
     if not version:

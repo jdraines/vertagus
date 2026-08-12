@@ -4,6 +4,20 @@ CHANGELOG
 0.5.0
 ---
 
+**New.**
+
+* **Vertagus can now run without a configuration file.** Every setting a config file can hold has a corresponding CLI option, so a command can be configured entirely on the command line:
+
+  ```bash
+  vertagus validate --manifest src/pyproject.toml --rule not_empty --rule any_increment
+  ```
+
+  `--manifest` takes a path (whose manifest type is inferred from the file name) or a `path=...,type=...,loc=...,name=...` spec, and `--rule` takes a rule name optionally followed by `:` and a JSON object of rule config. The remaining settings map to `--alias`, `--bumper`, `--root`, `--scm-type`, `--tag-prefix`, `--version-strategy`, `--target-branch` and `--scm-manifest`. Supported by `validate`, `bump`, `create-tag`, `create-aliases`, `show-version` and `show-alias`.
+
+  Passed alongside `--config`, these options override the corresponding settings in that file. Passed without it, they are the whole configuration and no config file is discovered in the current directory. `--stage-name` still requires a config file, since stages are only definable there.
+* **`--print-config`** prints the configuration a command would run with and exits, which turns a working ad hoc command into a config file: `vertagus validate -m pyproject.toml --rule not_empty --print-config > vertagus.yaml`.
+* `create-tag` and `create-aliases` now discover `vertagus.yaml`/`.yml`/`.toml` in the current directory like the other commands, instead of defaulting to a `vertagus.toml` path that may not exist.
+
 **Breaking changes.**
 
 * **Rules are now configured as a flat list.** The `rules` block is no longer split into `current`, `increment`, and `manifest_comparisons` sub-keys. List every rule directly under `rules`; vertagus infers from the rule class whether it validates a single version or compares versions. A 0.4.x-style mapping is detected and raises an error explaining the migration.
