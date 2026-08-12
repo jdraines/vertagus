@@ -36,10 +36,8 @@ project:
   bumper:
     type: semver
   rules:
-    current:
-      - not_empty
-    increment:
-      - any_increment
+    - not_empty
+    - any_increment
   manifests:
     - name: bumptest.yaml
       type: yaml

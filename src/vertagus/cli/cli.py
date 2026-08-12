@@ -1,6 +1,8 @@
 import logging
 import os
+import sys
 import click
+from vertagus.errors import ConfigurationError
 from .commands import (
     validate_cmd,
     create_tag_cmd,
@@ -20,7 +22,18 @@ from .commands import (
 logging.basicConfig(level=os.environ.get("VERTAGUS_LOG_LEVEL", "INFO"), format="{message}", style="{")
 
 
-@click.group()
+class VertagusGroup(click.Group):
+    """Reports configuration problems as plain CLI errors rather than tracebacks."""
+
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except ConfigurationError as e:
+            click.echo(click.style(f"Error: {e}", fg="red"), err=True)
+            sys.exit(1)
+
+
+@click.group(cls=VertagusGroup)
 def cli():
     pass
 

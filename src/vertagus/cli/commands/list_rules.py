@@ -1,23 +1,18 @@
 import click
 
-from vertagus.rules.comparison.loader import get_rules as get_comparison_rules, VersionComparisonRule
-from vertagus.rules.single_version.loader import get_rules as get_single_version_rules, SingleVersionRuleType
+from vertagus.rules.registry import get_all_rules, get_rule_category
 from vertagus.cli.formatting import DisplayTableFormatter
 
 
 @click.command("list-rules")
 def list_rules_cmd():
-    single_version_rules: list[SingleVersionRuleType] = get_single_version_rules()
-    comparison_rules: list[type[VersionComparisonRule]] = [
-        r for r in get_comparison_rules() if r.name != "manifests_comparison"
-    ]
+    all_rules = get_all_rules()
     formatter = DisplayTableFormatter(max_width=240)
-    header = ("Rule Name", "Config Usage", "Description")
+    header = ("Rule Name", "Type", "Description")
     rules_rows = [header]
-    for rule in comparison_rules:
-        rules_rows.append((rule.name, "increment", rule.description))
-    for rule in single_version_rules:
-        rules_rows.append((rule.name, "current", rule.description))
+    for rule_cls in all_rules.values():
+        description = rule_cls.description if isinstance(rule_cls.description, str) else rule_cls().description
+        rules_rows.append((rule_cls.name, get_rule_category(rule_cls), description))
     formatter.write_table(rules_rows, col_widths=[22, 22, 100], header=True)
     click.echo()
     click.echo(formatter.getvalue())

@@ -1,47 +1,74 @@
 import os.path
-from typing import Type, cast, Optional, Any
 
 from vertagus.core.project import Project
 from vertagus.core.stage import Stage
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import (
-    SingleVersionRuleProtocol,
-    ConfigurableSingleVersionRule,
-    VersionComparisonRule,
-    is_configurable_single_version_rule
-)
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
+from vertagus.errors import ConfigurationError
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.scm_base import ScmBase
 
 from vertagus.providers.scm.registry import get_scm_cls
 from vertagus.providers.manifest.registry import get_manifest_cls
 from vertagus.aliases.loader import get_aliases
-from vertagus.rules.single_version.loader import get_rules as get_single_version_rules
-from vertagus.rules.comparison.loader import get_rules as get_version_comparison_rules
+from vertagus.rules.registry import get_rule
 from vertagus.bumpers.registry import get_bumper_cls, BumperBase
 
 
 from .configuration import types as t
 
 
+def create_rules(
+    rule_items: list[str | dict],
+) -> tuple[list[SingleVersionRule], list[ComparisonRule], list[ManifestsComparisonRule]]:
+    """Parse a flat list of rule items and return categorized rule instances."""
+    single_version_rules: list[SingleVersionRule] = []
+    comparison_rules: list[ComparisonRule] = []
+    manifest_comparison_rules: list[ManifestsComparisonRule] = []
+
+    for item in rule_items:
+        if isinstance(item, str):
+            rule_name = item
+            config = {}
+        elif isinstance(item, dict):
+            rule_name = item["type"]
+            config = item.get("config", {})
+        else:
+            raise ConfigurationError(
+                f"Invalid rule item: {item!r}. Each rule must be either a rule name, or a "
+                "mapping with a `type` key and an optional `config` key."
+            )
+
+        rule_cls = get_rule(rule_name)
+        rule_instance = rule_cls(config=config)
+
+        if isinstance(rule_instance, ManifestsComparisonRule):
+            manifest_comparison_rules.append(rule_instance)
+        elif isinstance(rule_instance, ComparisonRule):
+            comparison_rules.append(rule_instance)
+        elif isinstance(rule_instance, SingleVersionRule):
+            single_version_rules.append(rule_instance)
+        else:
+            raise ValueError(f"Unknown rule type: {rule_cls}")
+
+    return single_version_rules, comparison_rules, manifest_comparison_rules
+
+
 def create_project(data: t.ProjectData) -> Project:
+    sv_rules, comp_rules, manifest_rules = create_rules(data.rules.rules)
     return Project(
         manifests=create_manifests(data.manifests, data.root),
-        current_version_rules=create_single_version_rules(data.rules.current),
-        version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
-        manifest_versions_comparison_rules=create_manifest_comparison_rules(
-            ["manifests_comparison"], {"manifests": data.rules.manifest_comparisons}
-        )
-        if data.rules.manifest_comparisons
-        else [],
+        current_version_rules=sv_rules,
+        version_increment_rules=comp_rules,
+        manifest_versions_comparison_rules=manifest_rules,
         stages=create_stages(data.stages, data.root) if data.stages else None,
         aliases=create_aliases((data.aliases or [])),
         bumper=create_bumper(data.bumper) if data.bumper else None,
     )
 
 
-def create_manifests(manifest_data: list[t.ManifestData], root: Optional[str] = None) -> list[ManifestBase]:
+def create_manifests(manifest_data: list[t.ManifestData], root: str | None = None) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
         if root:
@@ -51,61 +78,21 @@ def create_manifests(manifest_data: list[t.ManifestData], root: Optional[str] = 
     return manifests
 
 
-def create_single_version_rules(rule_items: list[str]) -> list[SingleVersionRuleProtocol]:
-    rule_names = []
-    rule_configurations = {}
-    for item in rule_items:
-        if isinstance(item, str):
-            rule_names.append(item)
-        elif isinstance(item, dict):
-            rule_names.append(item["type"])
-            rule_configurations[item["type"]] = item.get("config", {})
-        else:
-            raise ValueError(f"Invalid rule item: {item}")
-
-    rules = get_single_version_rules(rule_names)
-    final_rules = []
-    for rule in rules:
-        if is_configurable_single_version_rule(rule):
-            rule = cast(Type[ConfigurableSingleVersionRule], rule)
-            final_rules.append(rule(rule_configurations.get(rule.name, {})))
-        else:
-            final_rules.append(rule)
-    return final_rules
-
-
-def create_version_comparison_rules(rule_names: list[str], config) -> list[VersionComparisonRule]:
-    rule_classes = get_version_comparison_rules(rule_names)
-    return [rule_cls(config=config) for rule_cls in rule_classes]
-
-
-def create_manifest_comparison_rules(rule_names: list[str], config) -> list[ManifestsComparisonRule]:
-    def _cast(cls: Type[VersionComparisonRule]) -> Type[ManifestsComparisonRule]:
-        return cast(Type[ManifestsComparisonRule], cls)
-
-    rule_classes = get_version_comparison_rules(rule_names)
-    rule_classes = [_cast(rule_cls) for rule_cls in rule_classes]
-    return [rule_cls(config=config) for rule_cls in rule_classes]
-
-
-def create_aliases(alias_names: list[str]) -> list[Type[AliasBase]]:
+def create_aliases(alias_names: list[str]) -> list[type[AliasBase]]:
     return get_aliases(alias_names)
 
 
-def create_stages(stage_data: list[t.StageData], project_root: Optional[str] = None) -> list[Stage]:
+def create_stages(stage_data: list[t.StageData], project_root: str | None = None) -> list[Stage]:
     stages = []
     for data in stage_data:
+        sv_rules, comp_rules, manifest_rules = create_rules(data.rules.rules)
         stages.append(
             Stage(
                 name=data.name,
                 manifests=create_manifests(data.manifests, project_root),
-                current_version_rules=create_single_version_rules(data.rules.current),
-                version_increment_rules=create_version_comparison_rules(data.rules.increment, {}),
-                manifest_versions_comparison_rules=create_manifest_comparison_rules(
-                    ["manifests_comparison"], {"manifests": data.rules.manifest_comparisons}
-                )
-                if data.rules.manifest_comparisons
-                else [],
+                current_version_rules=sv_rules,
+                version_increment_rules=comp_rules,
+                manifest_versions_comparison_rules=manifest_rules,
                 aliases=create_aliases((data.aliases or [])),
                 bumper=create_bumper(data.bumper) if data.bumper else None,
             )

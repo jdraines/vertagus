@@ -1,7 +1,6 @@
 from vertagus.core.manifest_base import ManifestBase
 import json
 import os.path
-from typing import Optional
 
 
 class JsonManifest(ManifestBase):
@@ -39,7 +38,7 @@ class JsonManifest(ManifestBase):
         cls,
         content: str,
         name: str,
-        loc: Optional[list[str]] = None,
+        loc: list[str] | None = None,
     ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for JsonManifest")

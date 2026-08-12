@@ -4,10 +4,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 from vertagus.core.rule_bases import (
-    SingleVersionRuleProtocol,
     SingleVersionRule,
-    ConfigurableSingleVersionRule,
-    VersionComparisonRule
+    ComparisonRule,
 )
 from vertagus.core.project import (
     Project,
@@ -29,6 +27,17 @@ def mock_manifests():
 
 
 @pytest.fixture
+def mock_second_manifest():
+    manifest = ManifestBase(
+        name="mock_second_manifest",
+        path="mock_second_manifest_path",
+        loc=["mock_manifest_loc"]
+    )
+    manifest.version = "0.0.0"
+    return manifest
+
+
+@pytest.fixture
 def mock_manifest_higher_version():
     manifest = ManifestBase(
         name="mock_manifest_higher_version",
@@ -42,15 +51,16 @@ def mock_manifest_higher_version():
 def mock_current_version_rule_pass():
     class MockCurrentVersionRulePass(SingleVersionRule):
         name = "mock_current_version_rule"
-        @classmethod
-        def validate_version(cls, version: str):
+        def validate_version(self, version: str):
             return True
-    return MockCurrentVersionRulePass
+    return MockCurrentVersionRulePass()
 
 @pytest.fixture
 def mock_configurable_current_version_rule_pass():
-    class MockConfigurableCurrentVersionRulePass(ConfigurableSingleVersionRule):
+    class MockConfigurableCurrentVersionRulePass(SingleVersionRule):
         name = "mock_configurable_current_version_rule"
+        def __init__(self, config: dict):
+            super().__init__(config)
         def validate_version(self, version: str):
             return True
     return MockConfigurableCurrentVersionRulePass({"key": "value"})
@@ -60,7 +70,7 @@ def mock_configurable_current_version_rule_pass():
 def mock_current_version_rules(
     mock_current_version_rule_pass,
     mock_configurable_current_version_rule_pass
-) -> list[SingleVersionRuleProtocol]:
+) -> list[SingleVersionRule]:
     return [mock_current_version_rule_pass, mock_configurable_current_version_rule_pass]
 
 
@@ -68,28 +78,27 @@ def mock_current_version_rules(
 def mock_current_version_rule_fail():
     class MockCurrentVersionRuleFail(SingleVersionRule):
         name = "mock_current_version_rule_fail"
-        @classmethod
-        def validate_version(cls, version: str):
+        def validate_version(self, version: str):
             return False
-    return MockCurrentVersionRuleFail
+    return MockCurrentVersionRuleFail()
 
 
 @pytest.fixture
 def mock_version_increment_rules():
-    class MockVersionIncrementRule(VersionComparisonRule):
+    class MockVersionIncrementRule(ComparisonRule):
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-    return [MockVersionIncrementRule({})]
+    return [MockVersionIncrementRule()]
 
 
 @pytest.fixture
 def mock_version_increment_rule_fail():
-    class MockVersionIncrementRule(VersionComparisonRule):
+    class MockVersionIncrementRule(ComparisonRule):
         name = "mock_version_increment_rule_fail"
         def validate_comparison(self, versions: T.Sequence[str]):
             return False
-    return MockVersionIncrementRule({})
+    return MockVersionIncrementRule()
 
 
 @pytest.fixture
@@ -98,8 +107,8 @@ def mock_manifest_versions_comparison_rules():
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-        
-    config = {"manifests": ["mock_manifest"]}
+
+    config = {"manifests": ["mock_manifest", "mock_second_manifest"]}
     return [MockManifetVersionsComparisonRule(config)]
 
 
@@ -109,15 +118,15 @@ def mock_manifest_versions_comparison_rule_fail():
         name = "mock_version_increment_rule_fail"
         def validate_comparison(self, versions: T.Sequence[str]):
             return False
-        
-    config = {"manifests": ["mock_manifest"]}
+
+    config = {"manifests": ["mock_manifest", "mock_second_manifest"]}
     return MockManifetVersionsComparisonRuleFail(config)
 
 
 @pytest.fixture
 def mock_alias():
     class MockAlias(AliasBase):
-        
+
         def as_string(self, prefix: str = None) -> str:
             return f"{prefix}test-{self.tag_text}"
     return MockAlias
@@ -126,7 +135,7 @@ def mock_alias():
 @pytest.fixture
 def mock_proj_alias():
     class MockProjAlias(AliasBase):
-        
+
         def as_string(self, prefix: str = None) -> str:
             return f"{prefix}projtest-{self.tag_text}"
     return MockProjAlias
@@ -134,13 +143,14 @@ def mock_proj_alias():
 
 @pytest.fixture
 def mock_stage(mock_manifests,
+               mock_second_manifest,
                mock_current_version_rules,
                mock_version_increment_rules,
                mock_manifest_versions_comparison_rules
                ):
     return Stage(
         name='test_stage',
-        manifests=mock_manifests,
+        manifests=mock_manifests + [mock_second_manifest],
         current_version_rules=mock_current_version_rules,
         version_increment_rules=mock_version_increment_rules,
         manifest_versions_comparison_rules=mock_manifest_versions_comparison_rules
@@ -166,9 +176,9 @@ def mock_stage_with_alias(mock_manifests,
 
 @pytest.fixture
 def test_project(mock_manifests: list[ManifestBase],
-                 mock_current_version_rules: list[SingleVersionRuleProtocol],
-                 mock_version_increment_rules: list[T.Type[VersionComparisonRule]],
-                 mock_manifest_versions_comparison_rules: list[T.Type[ManifestsComparisonRule]],
+                 mock_current_version_rules: list[SingleVersionRule],
+                 mock_version_increment_rules: list[ComparisonRule],
+                 mock_manifest_versions_comparison_rules: list[ManifestsComparisonRule],
                  mock_stage: Stage
                  ):
     return Project(
@@ -248,8 +258,8 @@ def test_run_current_version_rules(
 def test_run_version_increment_rules(
     mock_get_version_increment_rules: MagicMock,
     test_project: Project,
-    mock_version_increment_rule_fail: VersionComparisonRule,
-    mock_version_increment_rules: list[VersionComparisonRule]
+    mock_version_increment_rule_fail: ComparisonRule,
+    mock_version_increment_rules: list[ComparisonRule]
 ):
     mock_get_version_increment_rules.return_value = [mock_version_increment_rule_fail]
     assert not test_project._run_version_increment_rules("0.0.0", "0.0.1", "test_stage")
@@ -293,9 +303,19 @@ def test__get_current_version_rules(test_project: Project,
     assert test_project._get_current_version_rules("test_stage") == mock_current_version_rules + [mock_current_version_rule_fail]
 
 
+def test__get_current_version_rules_dedupes_distinct_instances(
+    test_project: Project,
+    mock_current_version_rules: list[SingleVersionRule],
+):
+    from vertagus.rules.single_version.library import NotEmpty
+    test_project._current_version_rules = mock_current_version_rules + [NotEmpty()]
+    test_project._stages[0]._current_version_rules = [NotEmpty()]
+    assert test_project._get_current_version_rules("test_stage") == mock_current_version_rules + [NotEmpty()]
+
+
 def test__get_version_increment_rules(test_project: Project,
-                                     mock_version_increment_rules: list[VersionComparisonRule],
-                                     mock_version_increment_rule_fail: VersionComparisonRule
+                                     mock_version_increment_rules: list[ComparisonRule],
+                                     mock_version_increment_rule_fail: ComparisonRule
                                      ):
     assert test_project._get_version_increment_rules() == mock_version_increment_rules
     assert test_project._get_version_increment_rules("test_stage") == mock_version_increment_rules
@@ -316,11 +336,12 @@ def test__get_manifest_versions_comparison_rules(test_project: Project,
 def test__get_manifests(test_project: Project,
                         mock_stage: Stage,
                         mock_manifests: list[ManifestBase],
+                        mock_second_manifest: ManifestBase,
                         mock_manifest_higher_version: ManifestBase
                         ):
     assert mock_manifest_higher_version.version == "0.0.1"
     assert test_project._get_manifests() == mock_manifests
-    assert test_project._get_manifests("test_stage") == mock_manifests
+    assert test_project._get_manifests("test_stage") == mock_manifests + [mock_second_manifest]
     test_project._stages = [copy(mock_stage)]
     test_project._stages[0]._manifests = [mock_manifest_higher_version]
     assert len(test_project._get_manifests("test_stage")) == 2
@@ -341,7 +362,7 @@ def test_get_aliases(test_project: Project,
                      ):
     test_project._stages = [mock_stage_with_alias]
     test_project.aliases = [mock_proj_alias]
-    aliases = test_project.get_aliases("test_stage") 
+    aliases = test_project.get_aliases("test_stage")
     alias_strs = [alias.as_string("prefix-") for alias in aliases]
     assert alias_strs == ["prefix-projtest-0.0.0", "prefix-test-0.0.0"]
 

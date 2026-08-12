@@ -1,12 +1,12 @@
-import typing as T
 from logging import getLogger
 from copy import copy
 
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRuleProtocol, VersionComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.bumper_base import BumperBase
+from vertagus.errors import ConfigurationError
 from .package_base import Package
 from .stage import Stage
 
@@ -25,12 +25,12 @@ class Project(Package):
     def __init__(
         self,
         manifests: list[ManifestBase],
-        current_version_rules: list[SingleVersionRuleProtocol],
-        version_increment_rules: list[VersionComparisonRule],
+        current_version_rules: list[SingleVersionRule],
+        version_increment_rules: list[ComparisonRule],
         manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-        stages: T.Optional[list[Stage]] = None,
-        aliases: T.Optional[list[type[AliasBase]]] = None,
-        bumper: T.Optional[BumperBase] = None,
+        stages: list[Stage] | None = None,
+        aliases: list[type[AliasBase]] | None = None,
+        bumper: BumperBase | None = None,
     ):
         super().__init__(
             manifests=manifests,
@@ -46,13 +46,13 @@ class Project(Package):
     def stages(self):
         return self._stages
 
-    def get_version(self, stage_name: T.Optional[str] = None):
+    def get_version(self, stage_name: str | None = None):
         manifests = self._get_manifests(stage_name)
         if not manifests:
             raise ValueError("No manifests found.")
         return manifests[0].version
 
-    def get_aliases(self, stage_name: T.Optional[str] = None) -> list[AliasBase]:
+    def get_aliases(self, stage_name: str | None = None) -> list[AliasBase]:
         version = self.get_version()
         aliases = self._get_version_aliases(version)
         if stage_name:
@@ -60,7 +60,7 @@ class Project(Package):
             aliases.extend(stage.get_version_aliases(version))
         return list(dict.fromkeys(aliases).keys())
 
-    def validate_version(self, previous_version: str, stage_name: T.Optional[str] = None):
+    def validate_version(self, previous_version: str, stage_name: str | None = None):
         primary_manifest = self._get_manifests(stage_name)[0]
         current_version = self.get_version(stage_name)
         logger.info(
@@ -80,7 +80,7 @@ class Project(Package):
             return validated
         return self._run_manifest_versions_comparison_rules(stage_name)
 
-    def bump_version(self, stage_name: T.Optional[str] = None, write: bool = True, **bumper_kwargs):
+    def bump_version(self, stage_name: str | None = None, write: bool = True, **bumper_kwargs):
         if not self.bumper:
             raise NoBumperDefinedError("Bumper is not set for the project.")
 
@@ -121,9 +121,22 @@ class Project(Package):
         for rule in self._get_manifest_versions_comparison_rules(stage_name):
             if not rule.manifest_names:
                 continue
-            manifests = [m for m in self._get_manifests(stage_name) if m.name in rule.manifest_names]
-            if not manifests:
-                raise ValueError(f"Manifests {rule.manifest_names} not found.")
+            available = self._get_manifests(stage_name)
+            manifests = [m for m in available if m.name in rule.manifest_names]
+            found = {m.name for m in manifests}
+            missing = [name for name in rule.manifest_names if name not in found]
+            if missing:
+                known = sorted(m.name for m in available)
+                raise ConfigurationError(
+                    f"The {rule.name!r} rule names manifest(s) {missing} that are not defined"
+                    + (f" for stage {stage_name!r}" if stage_name else "")
+                    + f". Known manifests: {known or 'none'}."
+                )
+            if len(manifests) < 2:
+                raise ConfigurationError(
+                    f"The {rule.name!r} rule needs at least two manifests to compare, "
+                    f"but only {len(manifests)} was configured: {rule.manifest_names}."
+                )
             versions = [m.version for m in manifests]
             logger.info(f"Validating rule {rule.name!r} for {versions}")
             validated = rule.validate_comparison(versions)
@@ -139,14 +152,14 @@ class Project(Package):
             manifests.extend(stage.manifests)
         return list(dict.fromkeys(manifests).keys())
 
-    def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRuleProtocol]:
+    def _get_current_version_rules(self, stage_name=None) -> list[SingleVersionRule]:
         rules = self._current_version_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)
             rules.extend(stage.current_version_rules)
         return list(dict.fromkeys(rules).keys())
 
-    def _get_version_increment_rules(self, stage_name=None) -> list[VersionComparisonRule]:
+    def _get_version_increment_rules(self, stage_name=None) -> list[ComparisonRule]:
         rules = self._version_increment_rules.copy()
         if stage_name:
             stage = self._get_stage(stage_name)

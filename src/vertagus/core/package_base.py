@@ -1,15 +1,15 @@
 import typing as T
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.rules.comparison.library import ManifestsComparisonRule
-from vertagus.core.rule_bases import SingleVersionRuleProtocol, VersionComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 
 
 class Package:
     def __init__(
         self,
         manifests: list[ManifestBase],
-        current_version_rules: list[SingleVersionRuleProtocol],
-        version_increment_rules: list[VersionComparisonRule],
+        current_version_rules: list[SingleVersionRule],
+        version_increment_rules: list[ComparisonRule],
         manifest_versions_comparison_rules: T.Sequence[ManifestsComparisonRule],
     ):
         self._manifests = manifests or []

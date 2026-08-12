@@ -76,13 +76,11 @@ scm:
   version_strategy: tag
 project:
   rules:
-    current:
-      - not_empty
-      - type: custom_regex
-        config:
-          pattern: '^1.+'
-    increment:
-      - any_increment
+    - not_empty
+    - type: custom_regex
+      config:
+        pattern: '^1.+'
+    - any_increment
   manifests:
     - type: setuptools_pyproject
       path: ./pyproject.toml
@@ -92,15 +90,13 @@ project:
   stages:
     dev:
       rules:
-        current:
-          - regex_dev_mmp
+        - regex_dev_mmp
     prod:
       aliases:
         - string:latest
         - major.minor
       rules:
-        current:
-          - regex_mmp
+        - regex_mmp
 ```
 
 **Version strategies**

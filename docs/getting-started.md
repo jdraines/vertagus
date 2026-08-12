@@ -4,7 +4,7 @@ This guide will help you get up and running with Vertagus quickly.
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.11 or higher
 - Git repository for your project
 - A project manifest file (e.g., `pyproject.toml`, `package.json`, etc.)
 
@@ -60,20 +60,15 @@ scm:
   manifest_loc: "version"
 
 project:
-  rules:
-    current: ["not_empty"]
-    increment: ["any_increment"]
-    manifest_comparisons: []
+  rules: ["not_empty", "any_increment"]
 
   stages:
     dev:
-      rules:
-        current: ["regex_dev_mmp"]
+      rules: ["regex_dev_mmp"]
     
     prod:
       aliases: ["string:stable", "string:latest", "major.minor"]
-      rules:
-        current: ["regex_mmp"]
+      rules: ["regex_mmp"]
 
   manifests:
     - type: "json"

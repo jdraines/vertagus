@@ -146,11 +146,9 @@ _BRANCH_VERSION_STRATGEGY_CONFIG_BLOCK = """\
 _PROJECT_BLOCK = """\
 project:
   rules:
-    current:
-      - not_empty
-      {regex_mmp_rule}
-    increment:
-      - any_increment
+    - not_empty
+    {regex_mmp_rule}
+    - any_increment
   aliases:
     - string:latest
     {major_minor_alias}
@@ -160,7 +158,7 @@ project:
       path: {manifest_path}
       {loc_block}
       name: primary_manifest
-  
+
   bumper:
     type: {bumper_type}
 
@@ -170,12 +168,10 @@ _STAGES_BLOCK = """\
   stages:
     dev:
       rules:
-        current:
-          - regex_dev_mmp
+        - regex_dev_mmp
     prod:
       aliases:
         - major.minor
       rules:
-        current:
-          - regex_mmp  
+        - regex_mmp
 """

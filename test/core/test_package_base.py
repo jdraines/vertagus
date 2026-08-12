@@ -2,7 +2,7 @@ import pytest
 import typing as T
 from vertagus.core import package_base as pb
 from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRule, VersionComparisonRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 
 
@@ -19,19 +19,18 @@ def mock_manifests():
 def mock_current_version_rules():
     class MockCurrentVersionRule(SingleVersionRule):
         name = "mock_current_version_rule"
-        @classmethod
-        def validate_version(cls, version: str):
+        def validate_version(self, version: str):
             return True
-    return [MockCurrentVersionRule]
+    return [MockCurrentVersionRule()]
 
 
 @pytest.fixture
 def mock_version_increment_rules():
-    class MockVersionIncrementRule(VersionComparisonRule):
+    class MockVersionIncrementRule(ComparisonRule):
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-    return [MockVersionIncrementRule({})]
+    return [MockVersionIncrementRule()]
 
 
 @pytest.fixture
@@ -40,16 +39,16 @@ def mock_manifest_versions_comparison_rules():
         name = "mock_version_increment_rule"
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
-        
+
     config = {"manifests": ["test_manifest"]}
     return [MockManifetVersionsComparisonRule(config)]
 
 
 @pytest.fixture
 def package(mock_manifests: list[ManifestBase],
-            mock_current_version_rules: list[T.Type[SingleVersionRule]],
-            mock_version_increment_rules: list[T.Type[VersionComparisonRule]],
-            mock_manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]],
+            mock_current_version_rules: list[SingleVersionRule],
+            mock_version_increment_rules: list[ComparisonRule],
+            mock_manifest_versions_comparison_rules: list[ManifestsComparisonRule],
             ):
     return pb.Package(
         mock_manifests,
@@ -61,9 +60,9 @@ def package(mock_manifests: list[ManifestBase],
 
 def test_init_package(package: pb.Package,
                       mock_manifests: list[ManifestBase],
-                      mock_current_version_rules: list[T.Type[SingleVersionRule]],
-                      mock_version_increment_rules: list[T.Type[VersionComparisonRule]],
-                      mock_manifest_versions_comparison_rules: list[T.Type[VersionComparisonRule]]
+                      mock_current_version_rules: list[SingleVersionRule],
+                      mock_version_increment_rules: list[ComparisonRule],
+                      mock_manifest_versions_comparison_rules: list[ManifestsComparisonRule]
                       ):
     assert package._manifests == mock_manifests
     assert package._current_version_rules == mock_current_version_rules

@@ -1,7 +1,6 @@
 from vertagus.core.manifest_base import ManifestBase
 import yaml
 import os.path
-from typing import Optional
 
 
 class YamlManifest(ManifestBase):
@@ -46,7 +45,7 @@ class YamlManifest(ManifestBase):
         cls,
         content: str,
         name: str,
-        loc: Optional[list[str]] = None,
+        loc: list[str] | None = None,
     ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for YamlManifest")

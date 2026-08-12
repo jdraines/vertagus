@@ -1,22 +1,20 @@
-import typing as T
 from . import library
-from vertagus.core.rule_bases import VersionComparisonRule
+from vertagus.core.rule_bases import ComparisonRule
 
 
-def load_rules():
+def load_rules() -> list[type[ComparisonRule]]:
     _rules = []
     for objname in dir(library):
         maybeobj = getattr(library, objname)
-        if isinstance(maybeobj, type) and issubclass(maybeobj, VersionComparisonRule):
-            obj: T.Type[VersionComparisonRule] = maybeobj
+        if isinstance(maybeobj, type) and issubclass(maybeobj, ComparisonRule):
+            obj: type[ComparisonRule] = maybeobj
             if obj.name != "base":
                 _rules.append(obj)
     return _rules
 
 
-def get_rules(rule_names=None) -> list[T.Type[VersionComparisonRule]]:
+def get_rules(rule_names=None) -> list[type[ComparisonRule]]:
     rules = load_rules()
-    rules: list[T.Type[VersionComparisonRule]] = rules
     if rule_names is None:
         rule_names = [rule.name for rule in rules]
     not_found = set(rule_names) - {rule.name for rule in rules}

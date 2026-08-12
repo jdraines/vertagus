@@ -1,6 +1,6 @@
 from logging import getLogger
 import yaml
-import tomli
+import tomllib
 
 logger = getLogger(__name__)
 
@@ -17,9 +17,9 @@ def is_yaml(doc, filepath: str = None) -> bool:
 
 def is_toml(doc: str, filepath: str = None) -> bool:
     try:
-        tomli.loads(doc)
+        tomllib.loads(doc)
         return True
-    except tomli.TOMLDecodeError as e:
+    except tomllib.TOMLDecodeError as e:
         if filepath and filepath.endswith(".toml"):
             raise e
         return False

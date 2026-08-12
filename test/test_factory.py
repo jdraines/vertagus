@@ -2,7 +2,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import os
 from vertagus import factory
-from vertagus.core.rule_bases import SingleVersionRule
+from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
+from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.configuration import types as t
 from vertagus.core.scm_base import ScmBase
 
@@ -11,7 +12,7 @@ class DummyManifest:
     def __init__(self, **kwargs):
         pass
 
-    
+
 @pytest.fixture
 def mock_manifest_cls(monkeypatch):
     mock = MagicMock(return_value=DummyManifest)
@@ -32,23 +33,62 @@ def test_create_manifests(mock_manifest_cls):
         assert isinstance(item, DummyManifest)
 
 
-@pytest.fixture
-def mock_single_version_rules(monkeypatch):
-    mock_rule_getter = MagicMock()
-    monkeypatch.setattr(factory, "get_single_version_rules", mock_rule_getter)
-    return mock_rule_getter
-
-def test_create_single_version_rules(mock_single_version_rules):
-    rule_names = ["rule1", "rule2", "rule3"]
-
-    result = factory.create_single_version_rules(rule_names)
-
-    # Verify that the 'get_single_version_rules' function was called with the correct arguments
-    mock_single_version_rules.assert_called_with(rule_names)
-
-    # We verify that a list of SingleVersionRule instances is returned
-    for item in result:
+@pytest.mark.parametrize(
+    ["rule_items"],
+    [
+        [["regex_mmp", "regex_dev_mmp", "regex_beta_mmp"]],
+        [[{
+            "type": "custom_regex",
+            "config": {"pattern": r"^\d+\.\d+\.\d+$"}
+        }]],
+        [[
+            "not_empty",
+            "regex_dev_mm",
+            {"type": "custom_regex", "config": {"pattern": r"^\d+\.\d+$"}}
+        ]],
+    ]
+)
+def test_create_rules_single_version(rule_items):
+    sv_rules, comp_rules, manifest_rules = factory.create_rules(rule_items)
+    assert len(sv_rules) == len(rule_items)
+    for item in sv_rules:
         assert isinstance(item, SingleVersionRule)
+    assert len(comp_rules) == 0
+    assert len(manifest_rules) == 0
+
+
+def test_create_rules_comparison():
+    rule_items = ["any_increment"]
+    sv_rules, comp_rules, manifest_rules = factory.create_rules(rule_items)
+    assert len(sv_rules) == 0
+    assert len(comp_rules) == 1
+    assert isinstance(comp_rules[0], ComparisonRule)
+    assert len(manifest_rules) == 0
+
+
+def test_create_rules_manifest_comparison():
+    rule_items = [
+        {"type": "manifests_comparison", "config": {"manifests": ["pyproject", "frontend"]}}
+    ]
+    sv_rules, comp_rules, manifest_rules = factory.create_rules(rule_items)
+    assert len(sv_rules) == 0
+    assert len(comp_rules) == 0
+    assert len(manifest_rules) == 1
+    assert isinstance(manifest_rules[0], ManifestsComparisonRule)
+
+
+def test_create_rules_mixed():
+    rule_items = [
+        "not_empty",
+        "regex_mmp",
+        "any_increment",
+        {"type": "custom_regex", "config": {"pattern": r"^\d+\.\d+\.\d+$"}},
+        {"type": "manifests_comparison", "config": {"manifests": ["a", "b"]}},
+    ]
+    sv_rules, comp_rules, manifest_rules = factory.create_rules(rule_items)
+    assert len(sv_rules) == 3  # not_empty, regex_mmp, custom_regex
+    assert len(comp_rules) == 1  # any_increment
+    assert len(manifest_rules) == 1  # manifests_comparison
 
 
 @pytest.fixture
@@ -67,15 +107,15 @@ def mock_scm_cls():
                     ):
             self.root = root or os.getcwd()
             self.tag_prefix = tag_prefix
-            self.user_data = user_data 
+            self.user_data = user_data
             self.remote_name = remote_name
 
         def create_tag(self, tag, ref: str=None):
             pass
-        
+
         def delete_tag(self, tag_name: str):
             pass
-        
+
         def list_tags(self, prefix: str=None):
             return ["tag1", "tag2", "tag3"]
 
@@ -106,17 +146,17 @@ def test_create_scm_with_branch_strategy():
         manifest_type="setuptools_pyproject",
         tag_prefix="v"
     )
-    
+
     mock_scm_class = MagicMock(spec=ScmBase)
-    
+
     with patch('vertagus.factory.get_scm_cls') as mock_get_scm_cls:
         mock_get_scm_cls.return_value = mock_scm_class
-        
+
         factory.create_scm(branch_scm_data)
-        
+
         # Verify the correct SCM class was requested
         mock_get_scm_cls.assert_called_once_with("git")
-        
+
         # Verify the SCM was instantiated with correct parameters including manifest info
         mock_scm_class.assert_called_once_with(
             root="/test/path",
@@ -136,17 +176,17 @@ def test_create_scm_with_tag_strategy():
         version_strategy="tag",
         tag_prefix="v"
     )
-    
+
     mock_scm_class = MagicMock(spec=ScmBase)
-    
+
     with patch('vertagus.factory.get_scm_cls') as mock_get_scm_cls:
         mock_get_scm_cls.return_value = mock_scm_class
-        
+
         factory.create_scm(tag_scm_data)
-        
+
         # Verify the correct SCM class was requested
         mock_get_scm_cls.assert_called_once_with("git")
-        
+
         # Verify the SCM was instantiated with correct parameters
         mock_scm_class.assert_called_once_with(
             root="/test/path",
@@ -164,9 +204,9 @@ def test_scm_data_config_includes_branch_parameters():
         target_branch="main",
         tag_prefix="v"
     )
-    
+
     config = branch_scm_data.config()
-    
+
     assert config["version_strategy"] == "branch"
     assert config["target_branch"] == "main"
     assert config["root"] == "/test/path"
@@ -181,9 +221,9 @@ def test_scm_data_config_excludes_none_target_branch():
         version_strategy="tag",
         tag_prefix="v"
     )
-    
+
     config = tag_scm_data.config()
-    
+
     assert config["version_strategy"] == "tag"
     assert "target_branch" not in config
     assert config["root"] == "/test/path"
@@ -200,9 +240,9 @@ def test_scm_data_config_includes_manifest_parameters():
         manifest_type="setuptools_pyproject",
         tag_prefix="v"
     )
-    
+
     config = branch_scm_data.config()
-    
+
     assert config["version_strategy"] == "branch"
     assert config["target_branch"] == "main"
     assert config["manifest_path"] == "pyproject.toml"
@@ -215,32 +255,12 @@ def test_scm_data_config_includes_manifest_parameters():
 def project_data():
     return t.ProjectData(
         manifests=[t.ManifestData(name="test_manifest", type="dummy_type", path="test_path", loc=["1", "2"])],
-        rules=t.RulesData(current=["rule1", "rule2"], increment=["rule3"]),
+        rules=t.RulesData(rules=["rule1", "rule2", "rule3"]),
         stages=[
             t.StageData(
                 name="stage1",
                 manifests=[t.ManifestData(name="test_manifest", type="dummy_type", path="test_path", loc=["1", "2"])],
-                rules=t.RulesData(current=["rule1", "rule2"], increment=["rule3"])
+                rules=t.RulesData(rules=["rule1", "rule2", "rule3"])
             )],
         aliases=["alias1", "alias2"]
     )
-
-
-@pytest.mark.parametrize(
-    ["rule_items"],
-    [
-        [["regex_mmp", "regex_dev_mmp", "regex_beta_mmp"]],
-        [[{
-            "type": "custom_regex",
-            "config": {"pattern": r"^\d+\.\d+\.\d+$"}
-        }]],
-        [[
-            "not_empty", 
-            "regex_dev_mm",
-            {"type": "custom_regex", "config": {"pattern": r"^\d+\.\d+$"}}
-        ]],
-    ]
-)
-def test_create_single_version_rules(rule_items):
-    result = factory.create_single_version_rules(rule_items)
-    assert len(result) == len(rule_items)

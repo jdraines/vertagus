@@ -1,8 +1,9 @@
 from packaging import version
-from vertagus.core.rule_bases import VersionComparisonRule
+from vertagus.core.rule_bases import ComparisonRule
+from vertagus.errors import ConfigurationError
 
 
-class Increasing(VersionComparisonRule):
+class Increasing(ComparisonRule):
     name = "any_increment"
     description = "Version must be greater than the previous one."
 
@@ -13,11 +14,21 @@ class Increasing(VersionComparisonRule):
         return version.parse(version1) < version.parse(version2)
 
 
-class ManifestsComparisonRule(VersionComparisonRule):
+class ManifestsComparisonRule(ComparisonRule):
     name = "manifests_comparison"
     description = "All manifests must have the same version."
 
     def __init__(self, config: dict):
+        super().__init__(config)
+        if "manifests" not in self.config:
+            raise ConfigurationError(
+                "The `manifests_comparison` rule requires a `manifests` config listing "
+                "the manifest names to compare, e.g.:\n\n"
+                "    rules:\n"
+                "      - type: manifests_comparison\n"
+                "        config:\n"
+                "          manifests: [pyproject, package_json]"
+            )
         self.manifest_names = config["manifests"]
 
     def validate_comparison(self, versions: list[str]):

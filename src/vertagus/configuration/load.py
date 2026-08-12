@@ -1,6 +1,6 @@
 from logging import getLogger
 import yaml
-import tomli
+import tomllib
 from .types import MasterConfig
 from vertagus.utils.config import is_yaml, is_toml
 
@@ -17,7 +17,7 @@ def load_config(filepath: str, suppress_logging=False) -> MasterConfig:
     if is_yaml(doc):
         return yaml.safe_load(doc)
     elif is_toml(doc):
-        return tomli.loads(doc)
+        return tomllib.loads(doc)
     else:
         raise ValueError(
             "Invalid configuration file format. Supported formats are YAML and TOML. "

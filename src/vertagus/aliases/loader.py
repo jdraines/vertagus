@@ -1,10 +1,8 @@
-import typing as T
-
 from . import library
 from vertagus.core.tag_base import AliasBase
 
 
-def load_aliases() -> list[T.Type[AliasBase]]:
+def load_aliases() -> list[type[AliasBase]]:
     _rules = []
     for objname in dir(library):
         maybeobj = getattr(library, objname)
@@ -15,10 +13,10 @@ def load_aliases() -> list[T.Type[AliasBase]]:
     return _rules
 
 
-def get_aliases(alias_names=None) -> list[T.Type[AliasBase]]:
+def get_aliases(alias_names=None) -> list[type[AliasBase]]:
     if not alias_names:
         return []
-    aliases: list[T.Type[AliasBase]] = load_aliases() or []
+    aliases: list[type[AliasBase]] = load_aliases() or []
     not_found = set(alias_names) - {alias.name for alias in aliases}
     if not_found:
         available_alias_names = {alias.name for alias in aliases}

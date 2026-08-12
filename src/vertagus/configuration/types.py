@@ -2,15 +2,16 @@ import typing as T
 from dataclasses import dataclass, field
 import os
 
+from vertagus.errors import ConfigurationError
+
 V = T.TypeVar("V", bound=T.Any)
-DictType = T.Union[T.Dict, T.TypedDict]
 
 
-def getdefault(d: DictType, k: str, default: V) -> V:
+def getdefault(d: T.Mapping[str, T.Any], k: str, default: V) -> V:
     """
     Get a value from a dictionary, returning a default if the key is not present.
     """
-    r: T.Union[V, T.Any] = d.get(k, default)
+    r: V | T.Any = d.get(k, default)
     if r is None:
         r = default
     return r
@@ -18,58 +19,51 @@ def getdefault(d: DictType, k: str, default: V) -> V:
 
 class TypeAndConfig(T.TypedDict):
     type: str
-    config: dict  
+    config: dict
 
 
 class ScmConfigBase(T.TypedDict):
     type: str
-    version_strategy: T.Optional[T.Literal["tag", "branch"]]
-    target_branch: T.Optional[str]
-    manifest_path: T.Optional[str]
-    manifest_type: T.Optional[str]
-    manifest_loc: T.Optional[T.Union[str, list[str]]]
+    version_strategy: T.Literal["tag", "branch"] | None
+    target_branch: str | None
+    manifest_path: str | None
+    manifest_type: str | None
+    manifest_loc: str | list[str] | None
 
 
-ScmConfig = T.Union[ScmConfigBase, dict]
+ScmConfig = ScmConfigBase | dict
 
 
 class BumperConfig(T.TypedDict):
     type: str
-    tag: T.Optional[str]
+    tag: str | None
 
 
 class ProjectConfig(T.TypedDict):
     manifests: list["ManifestConfig"]
     rules: "RulesConfig"
     stages: dict[str, "StageConfig"]
-    aliases: T.Optional[list[str]]
-    root: T.Optional[str]
-    bumper: T.Optional[BumperConfig]
+    aliases: list[str] | None
+    root: str | None
+    bumper: BumperConfig | None
 
 
 class ManifestConfig(T.TypedDict):
     name: str
     type: str
     path: str
-    loc: T.Optional[T.Union[str, list[str]]]
+    loc: str | list[str] | None
 
 
-class ManifestComparisonConfig(T.TypedDict):
-    manifests: list[str]
-
-
-class RulesConfig(T.TypedDict):
-    current: T.Union[list[str], TypeAndConfig]
-    increment: list[str]
-    manifest_comparisons: list[ManifestComparisonConfig]
+RulesConfig = list[str | TypeAndConfig]
 
 
 class StageConfig(T.TypedDict):
     name: str
-    manifests: T.Optional[list[ManifestConfig]]
-    rules: T.Optional["RulesConfig"]
-    aliases: T.Optional[list[str]]
-    bumper: T.Optional[BumperConfig]
+    manifests: list[ManifestConfig] | None
+    rules: RulesConfig | None
+    aliases: list[str] | None
+    bumper: BumperConfig | None
 
 
 class MasterConfig(T.TypedDict):
@@ -77,11 +71,40 @@ class MasterConfig(T.TypedDict):
     scm: ScmConfigBase
 
 
+_OLD_RULES_FORMAT_MESSAGE = """\
+Invalid `rules` configuration: expected a flat list of rules, but found a mapping \
+with the key(s) {keys}.
+
+The config schema changed in vertagus 0.5.0. Rules are no longer grouped under \
+`current`, `increment`, or `manifest_comparisons`. List them all directly under \
+`rules` instead, and vertagus will work out what each rule does.
+
+Before (0.4.x):
+
+    rules:
+      current:
+        - not_empty
+      increment:
+        - any_increment
+
+After (0.5.0):
+
+    rules:
+      - not_empty
+      - any_increment
+
+See https://github.com/jdraines/vertagus/blob/main/docs/configuration.md for details.\
+"""
+
+
 @dataclass
 class RulesData:
-    current: list[str] = field(default_factory=list)
-    increment: list[str] = field(default_factory=list)
-    manifest_comparisons: list[ManifestComparisonConfig] = field(default_factory=list)
+    rules: list[str | dict] = field(default_factory=list)
+
+    def __post_init__(self):
+        if isinstance(self.rules, dict):
+            keys = ", ".join(repr(k) for k in self.rules)
+            raise ConfigurationError(_OLD_RULES_FORMAT_MESSAGE.format(keys=keys))
 
 
 @dataclass
@@ -89,20 +112,20 @@ class ManifestData:
     name: str
     type: str
     path: str
-    loc: T.Optional[list[str]] = None
+    loc: list[str] | None = None
 
     class _OutputConfig(T.TypedDict):
         name: str
         path: str
-        loc: T.Optional[list[str]]
+        loc: list[str] | None
 
-    def __init__(self, name: str, type: str, path: str, loc: T.Union[list[str], str, None] = None):
+    def __init__(self, name: str, type: str, path: str, loc: list[str] | str | None = None):
         self.name = name
         self.type = type
         self.path = path
         self.loc = self._parse_loc(loc)
 
-    def _parse_loc(self, loc: T.Union[list[str], str, None]) -> T.Optional[list[str]]:
+    def _parse_loc(self, loc: list[str] | str | None) -> list[str] | None:
         if isinstance(loc, str):
             return loc.split(".")
         return loc
@@ -129,14 +152,14 @@ class StageData:
         name: str,
         manifests: list[ManifestData],
         rules: RulesData,
-        aliases: T.Optional[list[str]] = None,
-        bumper: T.Optional[BumperData] = None,
+        aliases: list[str] | None = None,
+        bumper: BumperData | None = None,
     ):
         self.name: str = name
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
-        self.aliases: T.Optional[list[str]] = aliases
-        self.bumper: T.Optional[BumperData] = bumper
+        self.aliases: list[str] | None = aliases
+        self.bumper: BumperData | None = bumper
 
     @classmethod
     def from_stage_config(cls, name: str, config: StageConfig):
@@ -149,9 +172,7 @@ class StageData:
             name=name,
             manifests=[ManifestData(**m) for m in manifest_configs],
             rules=RulesData(
-                current=getdefault(getdefault(config, "rules", {}), "current", []),
-                increment=getdefault(getdefault(config, "rules", {}), "increment", []),
-                manifest_comparisons=getdefault(getdefault(config, "rules", {}), "manifest_comparisons", []),
+                rules=getdefault(config, "rules", []),
             ),
             aliases=config.get("aliases", []),
             bumper=bumper_data,
@@ -161,9 +182,7 @@ class StageData:
         return dict(
             name=self.name,
             manifests=[m.config() for m in self.manifests],
-            current_version_rules=self.rules.current,
-            version_increment_rules=self.rules.increment,
-            manifest_versions_comparison_rules=self.rules.manifest_comparisons,
+            rules=self.rules.rules,
             aliases=self.aliases,
             bumper=self.bumper.config() if self.bumper else None,
         )
@@ -174,17 +193,17 @@ class ProjectData:
         self,
         manifests: list[ManifestData],
         rules: RulesData,
-        stages: T.Optional[list[StageData]] = None,
-        aliases: T.Optional[list[str]] = None,
-        root: T.Optional[str] = None,
-        bumper: T.Optional[BumperData] = None,
+        stages: list[StageData] | None = None,
+        aliases: list[str] | None = None,
+        root: str | None = None,
+        bumper: BumperData | None = None,
     ):
         self.manifests: list[ManifestData] = manifests
         self.rules: RulesData = rules
-        self.stages: T.Optional[list[StageData]] = stages
-        self.aliases: T.Optional[list[str]] = aliases
-        self.root: T.Optional[str] = root or os.getcwd()
-        self.bumper: T.Optional[BumperData] = bumper
+        self.stages: list[StageData] | None = stages
+        self.aliases: list[str] | None = aliases
+        self.root: str | None = root or os.getcwd()
+        self.bumper: BumperData | None = bumper
 
     def config(self):
         stages = self.stages or []
@@ -192,9 +211,7 @@ class ProjectData:
         return dict(
             manifests=[m.config() for m in self.manifests],
             stages=[stage.config() for stage in stages],
-            current_version_rules=self.rules.current,
-            version_increment_rules=self.rules.increment,
-            manifest_versions_comparison_rules=self.rules.manifest_comparisons,
+            rules=self.rules.rules,
             aliases=self.aliases,
             root=self.root,
             bumper=self.bumper.config() if self.bumper else None,
@@ -211,9 +228,7 @@ class ProjectData:
         return cls(
             manifests=[ManifestData(**m) for m in manifests],
             rules=RulesData(
-                current=config.get("rules", {}).get("current", []),
-                increment=config.get("rules").get("increment", []),
-                manifest_comparisons=config.get("rules").get("manifest_comparisons", []),
+                rules=config.get("rules", []),
             ),
             stages=[StageData.from_stage_config(name, data) for name, data in stages.items()],
             aliases=config.get("aliases", []),
@@ -226,12 +241,12 @@ class ScmData:
     def __init__(
         self,
         type: str,
-        root: T.Optional[str] = None,
-        version_strategy: T.Optional[T.Literal["tag", "branch"]] = "tag",
-        target_branch: T.Optional[str] = None,
-        manifest_path: T.Optional[str] = None,
-        manifest_type: T.Optional[str] = None,
-        manifest_loc: T.Optional[T.Union[str, list[str]]] = None,
+        root: str | None = None,
+        version_strategy: T.Literal["tag", "branch"] | None = "tag",
+        target_branch: str | None = None,
+        manifest_path: str | None = None,
+        manifest_type: str | None = None,
+        manifest_loc: str | list[str] | None = None,
         **kwargs,
     ):
         self.scm_type = type
@@ -240,7 +255,7 @@ class ScmData:
         self.target_branch = target_branch
         self.manifest_path = manifest_path
         self.manifest_type = manifest_type
-        self.manifest_loc: T.Optional[list[str]] = self._parse_manifest_loc(manifest_loc)
+        self.manifest_loc: list[str] | None = self._parse_manifest_loc(manifest_loc)
         self.kwargs = kwargs
 
     def config(self) -> dict[str, T.Any]:
@@ -255,7 +270,7 @@ class ScmData:
             config_dict["manifest_loc"] = self.manifest_loc
         return config_dict
 
-    def _parse_manifest_loc(self, manifest_loc) -> T.Optional[list[str]]:
+    def _parse_manifest_loc(self, manifest_loc) -> list[str] | None:
         """
         Parse the manifest location into a list of strings.
         """
