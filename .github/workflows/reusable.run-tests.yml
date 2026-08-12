@@ -5,6 +5,32 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    # Lint results do not vary by interpreter, so this runs once rather than
+    # across the test matrix.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Check formatting
+        run: uv run --locked --no-sync ruff format --check .
+
+      - name: Lint
+        run: uv run --locked --no-sync ruff check .
+
   build:
 
     runs-on: ubuntu-latest
