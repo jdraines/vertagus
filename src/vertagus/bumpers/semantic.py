@@ -1,4 +1,3 @@
-import typing as T
 import re
 from packaging import version as versionmod
 
@@ -34,7 +33,7 @@ class SemanticBumper(BumperBase):
             raise SemverBumperException(f"Invalid version format: {version}. Expected format is 'major.minor.patch'.")
         return release[0], release[1], release[2]
 
-    def _extract_tag(self, version: versionmod.Version, versionstr: str) -> T.Union[str, None]:
+    def _extract_tag(self, version: versionmod.Version, versionstr: str) -> str | None:
         """
         Extract the tag from a version string.
         """
@@ -57,7 +56,7 @@ class SemanticBumper(BumperBase):
             return _tag
         raise SemverBumperException(f"Unable to extract tag from version: {version}.")
 
-    def bump(self, version: str, level: T.Optional[str] = None) -> str:
+    def bump(self, version: str, level: str | None = None) -> str:
         """
         Bump the version according to the specified level.
         """
@@ -133,7 +132,7 @@ class SemanticCommitBumper(SemanticBumper):
     name = "semantic_commit"
     inject_scm = True
 
-    def bump(self, version: str, scm: ScmBase, level: T.Optional[str] = None) -> str:
+    def bump(self, version: str, scm: ScmBase, level: str | None = None) -> str:
         """
         Bump the version according to the specified level for commit messages.
         """
@@ -148,7 +147,7 @@ class SemanticCommitBumper(SemanticBumper):
                 determined_level = level
         return super().bump(version, determined_level)
 
-    def determine_bump_level(self, scm: ScmBase, branch: T.Optional[str] = None) -> str:
+    def determine_bump_level(self, scm: ScmBase, branch: str | None = None) -> str:
         """
         Determine the bump level based on commit messages since the last tag.
         """
@@ -187,7 +186,7 @@ class SemanticCommitBumper(SemanticBumper):
 
     def _extract_conventional_commits(
         self, commit_messages: list[str]
-    ) -> list[tuple[str, T.Optional[str], T.Optional[str], str]]:
+    ) -> list[tuple[str, str | None, str | None, str]]:
         """
         Extract conventional commit messages from a list of commit messages.
         """

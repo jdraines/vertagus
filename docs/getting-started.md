@@ -4,7 +4,7 @@ This guide will help you get up and running with Vertagus quickly.
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.11 or higher
 - Git repository for your project
 - A project manifest file (e.g., `pyproject.toml`, `package.json`, etc.)
 

@@ -6,7 +6,7 @@ We welcome contributions to Vertagus! This guide will help you get started with 
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.11 or higher
 - Git
 - just for automation commands (See: https://github.com/casey/just)
 
@@ -158,7 +158,9 @@ just docs build
 ### Python Code Style
 
 - Generally follow PEP 8 guidelines
-- Use type hints ubiquitously, but maintain compatibility with Python 3.9
+- Use type hints ubiquitously, targeting Python 3.11+: prefer built-in generics (`list[str]`,
+  `dict[str, int]`, `type[Foo]`) and PEP 604 unions (`str | None`) over `typing.List`,
+  `typing.Optional`, and `typing.Union`
 - Keep line length under 120 characters
 - Use meaningful variable and function names
 - Limit docstrings; prefer readable tests

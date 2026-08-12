@@ -1,8 +1,7 @@
 from vertagus.core.manifest_base import ManifestBase
-import tomli
+import tomllib
 import tomli_w
 import os.path
-from typing import Optional
 
 
 class TomlManifest(ManifestBase):
@@ -22,7 +21,7 @@ class TomlManifest(ManifestBase):
     def _load_doc(self):
         path = self._full_path()
         with open(path, "rb") as f:
-            return tomli.load(f)
+            return tomllib.load(f)
 
     def _full_path(self):
         path = self.path
@@ -40,11 +39,11 @@ class TomlManifest(ManifestBase):
         cls,
         content: str,
         name: str,
-        loc: Optional[list[str]] = None,
+        loc: list[str] | None = None,
     ) -> str:
         if loc is None:
             raise ValueError("loc must be provided for TomlManifest")
-        manifest_content = tomli.loads(content)
+        manifest_content = tomllib.loads(content)
         return cls._get_version(manifest_content, loc, name)
 
     def update_version(self, version: str, write: bool = True):

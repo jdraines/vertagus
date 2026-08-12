@@ -1,4 +1,6 @@
 import pytest
+
+from vertagus.errors import ConfigurationError
 from unittest.mock import patch, mock_open
 
 from vertagus.configuration import types as configtypes
@@ -168,12 +170,12 @@ def test_rules_data_accepts_flat_list():
 
 
 def test_rules_data_rejects_old_mapping_format():
-    with pytest.raises(ValueError, match="schema changed in vertagus 0.5.0"):
+    with pytest.raises(ConfigurationError, match="schema changed in vertagus 0.5.0"):
         configtypes.RulesData(rules={"current": ["not_empty"], "increment": ["any_increment"]})
 
 
 def test_project_data_rejects_old_mapping_format():
-    with pytest.raises(ValueError, match="schema changed in vertagus 0.5.0"):
+    with pytest.raises(ConfigurationError, match="schema changed in vertagus 0.5.0"):
         configtypes.ProjectData.from_project_config({
             "manifests": [],
             "rules": {"current": ["not_empty"]},

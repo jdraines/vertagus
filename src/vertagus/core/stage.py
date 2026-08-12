@@ -1,4 +1,3 @@
-import typing as T
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
@@ -15,8 +14,8 @@ class Stage(Package):
         current_version_rules: list[SingleVersionRule],
         version_increment_rules: list[ComparisonRule],
         manifest_versions_comparison_rules: list[ManifestsComparisonRule],
-        aliases: T.Optional[list[type[AliasBase]]] = None,
-        bumper: T.Optional[BumperBase] = None,
+        aliases: list[type[AliasBase]] | None = None,
+        bumper: BumperBase | None = None,
     ):
         super().__init__(
             manifests=manifests,

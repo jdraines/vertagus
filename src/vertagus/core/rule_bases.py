@@ -6,7 +6,7 @@ class Rule:
     name: str = "base"
     description: str = "Base class for all rules"
 
-    def __init__(self, config: T.Optional[dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
 
     def __eq__(self, other):

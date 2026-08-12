@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 import yaml
-import tomli
+import tomllib
 from vertagus.utils import config as cfgutils
 
 @patch('vertagus.utils.config.yaml.safe_load')
@@ -23,11 +23,11 @@ def test_is_yaml(safe_load: MagicMock):
         cfgutils.is_yaml(doc, "file.yaml")
 
 
-@patch('vertagus.utils.config.tomli.loads')
+@patch('vertagus.utils.config.tomllib.loads')
 def test_is_toml(loads: MagicMock):
 
     def mock_loads_with_raise(doc):
-        raise tomli.TOMLDecodeError()
+        raise tomllib.TOMLDecodeError("invalid toml", doc, 0)
     
     doc = "key = value"
     cfgutils.is_toml(doc, "file.toml")
@@ -37,6 +37,6 @@ def test_is_toml(loads: MagicMock):
     loads.side_effect = mock_loads_with_raise
     assert not cfgutils.is_toml(doc)
 
-    with pytest.raises(tomli.TOMLDecodeError):
+    with pytest.raises(tomllib.TOMLDecodeError):
         cfgutils.is_toml(doc, "file.toml")
     

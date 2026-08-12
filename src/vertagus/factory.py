@@ -1,11 +1,11 @@
 import os.path
-import typing as T
 
 from vertagus.core.project import Project
 from vertagus.core.stage import Stage
 from vertagus.core.tag_base import AliasBase
 from vertagus.core.manifest_base import ManifestBase
 from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
+from vertagus.errors import ConfigurationError
 from vertagus.rules.comparison.library import ManifestsComparisonRule
 from vertagus.core.scm_base import ScmBase
 
@@ -20,7 +20,7 @@ from .configuration import types as t
 
 
 def create_rules(
-    rule_items: list[T.Union[str, dict]],
+    rule_items: list[str | dict],
 ) -> tuple[list[SingleVersionRule], list[ComparisonRule], list[ManifestsComparisonRule]]:
     """Parse a flat list of rule items and return categorized rule instances."""
     single_version_rules: list[SingleVersionRule] = []
@@ -35,7 +35,10 @@ def create_rules(
             rule_name = item["type"]
             config = item.get("config", {})
         else:
-            raise ValueError(f"Invalid rule item: {item}")
+            raise ConfigurationError(
+                f"Invalid rule item: {item!r}. Each rule must be either a rule name, or a "
+                "mapping with a `type` key and an optional `config` key."
+            )
 
         rule_cls = get_rule(rule_name)
         rule_instance = rule_cls(config=config)
@@ -65,7 +68,7 @@ def create_project(data: t.ProjectData) -> Project:
     )
 
 
-def create_manifests(manifest_data: list[t.ManifestData], root: T.Optional[str] = None) -> list[ManifestBase]:
+def create_manifests(manifest_data: list[t.ManifestData], root: str | None = None) -> list[ManifestBase]:
     manifests = []
     for each in manifest_data:
         if root:
@@ -79,7 +82,7 @@ def create_aliases(alias_names: list[str]) -> list[type[AliasBase]]:
     return get_aliases(alias_names)
 
 
-def create_stages(stage_data: list[t.StageData], project_root: T.Optional[str] = None) -> list[Stage]:
+def create_stages(stage_data: list[t.StageData], project_root: str | None = None) -> list[Stage]:
     stages = []
     for data in stage_data:
         sv_rules, comp_rules, manifest_rules = create_rules(data.rules.rules)

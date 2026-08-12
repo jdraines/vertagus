@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Optional, Any
+from typing import Any
 
 from vertagus.core.project import Project
 from vertagus.core.tag_base import Tag
@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 
 def validate_project_version(
-    scm: ScmBase, project: Project, stage_name: Optional[str] = None, scm_branch: Optional[str] = None
+    scm: ScmBase, project: Project, stage_name: str | None = None, scm_branch: str | None = None
 ) -> bool:
     # Get the previous version using SCM's strategy-aware method
     previous_version = scm.get_highest_version(branch=scm_branch)
@@ -30,7 +30,7 @@ def validate_project_version(
     return result
 
 
-def create_tags(scm: ScmBase, project: Project, stage_name: Optional[str] = None, ref: Optional[str] = None) -> None:
+def create_tags(scm: ScmBase, project: Project, stage_name: str | None = None, ref: str | None = None) -> None:
     tag = Tag(project.get_version())
     scm.create_tag(tag, ref=ref)
     aliases = project.get_aliases(stage_name)
@@ -38,7 +38,7 @@ def create_tags(scm: ScmBase, project: Project, stage_name: Optional[str] = None
         scm.migrate_alias(alias, ref=ref)
 
 
-def create_aliases(scm: ScmBase, project: Project, stage_name: Optional[str] = None, ref: Optional[str] = None) -> None:
+def create_aliases(scm: ScmBase, project: Project, stage_name: str | None = None, ref: str | None = None) -> None:
     aliases = project.get_aliases(stage_name)
     for alias in aliases:
         scm.migrate_alias(alias, ref=ref)
@@ -47,9 +47,9 @@ def create_aliases(scm: ScmBase, project: Project, stage_name: Optional[str] = N
 def bump_version(
     scm: ScmBase,
     project: Project,
-    stage_name: Optional[str] = None,
+    stage_name: str | None = None,
     write: bool = True,
-    bumper_kwargs: Optional[dict[str, Any]] = None,
+    bumper_kwargs: dict[str, Any] | None = None,
 ) -> str:
     if not project.bumper:
         raise ValueError("Bumper is not set for the project.")

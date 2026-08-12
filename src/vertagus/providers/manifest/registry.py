@@ -1,4 +1,3 @@
-import typing as T
 from vertagus.core.manifest_base import ManifestBase
 from .setuptools_ import SetuptoolsPyprojectManifest
 from .json_manifest import JsonManifest
@@ -13,15 +12,15 @@ _manifest_types = {
 }
 
 
-def get_manifest_cls(manifest_type: str) -> T.Type[ManifestBase]:
+def get_manifest_cls(manifest_type: str) -> type[ManifestBase]:
     if manifest_type not in _manifest_types:
         raise ValueError(f"Unknown manifest type: {manifest_type}")
     return _manifest_types[manifest_type]
 
 
-def register_manifest_cls(manifest_cls: T.Type[ManifestBase]):
+def register_manifest_cls(manifest_cls: type[ManifestBase]):
     _manifest_types[manifest_cls.manifest_type] = manifest_cls
 
 
-def list_manifest_types() -> list[T.Type[ManifestBase]]:
+def list_manifest_types() -> list[type[ManifestBase]]:
     return sorted(list(_manifest_types.values()), key=lambda x: x.manifest_type)

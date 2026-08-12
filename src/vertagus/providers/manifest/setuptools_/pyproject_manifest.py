@@ -1,5 +1,5 @@
 from ..toml_manifest import TomlManifest
-from typing import cast, Optional
+from typing import cast
 
 
 class SetuptoolsPyprojectManifest(TomlManifest):
@@ -18,7 +18,7 @@ class SetuptoolsPyprojectManifest(TomlManifest):
         cls,
         content: str,
         name: str,
-        loc: Optional[list[str]] = None,
+        loc: list[str] | None = None,
     ) -> str:
         if loc is None:
             loc = cast(list[str], cls.loc)

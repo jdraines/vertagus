@@ -27,6 +27,17 @@ def mock_manifests():
 
 
 @pytest.fixture
+def mock_second_manifest():
+    manifest = ManifestBase(
+        name="mock_second_manifest",
+        path="mock_second_manifest_path",
+        loc=["mock_manifest_loc"]
+    )
+    manifest.version = "0.0.0"
+    return manifest
+
+
+@pytest.fixture
 def mock_manifest_higher_version():
     manifest = ManifestBase(
         name="mock_manifest_higher_version",
@@ -97,7 +108,7 @@ def mock_manifest_versions_comparison_rules():
         def validate_comparison(self, versions: T.Sequence[str]):
             return True
 
-    config = {"manifests": ["mock_manifest"]}
+    config = {"manifests": ["mock_manifest", "mock_second_manifest"]}
     return [MockManifetVersionsComparisonRule(config)]
 
 
@@ -108,7 +119,7 @@ def mock_manifest_versions_comparison_rule_fail():
         def validate_comparison(self, versions: T.Sequence[str]):
             return False
 
-    config = {"manifests": ["mock_manifest"]}
+    config = {"manifests": ["mock_manifest", "mock_second_manifest"]}
     return MockManifetVersionsComparisonRuleFail(config)
 
 
@@ -132,13 +143,14 @@ def mock_proj_alias():
 
 @pytest.fixture
 def mock_stage(mock_manifests,
+               mock_second_manifest,
                mock_current_version_rules,
                mock_version_increment_rules,
                mock_manifest_versions_comparison_rules
                ):
     return Stage(
         name='test_stage',
-        manifests=mock_manifests,
+        manifests=mock_manifests + [mock_second_manifest],
         current_version_rules=mock_current_version_rules,
         version_increment_rules=mock_version_increment_rules,
         manifest_versions_comparison_rules=mock_manifest_versions_comparison_rules
@@ -324,11 +336,12 @@ def test__get_manifest_versions_comparison_rules(test_project: Project,
 def test__get_manifests(test_project: Project,
                         mock_stage: Stage,
                         mock_manifests: list[ManifestBase],
+                        mock_second_manifest: ManifestBase,
                         mock_manifest_higher_version: ManifestBase
                         ):
     assert mock_manifest_higher_version.version == "0.0.1"
     assert test_project._get_manifests() == mock_manifests
-    assert test_project._get_manifests("test_stage") == mock_manifests
+    assert test_project._get_manifests("test_stage") == mock_manifests + [mock_second_manifest]
     test_project._stages = [copy(mock_stage)]
     test_project._stages[0]._manifests = [mock_manifest_higher_version]
     assert len(test_project._get_manifests("test_stage")) == 2

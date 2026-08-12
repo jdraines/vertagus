@@ -1,5 +1,6 @@
 from packaging import version
 from vertagus.core.rule_bases import ComparisonRule
+from vertagus.errors import ConfigurationError
 
 
 class Increasing(ComparisonRule):
@@ -20,7 +21,7 @@ class ManifestsComparisonRule(ComparisonRule):
     def __init__(self, config: dict):
         super().__init__(config)
         if "manifests" not in self.config:
-            raise ValueError(
+            raise ConfigurationError(
                 "The `manifests_comparison` rule requires a `manifests` config listing "
                 "the manifest names to compare, e.g.:\n\n"
                 "    rules:\n"

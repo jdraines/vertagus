@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 from configparser import NoSectionError
-from typing import cast, Optional
+from typing import cast
 from datetime import timedelta
 
 import git
@@ -29,14 +29,14 @@ class GitScm(ScmBase):
 
     def __init__(
         self,
-        root: Optional[str] = None,
-        tag_prefix: Optional[str] = None,
-        remote_name: Optional[str] = None,
-        version_strategy: Optional[str] = "tag",
-        target_branch: Optional[str] = None,
-        manifest_path: Optional[str] = None,
-        manifest_type: Optional[str] = None,
-        manifest_loc: Optional[list[str]] = None,
+        root: str | None = None,
+        tag_prefix: str | None = None,
+        remote_name: str | None = None,
+        version_strategy: str | None = "tag",
+        target_branch: str | None = None,
+        manifest_path: str | None = None,
+        manifest_type: str | None = None,
+        manifest_loc: list[str] | None = None,
         **kwargs,
     ):
         self.root = root or os.getcwd()
@@ -53,7 +53,7 @@ class GitScm(ScmBase):
     def remote(self) -> Remote:
         return self._repo.remotes[self.remote_name]
 
-    def create_tag(self, tag: Tag, ref: Optional[str] = None):
+    def create_tag(self, tag: Tag, ref: str | None = None):
         tag_prefix = self.tag_prefix or ""
         tag_text = tag.as_string(tag_prefix)
         if ref:
@@ -86,7 +86,7 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting remote tag {tag_text!r}: {e.__class__.__name__}: {e}")
         self._repo.git.push(tags=True)
 
-    def list_tags(self, prefix: Optional[str] = None):
+    def list_tags(self, prefix: str | None = None):
         def _ls_remote() -> str:
             return cast(str, self._repo.git.execute(["git", "ls-remote", "--tags", self.remote_name]))
 
@@ -97,7 +97,7 @@ class GitScm(ScmBase):
             tags = [tag for tag in tags if tag.startswith(prefix)]
         return tags
 
-    def migrate_alias(self, alias: AliasBase, ref: Optional[str] = None, suppress_warnings: bool = True):
+    def migrate_alias(self, alias: AliasBase, ref: str | None = None, suppress_warnings: bool = True):
         logger.info(f"Migrating alias {alias.name} to ref {ref}")
         try:
             self.delete_tag(alias, suppress_warnings=suppress_warnings)
@@ -106,7 +106,7 @@ class GitScm(ScmBase):
                 logger.warning(f"Error encountered while deleting alias {alias.name}: {e.__class__.__name__}: {e}")
         self.create_tag(alias, ref=ref)
 
-    def get_highest_version(self, prefix: Optional[str] = None, branch: Optional[str] = None) -> Optional[str]:
+    def get_highest_version(self, prefix: str | None = None, branch: str | None = None) -> str | None:
         if self.version_strategy == "branch":
             if not branch and not self.target_branch:
                 raise ValueError("Branch-based strategy requires a target_branch to be configured or passed")
@@ -167,8 +167,8 @@ class GitScm(ScmBase):
             return self._default_user_data
 
     def get_branch_manifest_version(
-        self, branch: str, manifest_path: str, manifest_type: str, manifest_loc: Optional[list[str]] = None
-    ) -> Optional[str]:
+        self, branch: str, manifest_path: str, manifest_type: str, manifest_loc: list[str] | None = None
+    ) -> str | None:
         """
         Get the version from a manifest file on a specific branch.
         """
@@ -182,7 +182,7 @@ class GitScm(ScmBase):
         manifest_cls = get_manifest_cls(manifest_type)
         return manifest_cls.version_from_content(content=file_content, name=manifest_path, loc=manifest_loc)
 
-    def get_commit_messages_since_highest_version(self, branch: Optional[str] = None) -> list[str]:
+    def get_commit_messages_since_highest_version(self, branch: str | None = None) -> list[str]:
         """
         Get commit messages since the highest version tag.
         """

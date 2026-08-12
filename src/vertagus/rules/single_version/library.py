@@ -23,7 +23,6 @@ class RegexRuleBase(SingleVersionRule):
 
 
 class CustomRegexRule(SingleVersionRule):
-
     name = "custom_regex"
     description = "Custom regex rule. Version must match a user-defined pattern."
 
@@ -36,7 +35,9 @@ class CustomRegexRule(SingleVersionRule):
     def validate_version(self, version: str) -> bool:
         return bool(re.match(self.pattern, version))
 
+
 # Major-Minor-Patch Regex Rules
+
 
 class RegexMmp(RegexRuleBase):
     name = "regex_mmp"

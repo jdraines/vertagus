@@ -1,5 +1,5 @@
-import typing as T
 from vertagus.core.rule_bases import Rule, SingleVersionRule, ComparisonRule
+from vertagus.errors import ConfigurationError
 from vertagus.rules.single_version.loader import load_rules as load_sv_rules
 from vertagus.rules.comparison.loader import load_rules as load_comp_rules
 
@@ -18,7 +18,7 @@ def get_rule(name: str) -> type[Rule]:
     """Look up a single rule by name."""
     registry = get_all_rules()
     if name not in registry:
-        raise ValueError(f"Rule not found: {name!r}")
+        raise ConfigurationError(f"Rule not found: {name!r}. Run `vertagus list-rules` to see the available rules.")
     return registry[name]
 
 

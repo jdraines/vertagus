@@ -1,6 +1,30 @@
 CHANGELOG
 ===
 
+0.5.0
+---
+
+**Breaking changes.**
+
+* **Rules are now configured as a flat list.** The `rules` block is no longer split into `current`, `increment`, and `manifest_comparisons` sub-keys. List every rule directly under `rules`; vertagus infers from the rule class whether it validates a single version or compares versions. A 0.4.x-style mapping is detected and raises an error explaining the migration.
+
+  ```yaml
+  # 0.4.x                       # 0.5.0
+  rules:                        rules:
+    current:                      - not_empty
+      - not_empty                 - any_increment
+    increment:
+      - any_increment
+  ```
+
+* **`manifests_comparison` is now an ordinary, configurable rule.** Instead of the `manifest_comparisons` sub-key, list it like any other configurable rule with a `manifests` config naming the manifests to compare. Omitting `manifests` now raises a descriptive error instead of a `KeyError`.
+* **Minimum supported Python is now 3.11** (was 3.9). The test matrix covers 3.11 through 3.14. TOML parsing moved from the `tomli` dependency to the stdlib `tomllib`, dropping a runtime dependency.
+* **Rule base classes were consolidated.** `VersionComparisonRule` is now `ComparisonRule`, and `ConfigurableSingleVersionRule` is folded into `SingleVersionRule` — every rule now takes an optional `config` dict and validates as an instance. `SingleVersionRuleType`, `SingleVersionRuleProtocol`, `is_single_version_rule_type`, and `is_configurable_single_version_rule` are removed. This only affects code importing vertagus rule internals.
+* `vertagus list-rules` now reports a `Type` column (`single_version` / `comparison`) in place of the old `Config Usage` column, and includes `manifests_comparison`.
+* Rules are now deduplicated by class *and* config, so the same rule type can be listed at both project and stage level with different configurations.
+* **Configuration errors are now reported as plain CLI errors** rather than tracebacks. A new `vertagus.errors.ConfigurationError` covers the 0.4.x migration message, unknown rule names, malformed rule entries, and `manifests_comparison` misconfiguration; the CLI catches it, prints the message, and exits 1.
+* A `manifests_comparison` rule that names a manifest which isn't defined now reports exactly which name didn't resolve and lists the known manifests, instead of failing later with a confusing "only one version to compare" error.
+
 0.4.0
 ---
 

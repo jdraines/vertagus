@@ -1,4 +1,3 @@
-import typing as T
 from . import library
 from vertagus.core.rule_bases import SingleVersionRule
 
