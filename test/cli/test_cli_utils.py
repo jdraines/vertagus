@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import yaml
 from unittest.mock import patch, MagicMock
 
 from vertagus.cli import utils as cli_utils
@@ -95,3 +96,45 @@ def test_resolve_config_print_config_exits(capsys, tmp_path, monkeypatch):
 
     assert excinfo.value.code == 0
     assert "manifests:" in capsys.readouterr().out
+
+
+def test_print_config_output_can_be_saved_as_a_config_file(capsys, tmp_path, monkeypatch):
+    """The documented `--print-config > vertagus.yaml` recipe has to produce a file that
+    still works after the checkout moves, so paths come back out relative."""
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(SystemExit):
+        cli_utils.resolve_config(
+            None, {"manifest": ("sub/pyproject.toml",), "rule": ("not_empty",), "print_config": True}
+        )
+
+    printed = yaml.safe_load(capsys.readouterr().out)
+    assert printed["project"]["manifests"][0]["path"] == "sub/pyproject.toml"
+    assert "root" not in printed["project"]
+
+
+def test_print_config_keeps_a_root_that_is_not_the_working_directory(capsys, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pkg").mkdir()
+
+    with pytest.raises(SystemExit):
+        cli_utils.resolve_config(
+            None, {"manifest": ("pyproject.toml",), "root": "pkg", "print_config": True}
+        )
+
+    printed = yaml.safe_load(capsys.readouterr().out)
+    assert printed["project"]["root"] == str(tmp_path / "pkg")
+    assert printed["project"]["manifests"][0]["path"] == "pyproject.toml"
+
+
+def test_print_config_leaves_a_manifest_outside_the_root_absolute(capsys, tmp_path, monkeypatch):
+    working_dir = tmp_path / "work"
+    working_dir.mkdir()
+    monkeypatch.chdir(working_dir)
+    outside = tmp_path / "elsewhere" / "pyproject.toml"
+
+    with pytest.raises(SystemExit):
+        cli_utils.resolve_config(None, {"manifest": (str(outside),), "print_config": True})
+
+    printed = yaml.safe_load(capsys.readouterr().out)
+    assert printed["project"]["manifests"][0]["path"] == str(outside)

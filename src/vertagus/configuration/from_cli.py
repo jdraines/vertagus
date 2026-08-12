@@ -31,6 +31,21 @@ _MANIFEST_TYPE_BY_EXTENSION = {
 
 _MANIFEST_SPEC_KEYS = ("path", "type", "loc", "name")
 
+# An scm manifest is not a project manifest and never carries a name, so accepting one
+# would only let a `name=` silently go nowhere.
+_SCM_MANIFEST_SPEC_KEYS = ("path", "type", "loc")
+
+# Every option below is a single value that means nothing when empty; only --tag-prefix
+# is meaningfully empty, as the way to say "this configuration has no tag prefix".
+_NON_EMPTY_SCALAR_OPTIONS = (
+    ("bumper", "--bumper"),
+    ("root", "--root"),
+    ("scm_type", "--scm-type"),
+    ("version_strategy", "--version-strategy"),
+    ("target_branch", "--target-branch"),
+    ("scm_manifest", "--scm-manifest"),
+)
+
 
 @dataclass
 class CliConfigOptions:
@@ -48,21 +63,22 @@ class CliConfigOptions:
     scm_manifest: str | None = None
 
     def any_provided(self) -> bool:
-        """Whether the user supplied any configuration on the command line."""
-        return any(
-            [
-                self.manifest,
-                self.rule,
-                self.alias,
-                self.bumper,
-                self.root,
-                self.scm_type,
-                self.tag_prefix,
-                self.version_strategy,
-                self.target_branch,
-                self.scm_manifest,
-            ]
+        """Whether the user supplied any configuration on the command line.
+
+        A scalar option counts as supplied whenever it was passed at all, empty string
+        included, so that ``--tag-prefix ''`` — the way to say "no tag prefix" — is not
+        mistaken for an option the user left off.
+        """
+        scalars = (
+            self.bumper,
+            self.root,
+            self.scm_type,
+            self.tag_prefix,
+            self.version_strategy,
+            self.target_branch,
+            self.scm_manifest,
         )
+        return any([self.manifest, self.rule, self.alias]) or any(value is not None for value in scalars)
 
 
 def infer_manifest_type(path: str) -> str:
@@ -134,6 +150,7 @@ def parse_rule_spec(spec: str) -> str | dict:
 
 def build_config_overlay(opts: CliConfigOptions) -> dict:
     """Build a partial :class:`MasterConfig` holding only the settings the user supplied."""
+    _reject_empty_scalars(opts)
     overlay: dict[str, dict] = {"scm": {}, "project": {}}
 
     if opts.scm_type:
@@ -198,6 +215,10 @@ def merge_config(base: MasterConfig, opts: CliConfigOptions) -> MasterConfig:
         section_config = merged.get(section) or {}
         section_config.update(values)
         merged[section] = section_config  # type: ignore[literal-required]
+    if opts.manifest:
+        # The manifests came from the command line, so the branch-strategy default reads
+        # the same way it does without a configuration file.
+        _apply_scm_manifest_default(merged, overlay["project"]["manifests"])
     return merged
 
 
@@ -206,15 +227,36 @@ def _apply_scm_manifest_default(config: MasterConfig, manifests: list[ManifestCo
 
     The manifest that declares the version is usually the same file on both sides, and
     naming it twice on the command line is pure ceremony.
+
+    The SCM reads this path out of source control rather than off disk, so it has to be
+    relative to the repository — which is the SCM's own root, not the project root. The
+    two differ whenever ``--root`` points into a subdirectory of the repository.
     """
     scm = config["scm"]
     if scm.get("version_strategy") != "branch" or scm.get("manifest_path"):
         return
     primary = manifests[0]
-    scm["manifest_path"] = os.path.relpath(primary["path"], config["project"].get("root") or os.getcwd())
+    scm["manifest_path"] = _repo_relative_path(primary["path"], scm.get("root"))
     scm["manifest_type"] = primary["type"]
     if primary.get("loc"):
         scm["manifest_loc"] = primary["loc"]
+
+
+def _repo_relative_path(path: str, scm_root: str | None) -> str:
+    """Express an absolute manifest path the way source control addresses it.
+
+    Paths are resolved against the SCM root, and always with forward slashes, since that
+    is how git names a file in ``git show <ref>:<path>`` on every platform.
+    """
+    relative = os.path.relpath(path, scm_root or os.getcwd())
+    return relative.replace(os.sep, "/")
+
+
+def _reject_empty_scalars(opts: CliConfigOptions) -> None:
+    """Reject single-valued options passed as an empty string, which cannot mean anything."""
+    for attribute, flag in _NON_EMPTY_SCALAR_OPTIONS:
+        if getattr(opts, attribute) == "":
+            raise ConfigurationError(f"Invalid {flag}: the value is empty.")
 
 
 def _parse_scm_manifest_spec(spec: str) -> dict[str, T.Any]:
@@ -223,7 +265,7 @@ def _parse_scm_manifest_spec(spec: str) -> dict[str, T.Any]:
     Unlike project manifests, this path is read out of source control rather than off
     disk, so it stays exactly as the user wrote it: relative to the repository root.
     """
-    fields = _parse_spec_fields(spec, valid_keys=_MANIFEST_SPEC_KEYS, spec_name="scm manifest")
+    fields = _parse_spec_fields(spec, valid_keys=_SCM_MANIFEST_SPEC_KEYS, spec_name="scm manifest")
     path = fields.get("path")
     if not path:
         raise ConfigurationError(f"Invalid scm manifest {spec!r}: no path was given.")
@@ -237,12 +279,24 @@ def _parse_scm_manifest_spec(spec: str) -> dict[str, T.Any]:
 
 
 def _parse_spec_fields(spec: str, valid_keys: tuple[str, ...], spec_name: str) -> dict[str, str]:
-    """Parse a bare path or a comma-separated ``key=value`` spec into a mapping."""
+    """Parse a bare path or a comma-separated ``key=value`` spec into a mapping.
+
+    A value is read as a spec when it opens with one of ``valid_keys``, and as a bare path
+    when it holds no ``=`` at all. Anything else is ambiguous — a misspelled key and a path
+    containing an ``=`` look alike — so it is rejected rather than guessed at. Keys given
+    without a value are dropped, leaving the same defaults as leaving the key off entirely.
+    """
     spec = spec.strip()
     if not spec:
         raise ConfigurationError(f"Invalid {spec_name}: the value is empty.")
     if "=" not in spec:
         return {"path": spec}
+    if spec.split(",", 1)[0].partition("=")[0].strip() not in valid_keys:
+        raise ConfigurationError(
+            f"Invalid {spec_name} {spec!r}: a 'key=value' spec must open with one of "
+            f"{', '.join(valid_keys)}. If this is a path that contains an '=', write it as "
+            f"'path={spec}'."
+        )
 
     fields: dict[str, str] = {}
     for part in spec.split(","):
@@ -259,5 +313,7 @@ def _parse_spec_fields(spec: str, valid_keys: tuple[str, ...], spec_name: str) -
             raise ConfigurationError(
                 f"Invalid {spec_name} {spec!r}: unknown key {key!r}. Valid keys are: {', '.join(valid_keys)}."
             )
-        fields[key] = value.strip()
+        value = value.strip()
+        if value:
+            fields[key] = value
     return fields

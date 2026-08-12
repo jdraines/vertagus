@@ -224,8 +224,8 @@ Shows available SCM providers (currently only `git` is supported).
 
 ## Configuration-Free Usage
 
-Every setting that a configuration file can hold can also be given directly on the command line,
-so you can run Vertagus in a project that has no `vertagus.yaml`:
+The settings that make up a single project configuration can each be given directly on the command
+line, so you can run Vertagus in a project that has no `vertagus.yaml`:
 
 ```bash
 vertagus validate --manifest src/pyproject.toml --rule not_empty --rule any_increment
@@ -252,8 +252,9 @@ Vertagus out before committing to a configuration file.
 
 ### Manifest specs
 
-`--manifest` and `--scm-manifest` accept either a bare path or a comma-separated list of
-`key=value` pairs, with the keys `path`, `type`, `loc` and `name`:
+`--manifest` accepts either a bare path or a comma-separated list of `key=value` pairs, with the
+keys `path`, `type`, `loc` and `name`. `--scm-manifest` takes the same form minus `name`, which an
+SCM manifest has no use for:
 
 ```bash
 # Bare path; the type is inferred from the file name
@@ -276,7 +277,8 @@ manifest types of the same name. Any other file name needs an explicit `type`. R
 
 Manifest paths given on the command line are resolved against `--root`, or against the current
 directory when `--root` is not given. The one exception is `--scm-manifest`, whose path is read out
-of source control and so is always relative to the repository root.
+of source control and so is always relative to the repository root. A value that contains an `=`
+has to be written as an explicit `path=...` so that it is not mistaken for a misspelled key.
 
 ### Rule specs
 
@@ -307,8 +309,13 @@ vertagus validate \
 ```
 
 When you do not pass `--scm-manifest`, the `branch` strategy reads the same file as your first
-`--manifest`, which is the usual arrangement. Pass `--scm-manifest` when the version lives in a
-different file on the target branch.
+`--manifest`, which is the usual arrangement — including alongside `--config`, when `--manifest` is
+what named the manifest and the file itself sets no SCM manifest of its own. Pass `--scm-manifest`
+when the version lives in a different file on the target branch.
+
+The derived path is expressed relative to the repository, not to `--root`, since that is how source
+control addresses a file. Under `--root pkg`, a `--manifest pyproject.toml` gives the SCM
+`pkg/pyproject.toml`.
 
 ### Combining options with a configuration file
 
@@ -328,10 +335,13 @@ The three ways of configuring a command are:
    ```
 
    Repeatable options replace the file's list outright rather than adding to it: passing a single
-   `--rule` means that rule and no other.
+   `--rule` means that rule and no other — for the project. A stage named with `--stage-name` still
+   contributes its own rules from the file on top of that.
 
-Because stages can only be defined in a configuration file, `--stage-name` requires one. Configure a
-stage's rules directly with `--rule` instead when you are running without a file.
+A few settings stay file-only, because they describe more than one configuration at once or belong
+to a specific provider: stages, a bumper's own options beyond its type, and the git SCM's `root` and
+`remote_name`. Because stages are among them, `--stage-name` requires a configuration file;
+configure a stage's rules directly with `--rule` instead when you are running without one.
 
 ### Inspecting the resolved configuration
 
@@ -341,6 +351,10 @@ debugging aid and an easy way to grow an ad hoc invocation into a real configura
 ```bash
 vertagus validate -m pyproject.toml --rule not_empty --print-config > vertagus.yaml
 ```
+
+Manifest paths come back out relative to the project root, and a root that is just the directory
+the file would sit in is left out, so the result is a configuration file that still works on another
+machine. A manifest outside the root stays absolute, since a trail of `..` would be no clearer.
 
 ## Configuration File Discovery
 

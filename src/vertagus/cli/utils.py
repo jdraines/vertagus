@@ -1,4 +1,5 @@
 import click
+import copy
 import sys
 import os
 from pathlib import Path
@@ -83,5 +84,35 @@ def resolve_config(
 
 def echo_config_and_exit(master_config: cfgtypes.MasterConfig) -> None:
     """Print a resolved configuration as YAML and exit successfully."""
-    click.echo(yaml.dump(dict(master_config), default_flow_style=False, sort_keys=False))
+    click.echo(yaml.dump(_portable_config(master_config), default_flow_style=False, sort_keys=False))
     sys.exit(0)
+
+
+def _portable_config(master_config: cfgtypes.MasterConfig) -> dict:
+    """Rewrite a resolved configuration so that it is worth saving as a file.
+
+    Options resolve manifest paths against the project root to reach the right file from
+    wherever the command ran. Printed back out verbatim, those absolute paths would make
+    a configuration file that only works on the machine that produced it, so they are
+    turned back into the root-relative paths a hand-written file would have used. A root
+    that is merely the directory the file will sit in is dropped, since that is what
+    vertagus assumes anyway.
+    """
+    config = copy.deepcopy(dict(master_config))
+    project = config.get("project") or {}
+    root = project.get("root")
+    if not root or not os.path.isabs(root):
+        return config
+
+    for manifest in project.get("manifests") or []:
+        path = manifest.get("path")
+        if not path or not os.path.isabs(path):
+            continue
+        relative = os.path.relpath(path, root)
+        # A manifest outside the root is clearer left absolute than as a trail of '..'.
+        if not relative.startswith(os.pardir):
+            manifest["path"] = relative
+
+    if os.path.abspath(root) == os.path.abspath(os.getcwd()):
+        project.pop("root", None)
+    return config

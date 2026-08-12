@@ -17,6 +17,7 @@ CHANGELOG
   Passed alongside `--config`, these options override the corresponding settings in that file. Passed without it, they are the whole configuration and no config file is discovered in the current directory. Settings that describe more than one configuration at once — stages, and a bumper's own options — remain file-only, so `--stage-name` still requires a file.
 * **`--print-config`** prints the configuration a command would run with and exits, which turns a working ad hoc command into a config file: `vertagus validate -m pyproject.toml --rule not_empty --print-config > vertagus.yaml`.
 * `create-tag` and `create-aliases` now discover `vertagus.yaml`/`.yml`/`.toml` in the current directory like the other commands, instead of defaulting to a `vertagus.toml` path that may not exist.
+* `vertagus validate` now warns when the configuration holds no rules at all, rather than reporting a pass for a validation that checked nothing.
 
 **Fixes.**
 

@@ -223,8 +223,8 @@ vertagus list-scms
 
 ### Using vertagus without a config file
 
-Everything you can declare in a config file can also be passed as CLI options, so vertagus runs
-in a project that has no `vertagus.yaml`:
+The settings that make up a single project configuration can each be passed as a CLI option, so
+vertagus runs in a project that has no `vertagus.yaml`:
 
 ```
 vertagus validate --manifest src/pyproject.toml --rule not_empty --rule any_increment
@@ -256,8 +256,11 @@ vertagus validate -m pyproject.toml --rule any_increment --version-strategy bran
 These options work with `validate`, `bump`, `create-tag`, `create-aliases`, `show-version` and
 `show-alias`. Passed alongside `--config`, they override the corresponding settings in that file,
 which is handy in CI when one job needs a single setting changed. Passed without `--config`, they
-are the whole configuration, and no config file is read from the current directory. Since stages
-are only definable in a config file, `--stage-name` requires one.
+are the whole configuration, and no config file is read from the current directory.
+
+A few settings stay file-only, because they describe more than one configuration at once or
+belong to a specific provider: stages (so `--stage-name` requires a file), a bumper's own options
+beyond its type, and the git SCM's `root` and `remote_name`.
 
 Finally, `--print-config` prints the configuration a command would run with and exits, so you can
 turn a working command into a config file:

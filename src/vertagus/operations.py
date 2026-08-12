@@ -12,6 +12,13 @@ logger = getLogger(__name__)
 def validate_project_version(
     scm: ScmBase, project: Project, stage_name: str | None = None, scm_branch: str | None = None
 ) -> bool:
+    if not project.has_rules(stage_name):
+        logger.warning(
+            "No rules are configured, so this validation passes without checking anything. "
+            "Add rules to the configuration file, or pass them with --rule; "
+            "run `vertagus list-rules` to see what is available."
+        )
+
     # Get the previous version using SCM's strategy-aware method
     previous_version = scm.get_highest_version(branch=scm_branch)
 

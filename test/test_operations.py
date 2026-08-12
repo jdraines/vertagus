@@ -20,6 +20,35 @@ def test_validate_project_version():
     assert result is True
 
 
+def test_validate_project_version_warns_when_no_rules_are_configured():
+    """A validation with no rules passes unconditionally, which should not look like a pass."""
+    mock_scm = Mock(spec=ScmBase)
+    mock_scm.get_highest_version.return_value = 'v1.0.0'
+
+    mock_project = Mock(spec=Project)
+    mock_project.has_rules.return_value = False
+    mock_project.validate_version.return_value = True
+    mock_project.get_version.return_value = 'v1.0.1'
+
+    with patch('vertagus.operations.logger') as mock_logger:
+        assert validate_project_version(mock_scm, mock_project, 'stage1') is True
+        assert 'No rules are configured' in mock_logger.warning.call_args[0][0]
+
+
+def test_validate_project_version_does_not_warn_when_rules_exist():
+    mock_scm = Mock(spec=ScmBase)
+    mock_scm.get_highest_version.return_value = 'v1.0.0'
+
+    mock_project = Mock(spec=Project)
+    mock_project.has_rules.return_value = True
+    mock_project.validate_version.return_value = True
+    mock_project.get_version.return_value = 'v1.0.1'
+
+    with patch('vertagus.operations.logger') as mock_logger:
+        validate_project_version(mock_scm, mock_project, 'stage1')
+        mock_logger.warning.assert_not_called()
+
+
 def test_create_tags_normal():
     mock_scm = Mock(spec=ScmBase)
     mock_project = Mock(spec=Project)

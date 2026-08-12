@@ -194,6 +194,20 @@ def test_project_init(test_project):
     assert test_project is not None
 
 
+def test_has_rules(test_project, mock_manifests, mock_stage):
+    assert test_project.has_rules() is True
+
+    ruleless = Project(
+        manifests=mock_manifests,
+        current_version_rules=[],
+        version_increment_rules=[],
+        manifest_versions_comparison_rules=[],
+        stages=[mock_stage],
+    )
+    assert ruleless.has_rules() is False
+    assert ruleless.has_rules(mock_stage.name) is True
+
+
 def test_get_version(test_project):
     assert test_project.get_version() == "0.0.0"
     with patch("vertagus.core.project.Project._get_manifests", MagicMock()) as mock_get_manifests:

@@ -81,8 +81,9 @@ project:
 
 ### Try it without a configuration file
 
-You don't need a configuration file to get started. Every setting can be passed on the command
-line instead, which is useful for a quick look before you commit to a configuration:
+You don't need a configuration file to get started. The settings that describe a single project
+can all be passed on the command line instead, which is useful for a quick look before you commit
+to a configuration:
 
 ```bash
 vertagus validate --manifest pyproject.toml --rule not_empty --rule any_increment
