@@ -1,10 +1,13 @@
 from vertagus.core.manifest_base import ManifestBase
+from . import toml_edit
+from .in_place import InPlaceVersionWriter
 import tomllib
 import tomli_w
 import os.path
+import typing as T
 
 
-class TomlManifest(ManifestBase):
+class TomlManifest(InPlaceVersionWriter, ManifestBase):
     manifest_type: str = "toml"
     description: str = "A TOML file. Users provide a custom `loc` to the version as a list of keys."
 
@@ -30,9 +33,16 @@ class TomlManifest(ManifestBase):
         return path
 
     def _write_doc(self):
+        """Rewrite the whole document from the parsed data, losing comments and formatting."""
         path = self._full_path()
         with open(path, "wb") as f:
             tomli_w.dump(self._doc, f)
+
+    def _parse_text(self, text: str) -> dict:
+        return tomllib.loads(text)
+
+    def _replace_version_text(self, text: str, loc: T.Sequence[str | int], version: str) -> str | None:
+        return toml_edit.replace_value(text, [str(k) for k in loc], version)
 
     @classmethod
     def version_from_content(
@@ -58,4 +68,4 @@ class TomlManifest(ManifestBase):
             p = p[k]
         p[self.loc[-1]] = version
         if write:
-            self._write_doc()
+            self._write_version(version)
