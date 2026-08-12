@@ -1,8 +1,9 @@
-from vertagus.core.manifest_base import ManifestBase
-from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
-from vertagus.rules.comparison.library import ManifestsComparisonRule
-from vertagus.core.tag_base import AliasBase
 from vertagus.core.bumper_base import BumperBase
+from vertagus.core.manifest_base import ManifestBase
+from vertagus.core.rule_bases import ComparisonRule, SingleVersionRule
+from vertagus.core.tag_base import AliasBase
+from vertagus.rules.comparison.library import ManifestsComparisonRule
+
 from .package_base import Package
 
 

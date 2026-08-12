@@ -1,4 +1,5 @@
 import re
+
 from vertagus.core.rule_bases import SingleVersionRule
 from vertagus.utils import regex as regex_utils
 

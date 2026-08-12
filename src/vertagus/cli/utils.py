@@ -1,13 +1,12 @@
-import click
 import copy
-import sys
 import os
+import sys
 from pathlib import Path
 
+import click
 import yaml
 
-from vertagus.configuration import from_cli
-from vertagus.configuration import load
+from vertagus.configuration import from_cli, load
 from vertagus.configuration import types as cfgtypes
 from vertagus.errors import ConfigurationError
 

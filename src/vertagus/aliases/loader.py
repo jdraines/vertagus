@@ -1,5 +1,6 @@
-from . import library
 from vertagus.core.tag_base import AliasBase
+
+from . import library
 
 
 def load_aliases() -> list[type[AliasBase]]:

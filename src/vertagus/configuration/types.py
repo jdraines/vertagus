@@ -1,6 +1,6 @@
+import os
 import typing as T
 from dataclasses import dataclass, field
-import os
 
 from vertagus.errors import ConfigurationError
 
@@ -179,13 +179,13 @@ class StageData:
         )
 
     def config(self):
-        return dict(
-            name=self.name,
-            manifests=[m.config() for m in self.manifests],
-            rules=self.rules.rules,
-            aliases=self.aliases,
-            bumper=self.bumper.config() if self.bumper else None,
-        )
+        return {
+            "name": self.name,
+            "manifests": [m.config() for m in self.manifests],
+            "rules": self.rules.rules,
+            "aliases": self.aliases,
+            "bumper": self.bumper.config() if self.bumper else None,
+        }
 
 
 class ProjectData:
@@ -208,14 +208,14 @@ class ProjectData:
     def config(self):
         stages = self.stages or []
 
-        return dict(
-            manifests=[m.config() for m in self.manifests],
-            stages=[stage.config() for stage in stages],
-            rules=self.rules.rules,
-            aliases=self.aliases,
-            root=self.root,
-            bumper=self.bumper.config() if self.bumper else None,
-        )
+        return {
+            "manifests": [m.config() for m in self.manifests],
+            "stages": [stage.config() for stage in stages],
+            "rules": self.rules.rules,
+            "aliases": self.aliases,
+            "root": self.root,
+            "bumper": self.bumper.config() if self.bumper else None,
+        }
 
     @classmethod
     def from_project_config(cls, config: ProjectConfig):

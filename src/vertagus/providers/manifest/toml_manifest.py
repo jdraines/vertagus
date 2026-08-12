@@ -1,17 +1,20 @@
+import os.path
+import tomllib
+import typing as T
+
+import tomli_w
+
 from vertagus.core.manifest_base import ManifestBase
+
 from . import toml_edit
 from .in_place import InPlaceVersionWriter
-import tomllib
-import tomli_w
-import os.path
-import typing as T
 
 
 class TomlManifest(InPlaceVersionWriter, ManifestBase):
     manifest_type: str = "toml"
     description: str = "A TOML file. Users provide a custom `loc` to the version as a list of keys."
 
-    def __init__(self, name: str, path: str, loc: list = None, root: str = None):
+    def __init__(self, name: str, path: str, loc: list | None = None, root: str | None = None):
         super().__init__(name, path, loc, root)
         self._doc = self._load_doc()
 

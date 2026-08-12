@@ -1,5 +1,6 @@
-from . import library
 from vertagus.core.rule_bases import ComparisonRule
+
+from . import library
 
 
 def load_rules() -> list[type[ComparisonRule]]:

@@ -3,7 +3,6 @@
 import typing as T
 from logging import getLogger
 
-
 logger = getLogger(__name__)
 
 
@@ -42,7 +41,7 @@ class InPlaceVersionWriter:
 
         try:
             edited = self._replace_version_text(original, self.loc, version)  # type: ignore[attr-defined]
-        except Exception:  # noqa: BLE001 - an editor bug must never corrupt a manifest
+        except Exception:
             logger.debug(f"Failed to edit the version in {path} in place", exc_info=True)
             return False
         if edited is None or not self._edit_is_faithful(original, edited, version):

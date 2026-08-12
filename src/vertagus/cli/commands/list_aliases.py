@@ -1,8 +1,8 @@
 import click
 
-from vertagus.core.tag_base import AliasBase
 from vertagus.aliases.loader import load_aliases
 from vertagus.cli.formatting import DisplayTableFormatter
+from vertagus.core.tag_base import AliasBase
 
 
 @click.command("list-aliases")

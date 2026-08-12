@@ -1,4 +1,4 @@
-from .tag_base import Tag, AliasBase
+from .tag_base import AliasBase, Tag
 
 
 class ScmBase:

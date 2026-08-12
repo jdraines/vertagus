@@ -1,4 +1,5 @@
 import re
+
 from packaging import version as versionmod
 
 from ..core.bumper_base import BumperBase, BumperException
@@ -138,13 +139,12 @@ class SemanticCommitBumper(SemanticBumper):
         """
         ordered_bumps = ["tag", "patch", "minor", "major"]
         determined_level = self.determine_bump_level(scm)
-        if level is not None:
-            if level != determined_level:
-                if ordered_bumps.index(level) < ordered_bumps.index(determined_level):
-                    raise SemverBumperException(
-                        f"Specified level '{level}' is lower than determined level '{determined_level}'."
-                    )
-                determined_level = level
+        if level is not None and level != determined_level:
+            if ordered_bumps.index(level) < ordered_bumps.index(determined_level):
+                raise SemverBumperException(
+                    f"Specified level '{level}' is lower than determined level '{determined_level}'."
+                )
+            determined_level = level
         return super().bump(version, determined_level)
 
     def determine_bump_level(self, scm: ScmBase, branch: str | None = None) -> str:

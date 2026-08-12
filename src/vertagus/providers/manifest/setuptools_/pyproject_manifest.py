@@ -1,13 +1,15 @@
-from ..toml_manifest import TomlManifest
+from collections.abc import Sequence
 from typing import cast
+
+from ..toml_manifest import TomlManifest
 
 
 class SetuptoolsPyprojectManifest(TomlManifest):
     manifest_type: str = "setuptools_pyproject"
     description: str = "A setuptools pyproject.toml file. Uses `project.version` as the version location."
-    loc = ["project", "version"]
+    loc: Sequence[str | int] | None = ["project", "version"]
 
-    def __init__(self, name: str, path: str, loc: list = None, root: str = None):
+    def __init__(self, name: str, path: str, loc: list | None = None, root: str | None = None):
         super().__init__(name, path, loc, root)
         if loc:
             self.loc = loc

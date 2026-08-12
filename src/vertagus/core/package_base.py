@@ -1,7 +1,8 @@
 import typing as T
+
 from vertagus.core.manifest_base import ManifestBase
+from vertagus.core.rule_bases import ComparisonRule, SingleVersionRule
 from vertagus.rules.comparison.library import ManifestsComparisonRule
-from vertagus.core.rule_bases import SingleVersionRule, ComparisonRule
 
 
 class Package:

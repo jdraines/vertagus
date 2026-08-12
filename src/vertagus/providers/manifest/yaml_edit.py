@@ -83,7 +83,7 @@ def _iter_scalars(text: str) -> T.Iterator[_Scalar]:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        if stripped.startswith("---") or stripped.startswith("..."):
+        if stripped.startswith(("---", "...")):
             if seen_content:
                 raise _Unparseable("Multiple documents are not modelled")
             continue
