@@ -17,7 +17,7 @@ authors = [
 dependencies = [
     "click>=8.1.7,<9",
     "tomli-w>=1.2.0,<2",
-    "packaging>=24.1,<26",
+    "packaging>=24.1,<27",
     "PyYAML>=6",
 ]
 classifiers = [
