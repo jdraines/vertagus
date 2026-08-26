@@ -76,7 +76,28 @@ def test_create_tag(scm, mock_tag):
     scm.create_tag(mock_tag)
     calls = _run_calls(scm)
     assert ("tag", "-a", "-m", "1.0.0", "1.0.0", "abc123") in calls
-    assert ("push", "--tags") in calls
+    assert ("push", "test-remote", "1.0.0") in calls
+
+
+def test_create_tag_pushes_only_the_named_tag(scm, mock_tag):
+    """`push --tags` would publish every local tag and ignore remote_name."""
+    scm._git.run.return_value = "abc123"
+    scm.create_tag(mock_tag)
+    pushes = [c for c in _run_calls(scm) if c[0] == "push"]
+    assert pushes == [("push", "test-remote", "1.0.0")]
+
+
+def test_push_failure_carries_guidance(scm, mock_tag):
+    def _run(*args, **kwargs):
+        if args[0] == "push":
+            raise GitCommandError(["git", *args], 1, "remote: You are not allowed to upload code.")
+        return "abc123"
+
+    scm._git.run.side_effect = _run
+    with pytest.raises(GitCommandError) as excinfo:
+        scm.create_tag(mock_tag)
+    assert "CI_JOB_TOKEN" in str(excinfo.value)
+    assert "protected tag" in str(excinfo.value)
 
 
 def test_create_tag_passes_identity_without_writing_config(scm, mock_tag):
@@ -93,6 +114,9 @@ def test_delete_tag(scm, mock_tag):
     calls = _run_calls(scm)
     assert ("tag", "-d", "1.0.0") in calls
     assert ("push", "--delete", "test-remote", "1.0.0") in calls
+    # The explicit --delete is the whole job; a trailing `push --tags` would
+    # re-publish unrelated local tags.
+    assert ("push", "--tags") not in calls
 
 
 def test_delete_tag_suppresses_warnings(scm, mock_tag, caplog):
@@ -183,6 +207,19 @@ def test_get_commit_messages_since_highest_version(scm):
     ]
     messages = scm.get_commit_messages_since_highest_version()
     assert messages == ["Initial commit", "Second commit"]
+
+
+def test_get_commit_messages_fetches_a_tag_missing_from_a_shallow_clone(scm):
+    """The highest version comes from the remote, so the tag may be absent locally."""
+    scm.get_highest_version = MagicMock(return_value="1.0.0")
+    scm._git.run.side_effect = [
+        GitCommandError(["git", "log"], 128, "unknown revision"),  # shallow clone lacks the tag
+        "",  # fetch
+        datetime(2025, 1, 1, 12, 0, 0).isoformat(),  # retried log
+        "Second commit\n\x00",
+    ]
+    assert scm.get_commit_messages_since_highest_version() == ["Second commit"]
+    assert ("fetch", "--no-tags", "test-remote", "tag", "1.0.0") in _run_calls(scm)
 
 
 def test_get_commit_messages_since_highest_version_missing_tag(scm):

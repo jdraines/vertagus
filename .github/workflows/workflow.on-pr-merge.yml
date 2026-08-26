@@ -24,7 +24,12 @@ jobs:
 
   publish-to-pypi:
     name: Upload release to PyPI
-    if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
+    # The `closed` trigger fires whether or not the PR was merged, and a PyPI
+    # filename cannot be reused -- so without the `merged` guard, closing a
+    # release PR unmerged would burn the version number.
+    if: >-
+      ${{ github.event.pull_request.merged == true &&
+      ( startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) ) }}
     runs-on: ubuntu-latest
     environment:
       name: pypi
