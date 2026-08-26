@@ -38,6 +38,11 @@ jobs:
       - name: run prod version check
         if: ${{ startsWith( github.head_ref, 'release/' ) || startsWith( github.head_ref, 'hotfix/' ) }}
         run: vertagus validate -c "$CONFIG_FILE" -s prod -b "$TARGET_BRANCH"
+      # `dependabot/*` is treated as `nobump/*`: a dependency bump does not
+      # change the project's own version, and dependabot names its own branches,
+      # so it could never satisfy a prefix gate written for human branches. Left
+      # out, every dependabot PR touching pyproject.toml fails here -- on the
+      # branch name alone, with neither version check having run.
       - name: deny version check
-        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'feature/' ) && !startsWith( github.head_ref, 'nobump/' ) }}
-        run: echo "Branch name does not match any of the expected patterns. Exiting." && exit 1
+        if: ${{ !startsWith( github.head_ref, 'release/' ) && !startsWith( github.head_ref, 'hotfix/' ) && !startsWith( github.head_ref, 'feature/' ) && !startsWith( github.head_ref, 'nobump/' ) && !startsWith( github.head_ref, 'dependabot/' ) }}
+        run: echo "Branch name does not match any of the expected patterns (release/, hotfix/, feature/, nobump/, dependabot/). Exiting." && exit 1
