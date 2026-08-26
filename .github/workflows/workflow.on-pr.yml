@@ -8,8 +8,17 @@ on:
       - main
     paths:
       - "src/**"
+      - "test/**"
       - "pyproject.toml"
-      - "vertagus.toml"
+      # The lockfile pins what CI installs (`uv sync --locked`), and the
+      # workflows are the CI itself; a change to either needs testing as much as
+      # a change to src/. Without them, dependency and action bumps -- which
+      # touch nothing else -- merge with no checks having run at all.
+      - "uv.lock"
+      - ".github/workflows/**"
+      # vertagus.yaml, not .toml: the .toml path never existed, so edits to this
+      # project's own vertagus config triggered nothing.
+      - "vertagus.yaml"
 
 jobs:
   check-version:
