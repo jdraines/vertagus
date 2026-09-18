@@ -975,7 +975,7 @@ wheels = [
 
 [[package]]
 name = "vertagus"
-version = "0.5.0.dev5"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
