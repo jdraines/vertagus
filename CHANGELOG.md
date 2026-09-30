@@ -1,6 +1,25 @@
 CHANGELOG
 ===
 
+0.5.1
+---
+
+**Use this release rather than 0.5.0.**
+
+The `0.5.0` files on PyPI were uploaded on 2026-08-12, before most of the work
+listed under 0.5.0 below had landed. That build still uses GitPython and so
+predates the argument-injection hardening described in the 0.5.0 security notes;
+it also lacks the manifest comment preservation and configuration-free CLI work.
+PyPI does not allow a filename to be reused, so the corrected build ships as
+0.5.1 and the original 0.5.0 has been yanked. The `v0.5.0` git tag points at the
+intended source; only the PyPI artifact was stale.
+
+0.5.1 is 0.5.0's intended content. It carries no source changes of its own.
+
+**Fixes.**
+
+* **The docs deployment on release merge no longer fails before it starts.** `auto-on-pr-merge.docs.yaml` declared a workflow-level `concurrency` group of `pages`, the same group the `reusable.docs.yml` it calls declares. A called workflow's concurrency is evaluated in the caller's context, so the caller held the group the workflow it was calling needed, and GitHub rejected the run at startup -- in seconds, with no jobs, no logs, and only "a workflow file issue" to go on. It had never surfaced before: every prior run was skipped by the job's own `if`, which meant the called workflow was never resolved, and the first release merge to satisfy that `if` was the first to hit it. The group is now declared only in the called workflow, matching `manual-trigger.docs.yaml`, which has always worked.
+
 0.5.0
 ---
 
