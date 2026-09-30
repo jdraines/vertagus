@@ -10,9 +10,13 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+# No workflow-level `concurrency` here on purpose. reusable.docs.yml already
+# declares the "pages" group, and it is evaluated in the caller's context: if
+# this run held that group too, the workflow it calls could never acquire it.
+# GitHub rejects that at startup -- the run fails in seconds with no jobs, no
+# logs and "a workflow file issue". Earlier runs never showed it, because the
+# `if` below was false and the called workflow was never resolved.
+# manual-trigger.docs.yaml, which has always worked, omits it for this reason.
 
 jobs:
   
